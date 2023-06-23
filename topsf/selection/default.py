@@ -18,8 +18,12 @@ from columnflow.production.util import attach_coffea_behavior
 from columnflow.util import maybe_import
 
 from topsf.selection.lepton import lepton_selection
-from topsf.selection.jet import jet_selection, bjet_selection
+from topsf.selection.jet import jet_selection
+from topsf.selection.bjet import bjet_lepton_selection
+from topsf.selection.fatjet import fatjet_selection
 from topsf.selection.met import met_selection
+
+from topsf.production.gen_top import gen_top_decay, probe_jet
 
 
 np = maybe_import("numpy")
@@ -90,12 +94,27 @@ def increment_stats(
 
 @selector(
     uses={
-        mc_weight, process_ids,
-        lepton_selection, jet_selection, bjet_selection, met_selection,
+        attach_coffea_behavior,
+        mc_weight, process_ids, category_ids,
+        met_filters,
+        lepton_selection,
+        met_selection,
+        jet_selection,
+        bjet_lepton_selection,
+        fatjet_selection,
         increment_stats,
+        gen_top_decay, probe_jet,
     },
     produces={
-        mc_weight, process_ids,
+        mc_weight, process_ids, category_ids,
+        met_filters,
+        lepton_selection,
+        met_selection,
+        jet_selection,
+        bjet_lepton_selection,
+        fatjet_selection,
+        increment_stats,
+        gen_top_decay, probe_jet,
     },
     exposed=True,
 )
@@ -126,9 +145,13 @@ def default(
     events, jet_results = self[jet_selection](events, **kwargs)
     results += jet_results
 
-    # bjet selection
-    events, bjet_results = self[bjet_selection](events, **kwargs)
-    results += bjet_results
+    # bjet-lepton selection
+    events, bjet_lepton_results = self[bjet_lepton_selection](events, **kwargs)
+    results += bjet_lepton_results
+
+    # fatjet selection
+    events, fatjet_results = self[fatjet_selection](events, **kwargs)
+    results += fatjet_results
 
     # met selection
     events, met_results = self[met_selection](events, **kwargs)
@@ -145,11 +168,15 @@ def default(
     n_sel = ak.sum(event_sel, axis=-1)
     print(f"__all__: {n_sel}")
 
-    # build categories
-    events = self[category_ids](events, results=results, **kwargs)
+    # produce features relevant for selection
+    events = self[probe_jet](events, results=results, **kwargs)
+    events = self[gen_top_decay](events, **kwargs)
 
     # create process ids
     events = self[process_ids](events, **kwargs)
+
+    # build categories
+    events = self[category_ids](events, results=results, **kwargs)
 
     # add mc weights (needed for cutflow plots)
     if getattr(self.dataset_inst.x, "is_mc", None):
@@ -159,3 +186,10 @@ def default(
     self[increment_stats](events, results, stats, **kwargs)
 
     return events, results
+
+
+@default.init
+def default_init(self: Selector):
+    dataset_inst = getattr(self, "dataset_inst", None)
+    if dataset_inst is not None and dataset_inst.is_data:
+        self.uses |= {json_filter}

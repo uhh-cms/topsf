@@ -6,6 +6,8 @@ Selection methods defining masks for categories.
 from columnflow.util import maybe_import
 from columnflow.selection import Selector, selector
 
+from topsf.production.gen_top import gen_top_decay
+
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
@@ -17,6 +19,10 @@ def sel_incl(self: Selector, events: ak.Array, **kwargs) -> ak.Array:
     """Passes every event."""
     return ak.ones_like(events.event, dtype=bool)
 
+
+#
+# channel selectors
+#
 
 @selector(uses={"event", "channel_id"})
 def sel_1m(self: Selector, events: ak.Array, **kwargs) -> ak.Array:
@@ -32,11 +38,18 @@ def sel_1e(self: Selector, events: ak.Array, **kwargs) -> ak.Array:
     return events["channel_id"] == ch.id
 
 
-@selector(uses={"n_q_ak8_dr0p8"})
-def sel_3q(self: Selector, events: ak.Array, **kwargs) -> ak.Array:
-    raise NotImplementedError()
+#
+# top process selectors
+#
 
-
-@selector(uses={"n_q_ak8_dr0p8"})
-def sel_le2q(self: Selector, events: ak.Array, **kwargs) -> ak.Array:
-    raise NotImplementedError()
+for n_had in range(2):
+    @selector(
+        uses={gen_top_decay},
+        cls_name=f"sel_top_{n_had}h",
+    )
+    def sel_top_n_had(self: Selector, events: ak.Array, **kwargs) -> ak.Array:
+        f"""
+        Select events with {n_had} hadronically decaying top quarks.
+        """
+        events = self[gen_top_decay](events, **kwargs)
+        return (events.GenTopDecay.n_had == n_had)

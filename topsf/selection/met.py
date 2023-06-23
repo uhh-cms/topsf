@@ -17,7 +17,7 @@ def met_selection(
     self: Selector,
     events: ak.Array,
     **kwargs,
-) -> tuple[ak.Array, ak.Array]:
+) -> tuple[ak.Array, SelectionResult]:
     """
     Select events with minimum amount of missing transverse energy (MET).
     """
@@ -29,7 +29,7 @@ def met_selection(
     sel_met = (met.pt < self.cfg.min_pt)
 
     # return selection result
-    return SelectionResult(
+    return events, SelectionResult(
         steps={
             "MET": ak.fill_none(sel_met, False),
         },
@@ -45,7 +45,7 @@ def met_selection_init(self: Selector) -> None:
         return
 
     # get selection parameters from the config
-    self.cfg = self.config_inst.x.met_selection
+    self.cfg = self.config_inst.x.met_selection.default
 
     # set input columns
     column = self.cfg.column

@@ -1,10 +1,8 @@
 # coding: utf-8
 
 """
-Lepton-related selectors.
+Selectors for leptons.
 """
-
-from typing import Tuple
 
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
@@ -18,59 +16,20 @@ np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
 
-class ChannelSelector(Selector):
-
-    exposed = False
-
-    def __init__(self, channel: str, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # return early if no config yet
-        config_inst = getattr(self, "config_inst", None)
-        if not config_inst:
-            return
-
-        # set the channel
-        self.channel = self.config_inst.get_channel(channel)
-
-        # set config dict
-        self.cfg = config_inst.x.lepton_selection[self.channel.name]
-
-        # set input columns
-        column = self.cfg.column
-        self.uses |= {
-            f"{column}.pt",
-            f"{column}.eta",
-            f"{column}.{self.cfg.id}",
-            f"{column}.{self.cfg.id_veto}",
-        } | {
-            f"HLT.{trigger}"
-            for trigger in self.cfg.triggers
-        }
-
-        # optionally wire relative isolation
-        rel_iso = self.cfg.get("rel_iso", None)
-        if rel_iso is not None:
-            self.uses |= {"f{column}.{rel_iso}"}
-
-
 @selector(
     uses={
         "event",
     },
 )
 def channel_selection(
-    self: ChannelSelector,
+    self: Selector,
     events: ak.Array,
     **kwargs,
-) -> tuple[ak.Array, ak.Array]:
+) -> tuple[ak.Array, SelectionResult]:
     """
     Select leptons based on trigger, offline ID/Isolation.
     Veto events with more than one lepton.
     """
-
-    # get channel and selection parameters from the config
-    self.cfg = self.config_inst.x.lepton_selection[self.channel.name]
 
     # choose lepton column
     lepton = events[self.cfg.column]
@@ -79,8 +38,7 @@ def channel_selection(
     lepton_mask = (
         (abs(lepton.eta) < self.cfg.max_abseta) &
         (lepton.pt > self.cfg.min_pt) &
-        (lepton[self.cfg.id])
-        # TODO: relative isolation
+        (lepton[self.cfg.id.column] == self.cfg.id.value)
     )
 
     # optionally apply relative isolation
@@ -96,7 +54,7 @@ def channel_selection(
     lepton_mask_veto = (
         (abs(lepton.eta) < self.cfg.max_abseta) &
         (lepton.pt > self.cfg.min_pt_addveto) &
-        (lepton[self.cfg.id_addveto])
+        (lepton[self.cfg.id_addveto.column] == self.cfg.id_addveto.value)
     )
     add_lepton_veto = (ak.sum(lepton_mask_veto, axis=-1) <= 1)
 
@@ -114,8 +72,11 @@ def channel_selection(
     for trigger in self.cfg.triggers:
         trigger_mask = trigger_mask | events.HLT[trigger]
 
+    # write out leptons to temporary column
+    events = set_ak_column(events, f"{self.cfg.column}Selected", lepton[lepton_indices])
+
     # return selection result
-    return SelectionResult(
+    return events, SelectionResult(
         steps={
             "Lepton": (ak.num(lepton_indices) == 1),
             "LeptonTrigger": ak.fill_none(trigger_mask, False),
@@ -129,32 +90,35 @@ def channel_selection(
     )
 
 
-# @channel_selection.init
-# def channel_selection_init(self: ChannelSelector) -> None:
-#     # add standard jec and jer for mc, and only jec nominal for dta
-#     config_inst = getattr(self, "config_inst", None)
-#     if not config_inst:
-#         return
-#
-#     # set config dict
-#     self.cfg = config_inst.x.lepton_selection[self.channel.name]
-#
-#     # set input columns
-#     column = self.cfg.column
-#     self.uses |= {
-#         f"{column}.pt",
-#         f"{column}.eta",
-#         f"{column}.{self.cfg.id}",
-#         f"{column}.{self.cfg.id_veto}",
-#     } | {
-#         f"HLT.{trigger}"
-#         for trigger in self.cfg.triggers
-#     }
-#
-#     # optionally wire relative isolation
-#     rel_iso = self.cfg.get("rel_iso", None)
-#     if rel_iso is not None:
-#         self.uses |= {"f{column}.{rel_iso}"}
+@channel_selection.init
+def channel_selection_init(self: Selector) -> None:
+    # add standard jec and jer for mc, and only jec nominal for dta
+    config_inst = getattr(self, "config_inst", None)
+    if not config_inst:
+        return
+
+    # get channel and selection parameters from the config
+    channel_inst = self.config_inst.get_channel(self.channel)
+    self.cfg = config_inst.x.lepton_selection[channel_inst.name]
+
+    # set input columns
+    column = self.cfg.column
+    self.uses |= {
+        f"{column}.pt",
+        f"{column}.eta",
+        f"{column}.phi",
+        f"{column}.mass",
+        f"{column}.{self.cfg.id.column}",
+        f"{column}.{self.cfg.id_addveto.column}",
+    } | {
+        f"HLT.{trigger}"
+        for trigger in self.cfg.triggers
+    }
+
+    # optionally wire relative isolation
+    rel_iso = self.cfg.get("rel_iso", None)
+    if rel_iso is not None:
+        self.uses |= {f"{column}.{rel_iso}"}
 
 
 # instantiate selectors for channels
@@ -202,6 +166,8 @@ def merge_selection_steps(step_dicts):
     },
     produces={
         "channel_id",
+        muon_selection,
+        electron_selection,
         choose_lepton,
     },
     exposed=True,
@@ -210,7 +176,7 @@ def lepton_selection(
     self: Selector,
     events: ak.Array,
     **kwargs,
-) -> Tuple[ak.Array, SelectionResult]:
+) -> tuple[ak.Array, SelectionResult]:
     """Select muons/electrons and determine channel for event."""
 
     # get channels from the config
@@ -234,7 +200,8 @@ def lepton_selection(
     ]):
 
         # selection results for channel
-        channel_results[channel] = results = self[ch_selector](events, **kwargs)
+        events, results = self[ch_selector](events, **kwargs)
+        channel_results[channel] = results
 
         # add channel IDs based on selection result
         add_channel_id = ak.singletons(

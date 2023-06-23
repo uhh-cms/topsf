@@ -99,10 +99,19 @@ colors = {
 process_names = [
     "data",
     "tt",
+    "st",
+    "dy_lep",
+    "w_lnu",
+    "vv",
+    "qcd",
 ]
 for process_name in process_names:
     # add the process
     proc = cfg.add_process(procs.get(process_name))
+
+    # mark the presence of a top quark
+    if any(proc.name.startswith(s) for s in ("tt", "st")):
+        proc.add_tag("has_top")
 
     # configuration of colors, labels, etc. can happen here
     proc.color1 = colors.get(proc.name, "#aaaaaa")
@@ -110,18 +119,71 @@ for process_name in process_names:
 
 # add datasets we need to study
 dataset_names = [
-    # data
+    # DATA
+    "data_e_b",
+    "data_e_c",
+    "data_e_d",
+    "data_e_e",
+    "data_e_f",
     "data_mu_b",
-    # backgrounds
+    "data_mu_c",
+    "data_mu_d",
+    "data_mu_e",
+    "data_mu_f",
+    # TTbar
     "tt_sl_powheg",
+    "tt_dl_powheg",
+    "tt_fh_powheg",
+    # SingleTop
+    "st_schannel_lep_amcatnlo",
+    "st_tchannel_t_powheg",
+    "st_tchannel_tbar_powheg",
+    "st_twchannel_t_powheg",
+    "st_twchannel_tbar_powheg",
+    # DY
+    "dy_lep_m50_ht70to100_madgraph",
+    "dy_lep_m50_ht100to200_madgraph",
+    "dy_lep_m50_ht200to400_madgraph",
+    "dy_lep_m50_ht400to600_madgraph",
+    "dy_lep_m50_ht600to800_madgraph",
+    "dy_lep_m50_ht800to1200_madgraph",
+    "dy_lep_m50_ht1200to2500_madgraph",
+    "dy_lep_m50_ht2500_madgraph",
+    # WJets
+    "w_lnu_ht70To100_madgraph",
+    "w_lnu_ht100To200_madgraph",
+    "w_lnu_ht200To400_madgraph",
+    "w_lnu_ht400To600_madgraph",
+    "w_lnu_ht600To800_madgraph",
+    "w_lnu_ht800To1200_madgraph",
+    "w_lnu_ht1200To2500_madgraph",
+    "w_lnu_ht2500_madgraph",
+    # Diboson
+    "ww_pythia",
+    "wz_pythia",
+    "zz_pythia",
+    # QCD
+    "qcd_ht50to100_madgraph",
+    "qcd_ht100to200_madgraph",
+    "qcd_ht200to300_madgraph",
+    "qcd_ht300to500_madgraph",
+    "qcd_ht500to700_madgraph",
+    "qcd_ht700to1000_madgraph",
+    "qcd_ht1000to1500_madgraph",
+    "qcd_ht1500to2000_madgraph",
+    "qcd_ht2000_madgraph",
 ]
 for dataset_name in dataset_names:
     # add the dataset
     dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
 
-    # for testing purposes, limit the number of files to 2
+    # mark the presence of a top quark
+    if any(dataset_name.startswith(s) for s in ("tt", "st")):
+        dataset.add_tag("has_top")
+
+    # for testing purposes, limit the number of files to 1
     for info in dataset.info.values():
-        info.n_files = min(info.n_files, 2)
+        info.n_files = min(info.n_files, 1)
 
 # verify that the root process of all datasets is part of any of the registered processes
 verify_config_processes(cfg, warn=True)
@@ -176,6 +238,20 @@ cfg.x.luminosity = Number(41480, {
     "lumi_13TeV_1718": 0.006j,
     "lumi_13TeV_correlated": 0.009j,
 })
+
+# MET filters
+# https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=158#2018_2017_data_and_MC_UL
+cfg.x.met_filters = {
+    "Flag.goodVertices",
+    "Flag.globalSuperTightHalo2016Filter",
+    "Flag.HBHENoiseFilter",
+    "Flag.HBHENoiseIsoFilter",
+    "Flag.EcalDeadCellTriggerPrimitiveFilter",
+    "Flag.BadPFMuonFilter",
+    "Flag.BadPFMuonDzFilter",
+    "Flag.eeBadScFilter",
+    "Flag.ecalBadCalibFilter",
+}
 
 # names of muon correction sets and working points
 # (used in the muon producer)
@@ -361,6 +437,7 @@ def add_shifts(cfg):
         },
     )
 
+
 # add the shifts
 add_shifts(cfg)
 
@@ -407,7 +484,10 @@ cfg.x.keep_columns = DotDict.wrap({
         "run", "luminosityBlock", "event",
         # object info
         "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.btagDeepFlavB", "Jet.hadronFlavour",
-        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Muon.pfRelIso04_all",
+        "FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass", "FatJet.tau2", "FatJet.tau3", "FatJet.msoftdrop",
+        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Muon.pfRelIso03_all", "Muon.pfRelIso04_all",
+        "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
+        "Lepton.pt", "Lepton.eta", "Lepton.phi", "Lepton.mass",
         "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
         "PV.npvs",
         # columns added during selection
@@ -478,12 +558,18 @@ cfg.x.lepton_selection = DotDict.wrap({
             # as mttbar:
             "IsoMu27",
         },
-        "id": "tightId",
+        "id": {
+            "column": "tightId",
+            "value": True,
+        },
         "rel_iso": "pfRelIso03_all",
         "max_rel_iso": 1.5,
         # veto events with additional leptons passing looser cuts
         "min_pt_addveto": 30,
-        "id_addveto": "looseId",
+        "id_addveto": {
+            "column": "looseId",
+            "value": True,
+        },
     },
     "e": {
         "column": "Electron",
@@ -496,10 +582,18 @@ cfg.x.lepton_selection = DotDict.wrap({
             # as mttbar:
             "Ele35_WPTight_Gsf",
         },
-        "id": "tightId",
+        #"id": "mvaFall17V2Iso_WP90",  # noqa
+        "id": {
+            "column": "cutBased",
+            "value": 4,
+        },
         # veto events with additional leptons passing looser cuts
         "min_pt_addveto": 30,
-        "id_addveto": "looseId",
+        #"id_addveto": "mvaFall17V2Iso_WPL",  # noqa
+        "id_addveto": {
+            "column": "cutBased",
+            "value": 1,
+        },
     },
 })
 
