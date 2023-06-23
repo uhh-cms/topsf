@@ -54,11 +54,13 @@ def gen_top_decay(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         gen_top_decay_products,
         "GenPart.pt", "GenPart.eta", "GenPart.phi", "GenPart.mass",
         "FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass",
+        "FatJet.tau3", "FatJet.tau2",
     },
     produces={
         "GenTopDecay.n_lep",
         "GenTopDecay.n_had",
         "ProbeJet.pt", "ProbeJet.eta", "ProbeJet.phi", "ProbeJet.mass",
+        "ProbeJet.tau3", "ProbeJet.tau2",
         "ProbeJet.is_hadronic_top",
         "ProbeJet.n_merged",
     },
@@ -120,7 +122,7 @@ def probe_jet(
     # write out columns
     events = set_ak_column(events, "ProbeJet.is_hadronic_top", is_hadronic_top)
     events = set_ak_column(events, "ProbeJet.n_merged", n_merged)
-    for v in ("pt", "eta", "phi", "mass"):
+    for v in ("pt", "eta", "phi", "mass", "tau3", "tau2"):
         events = set_ak_column(events, f"ProbeJet.{v}", probejet[v])
 
     return events

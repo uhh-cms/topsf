@@ -6,16 +6,18 @@ Definition of categories.
 Categories are assigned a unique integer ID according to a fixed numbering
 scheme, with digits/groups of digits indicating the different category groups:
 
-    lowest digit
-              |
-    +---+---+---+
-    | P | M | C |
-    +---+---+---+
+                   lowest digit
+                              |
+    +---+---+---+---+---+---+---+
+    | W | W | T | T | P | M | C |
+    +---+---+---+---+---+---+---+
 
     C = channel       (1: electron [1e], 2: muon [1m])
     M = merge type    (1: top fully merged [t3q], 2: top semi-merged [t2q],
                        3: top not merged [t1q], 4: top background [t0q])
     P = process
+    T = pt bin
+    W = working point bin
 
 A digit group consisting entirely of zeroes ('0') represents the inclusive
 category for the corresponding category group, i.e. no selection from that
@@ -218,6 +220,100 @@ def add_categories(config: od.Config) -> None:
 
             proc_categories.append(cat)
 
+    #
+    # group 3: probe jet pt bins
+    #
+
+    pt_bins = [300, 400, 480, 600, None]
+    pt_categories = []
+
+    for cat_idx, (pt_min, pt_max) in enumerate(
+        zip(pt_bins[:-1], pt_bins[1:]),
+    ):
+        pt_min_repr = f"{int(pt_min)}"
+        if pt_max is None:
+            pt_max_repr = "inf"
+            cat_label = rf"{pt_min} $\leq$ $p_{{T}}$ < {pt_max} GeV"
+        else:
+            pt_max_repr = f"{int(pt_max)}"
+            cat_label = rf"$p_{{T}}$ > {pt_min} GeV"
+
+        cat_name = f"pt_{pt_min_repr}_{pt_max_repr}"
+        sel_name = f"sel_{cat_name}"
+
+        @selector(
+            uses={probe_jet},
+            cls_name=sel_name,
+        )
+        def sel_pt(
+            self: Selector, events: ak.Array,
+            pt_range: tuple = (pt_min, pt_max),
+            **kwargs,
+        ) -> ak.Array:
+            f"""
+            Select events with probe jet pt the range [{pt_min_repr}, {pt_max_repr})
+            """
+            events = self[probe_jet](events, **kwargs)
+            return ak.fill_none(
+                (events.ProbeJet.pt >= pt_range[0]) &
+                ((events.ProbeJet.pt < pt_range[1]) if pt_range[1] is not None else True),
+                False,
+            )
+
+        cat = config.add_category(
+            name=cat_name,
+            id=1000 * (cat_idx + 1),
+            selection=sel_name,
+            label=cat_label,
+        )
+
+        pt_categories.append(cat)
+
+    #
+    # group 4: probe jet tau3/tau2 bins
+    #
+
+    tau32_bins = [0, 0.38, 0.47, 0.52, 0.61, 0.69, 1]
+    tau32_categories = []
+
+    for cat_idx, (tau32_min, tau32_max) in enumerate(
+        zip(tau32_bins[:-1], tau32_bins[1:]),
+    ):
+        tau32_min_repr = f"{int(tau32_min*100):03d}"
+        tau32_max_repr = f"{int(tau32_max*100):03d}"
+        cat_label = rf"{tau32_min} $\leq$ $\tau_{{32}}$ < {tau32_max}"
+
+        cat_name = f"tau32_{tau32_min_repr}_{tau32_max_repr}"
+        sel_name = f"sel_{cat_name}"
+
+        @selector(
+            uses={probe_jet},
+            cls_name=sel_name,
+        )
+        def sel_tau32(
+            self: Selector, events: ak.Array,
+            tau32_range: tuple = (tau32_min, tau32_max),
+            **kwargs,
+        ) -> ak.Array:
+            f"""
+            Select events with probe jet pt the range [{tau32_min_repr}, {tau32_max_repr})
+            """
+            events = self[probe_jet](events, **kwargs)
+            tau32 = events.ProbeJet.tau3 / events.ProbeJet.tau2
+            return ak.fill_none(
+                (tau32 >= tau32_range[0]) & (tau32 < tau32_range[1]),
+                False,
+            )
+
+        cat = config.add_category(
+            name=cat_name,
+            id=100000 * (cat_idx + 1),
+            selection=sel_name,
+            label=cat_label,
+        )
+
+        tau32_categories.append(cat)
+
     # -- combined categories
 
     category_groups = {
@@ -226,6 +322,8 @@ def add_categories(config: od.Config) -> None:
             for name in ["1e", "1m"]
         ],
         "process": proc_categories,
+        "pt": pt_categories,
+        "tau32": tau32_categories,
     }
 
     create_category_combinations(config, category_groups, name_fn, kwargs_fn)
