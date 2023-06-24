@@ -21,6 +21,7 @@ from topsf.selection.jet import jet_selection
 from topsf.selection.bjet import bjet_lepton_selection
 from topsf.selection.fatjet import fatjet_selection
 from topsf.selection.met import met_selection
+from topsf.selection.w_lep import w_lep_selection
 
 from topsf.production.categories import category_ids
 from topsf.production.gen_top import gen_top_decay, probe_jet
@@ -99,6 +100,7 @@ def increment_stats(
         met_filters,
         lepton_selection,
         met_selection,
+        w_lep_selection,
         jet_selection,
         bjet_lepton_selection,
         fatjet_selection,
@@ -110,6 +112,7 @@ def increment_stats(
         met_filters,
         lepton_selection,
         met_selection,
+        w_lep_selection,
         jet_selection,
         bjet_lepton_selection,
         fatjet_selection,
@@ -156,6 +159,10 @@ def default(
     # met selection
     events, met_results = self[met_selection](events, **kwargs)
     results += met_results
+
+    # w_lep selection
+    events, w_lep_results = self[w_lep_selection](events, **kwargs)
+    results += w_lep_results
 
     # combined event selection after all steps
     event_sel = reduce(and_, results.steps.values())
