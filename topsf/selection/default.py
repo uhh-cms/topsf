@@ -11,7 +11,6 @@ from collections import defaultdict, OrderedDict
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
 from columnflow.selection.cms.json_filter import json_filter
-from columnflow.production.categories import category_ids
 from columnflow.production.processes import process_ids
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.util import attach_coffea_behavior
@@ -23,6 +22,7 @@ from topsf.selection.bjet import bjet_lepton_selection
 from topsf.selection.fatjet import fatjet_selection
 from topsf.selection.met import met_selection
 
+from topsf.production.categories import category_ids
 from topsf.production.gen_top import gen_top_decay, probe_jet
 
 
