@@ -25,8 +25,8 @@ def met_selection(
     # choose jet column
     met = events[self.cfg.column]
 
-    # select jets
-    sel_met = (met.pt < self.cfg.min_pt)
+    # select met
+    sel_met = (met.pt > self.cfg.min_pt)
 
     # return selection result
     return events, SelectionResult(
