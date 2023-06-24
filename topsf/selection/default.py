@@ -17,7 +17,7 @@ from columnflow.production.util import attach_coffea_behavior
 from columnflow.util import maybe_import
 
 from topsf.selection.lepton import lepton_selection
-from topsf.selection.jet import jet_selection
+from topsf.selection.jet import jet_selection, jet_lepton_2d_selection
 from topsf.selection.bjet import bjet_lepton_selection
 from topsf.selection.fatjet import fatjet_selection
 from topsf.selection.met import met_selection
@@ -103,6 +103,7 @@ def increment_stats(
         w_lep_selection,
         jet_selection,
         bjet_lepton_selection,
+        jet_lepton_2d_selection,
         fatjet_selection,
         increment_stats,
         gen_top_decay, probe_jet,
@@ -115,6 +116,7 @@ def increment_stats(
         w_lep_selection,
         jet_selection,
         bjet_lepton_selection,
+        jet_lepton_2d_selection,
         fatjet_selection,
         increment_stats,
         gen_top_decay, probe_jet,
@@ -151,6 +153,10 @@ def default(
     # bjet-lepton selection
     events, bjet_lepton_results = self[bjet_lepton_selection](events, **kwargs)
     results += bjet_lepton_results
+
+    # jet-lepton 2D selection
+    events, jet_lepton_2d_results = self[jet_lepton_2d_selection](events, results=results, **kwargs)
+    results += jet_lepton_2d_results
 
     # fatjet selection
     events, fatjet_results = self[fatjet_selection](events, **kwargs)

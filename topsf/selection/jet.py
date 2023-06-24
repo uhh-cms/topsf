@@ -5,10 +5,12 @@ Selectors for small-radius jets.
 """
 
 from columnflow.util import maybe_import
+from columnflow.columnar_util import set_ak_column
 
 from columnflow.selection import Selector, SelectionResult, selector
 
 from topsf.selection.util import masked_sorted_indices
+from topsf.production.lepton import choose_lepton
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -85,3 +87,80 @@ def jet_selection_init(self: Selector) -> None:
         f"{column}.mass",
         f"{column}.{self.cfg.btag_column}",
     }
+
+
+@selector(
+    uses={
+        choose_lepton,
+        "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass",
+    },
+    produces={
+        "Lepton.closest_jet_delta_r",
+        "Lepton.closest_jet_pt_rel",
+        "Lepton.closest_jet_separation",
+    },
+    exposed=True,
+)
+def jet_lepton_2d_selection(
+    self: Selector,
+    events: ak.Array,
+    results: ak.Array,
+    **kwargs,
+) -> tuple[ak.Array, SelectionResult]:
+    """
+    BJet/Lepton 2D cut to reduce QCD contribution.
+
+    The 2D requirement is defined as
+
+      delta_r(l, jet) / 0.4 (+) pt_rel(l, jet) / 30 GeV < 1
+
+    where *l* is the main lepton, *jet* refers to the closest AK4
+    jet, and (+) is the sum in quadrature.
+
+    The quantity *pt_rel* denotes the magnitude of the perpendicular
+    component of the lepton three-vector with respect to the jet axis:
+
+      pt_rel = p_l * sin(angle(p_l, p_jet))
+
+    and can be calculated eqivalently via the cross product of the jet
+    and lepton three-momenta as:
+
+      pt_rel = |cross(p_l, p_jet)| / |p_jet|
+    """
+
+    # get lepton
+    events = self[choose_lepton](events, **kwargs)
+    lepton = events.Lepton
+
+    # get selected jets
+    jet_indices = results.objects.Jet.Jet
+    jet = events.Jet[jet_indices]
+
+    # get jet closest to lepton
+    jet_lepton_deltar = jet.delta_r(lepton)
+    jet_closest_indices = ak.argsort(jet_lepton_deltar, axis=1, ascending=True)
+    jet_closest = ak.firsts(jet[jet_closest_indices])
+
+    # calculate 2D separation metric
+    delta_r = jet_closest.delta_r(lepton)
+    pt_rel = lepton.cross(jet_closest).p / jet_closest.p
+    separation = (
+        (delta_r / 0.4)**2 +
+        (pt_rel / 30)**2
+    )
+
+    # select on the metric
+    sel = (separation > 1)
+
+    # write out columns
+    events = set_ak_column(events, "Lepton.closest_jet_delta_r", delta_r)
+    events = set_ak_column(events, "Lepton.closest_jet_pt_rel", pt_rel)
+    events = set_ak_column(events, "Lepton.closest_jet_separation", separation)
+
+    # return selection result
+    return events, SelectionResult(
+        steps={
+            "JetLepton2DCut": ak.fill_none(sel, True),
+        },
+        objects={},
+    )
