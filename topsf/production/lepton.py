@@ -21,6 +21,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
     },
     produces={
         "Lepton.pt", "Lepton.eta", "Lepton.phi", "Lepton.mass",
+        "Lepton.pdgId",
     },
 )
 def choose_lepton(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -31,8 +32,8 @@ def choose_lepton(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
 
     # extract only LV columns
-    muon = events.Muon[["pt", "eta", "phi", "mass"]]
-    electron = events.Electron[["pt", "eta", "phi", "mass"]]
+    muon = events.Muon[["pt", "eta", "phi", "mass", "pdgId"]]
+    electron = events.Electron[["pt", "eta", "phi", "mass", "pdgId"]]
 
     # choose either muons or electrons based on channel ID
     lepton = ak.concatenate([
