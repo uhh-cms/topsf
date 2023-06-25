@@ -273,9 +273,19 @@ def add_categories(config: od.Config) -> None:
     # group 4: probe jet tau3/tau2 bins
     #
 
-    tau32_bins = [0, 0.38, 0.47, 0.52, 0.61, 0.69, 1]
-    tau32_categories = []
+    tau32_wps = [
+        "very_tight",
+        "tight",
+        "medium",
+        "loose",
+        "very_loose",
+    ]
+    tau32_bins = [0] + [
+        config.x.toptag_working_points["tau32"][wp]
+        for wp in tau32_wps
+    ] + [1]
 
+    tau32_categories = []
     for cat_idx, (tau32_min, tau32_max) in enumerate(
         zip(tau32_bins[:-1], tau32_bins[1:]),
     ):

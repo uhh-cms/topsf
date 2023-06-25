@@ -541,7 +541,7 @@ cfg.x.toptag_working_points = DotDict.wrap({
         "loose": 0.61,
         "medium": 0.52,
         "tight": 0.47,
-        "veryr_tight": 0.38,
+        "very_tight": 0.38,
     },
 })
 
