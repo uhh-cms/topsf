@@ -11,10 +11,11 @@ export my_version="test"
 export my_process="tt"
 export my_dataset="tt_sl_powheg"
 
-export all_processes="tt,w_lnu"
+export all_processes="tt,st,dy_lep,w_lnu,vv,qcd"
+export all_selector_steps="LeptonTrigger,Lepton,AddLeptonVeto,MET,WLepPt,FatJet,Jet,JetLepton2DCut,BJetLeptonDeltaR,METFilters"
 
 # categories
-export my_categories="1m"
+export my_categories="1e,1m"
 
 # print or run commands depending on env var PRINT
 _law=$(type -fp law)
