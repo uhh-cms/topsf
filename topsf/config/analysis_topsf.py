@@ -203,7 +203,9 @@ cfg.x.process_groups = {}
 
 # dataset groups for conveniently looping over certain datasets
 # (used in wrapper_factory and during plotting)
-cfg.x.dataset_groups = {}
+cfg.x.dataset_groups = {
+    "all": dataset_names,
+}
 
 # category groups for conveniently looping over certain categories
 # (used during plotting)
@@ -511,9 +513,13 @@ cfg.x.event_weights = DotDict({
 
 # versions per task family and optionally also dataset and shift
 # None can be used as a key to define a default value
+cfg.x.main_version = "test"
 cfg.x.versions = {
-    None: "v1",
-    # "cf.CalibrateEvents": "v1",
+    None: cfg.x.main_version,
+    "cf.CalibrateEvents": cfg.x.main_version,
+    "cf.SelectEvents": cfg.x.main_version,
+    "cf.ReduceEvents": cfg.x.main_version,
+    "cf.MergeReducedEvents": cfg.x.main_version,
 }
 
 #######
