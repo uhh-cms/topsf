@@ -22,6 +22,7 @@ from topsf.selection.bjet import bjet_lepton_selection
 from topsf.selection.fatjet import fatjet_selection
 from topsf.selection.met import met_selection
 from topsf.selection.w_lep import w_lep_selection
+from topsf.selection.cutflow_features import cutflow_features
 
 from topsf.production.categories import category_ids
 from topsf.production.gen_top import gen_top_decay, probe_jet
@@ -97,6 +98,7 @@ def increment_stats(
     uses={
         attach_coffea_behavior,
         mc_weight, process_ids, category_ids,
+        cutflow_features,
         met_filters,
         lepton_selection,
         met_selection,
@@ -110,6 +112,7 @@ def increment_stats(
     },
     produces={
         mc_weight, process_ids, category_ids,
+        cutflow_features,
         met_filters,
         lepton_selection,
         met_selection,
@@ -191,9 +194,8 @@ def default(
     # build categories
     events = self[category_ids](events, results=results, **kwargs)
 
-    # add mc weights (needed for cutflow plots)
-    if getattr(self.dataset_inst.x, "is_mc", None):
-        events = self[mc_weight](events, **kwargs)
+    # add cutflow features
+    events = self[cutflow_features](events, object_masks=results.objects, **kwargs)
 
     # increment stats
     self[increment_stats](events, results, stats, **kwargs)
