@@ -487,9 +487,10 @@ cfg.x.keep_columns = DotDict.wrap({
         # object info
         "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.btagDeepFlavB", "Jet.hadronFlavour",
         "FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass", "FatJet.tau2", "FatJet.tau3", "FatJet.msoftdrop",
+        "ProbeJet.*",
         "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Muon.pfRelIso03_all", "Muon.pfRelIso04_all",
         "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
-        "Lepton.pt", "Lepton.eta", "Lepton.phi", "Lepton.mass",
+        "Lepton.*",
         "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
         "PV.npvs",
         # columns added during selection

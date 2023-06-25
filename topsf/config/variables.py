@@ -151,17 +151,67 @@ def add_variables(config: od.Config) -> None:
         x_title=r"MET $\phi$",
     )
 
-    # jj features
+    # probe jet properties
     config.add_variable(
-        name="dijet_mass",
-        binning=(40, 0., 400.),
+        name="probejet_pt",
+        expression="ProbeJet.pt",
+        null_value=EMPTY_FLOAT,
+        #binning=(50, 0, 1000),  # noqa
+        binning=(35, 300, 1000),
+        x_title=r"Probe jet $p_{T}$",
         unit="GeV",
-        x_title=r"$m_{jj}$",
     )
     config.add_variable(
-        name="dijet_delta_r",
-        binning=(40, 0, 5),
-        x_title=r"$\Delta R(j_{1},j_{2})$",
+        name="probejet_mass",
+        expression="ProbeJet.mass",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 500),
+        x_title=r"Probe jet mass",
+        unit="GeV",
+    )
+    config.add_variable(
+        name="probejet_msoftdrop",
+        expression="ProbeJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 500),
+        x_title=r"Probe jet $m_{SD}$",
+        unit="GeV",
+    )
+    config.add_variable(
+        name="probejet_msoftdrop_widebins",
+        expression="ProbeJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=[
+            50, 70, 85,
+            105, 120, 140,
+            155, 170, 185,
+            200, 210, 220,
+            230, 250, 275,
+            300, 350, 400,
+            450, 500,
+        ],
+        x_title=r"Probe jet $m_{SD}$",
+        unit="GeV",
+    )
+    config.add_variable(
+        name="probejet_tau32",
+        expression=lambda events: events.ProbeJet.tau3 / events.ProbeJet.tau2,
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 1),
+        x_title=r"Probe jet $\tau_{3}/\tau_{2}$",
+    )
+    config.add_variable(
+        name="probejet_max_subjet_btag_score_deepcsv",
+        expression=lambda events: ak.max(
+            [
+                events.ProbeJet.subjet_1_btag_score_deepcsv,
+                events.ProbeJet.subjet_2_btag_score_deepcsv,
+            ],
+            axis=1,
+        ),
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 1),
+        x_title=r"Max. DeepCSV score of probe subjets",
     )
 
     # jet lepton features
@@ -169,25 +219,25 @@ def add_variables(config: od.Config) -> None:
         name="jet_lep_pt_rel",
         binning=(40, 0, 400),
         unit="GeV",
-        x_title=r"$p_{T}^{rel}$",
+        x_title=r"$p_{T}^{rel}$(lepton, closest AK4 jet)",
     )
     config.add_variable(
         name="jet_lep_delta_r",
         binning=(40, 0, 5),
-        x_title=r"$\Delta R(jet, lep)$",
+        x_title=r"$\Delta R$(lepton, closest AK4 jet)",
     )
     config.add_variable(
         name="jet_lep_pt_rel_zoom",
         expression="jet_lep_pt_rel",
         binning=(10, 0, 50),
         unit="GeV",
-        x_title=r"$p_{T}^{rel}$",
+        x_title=r"$p_{T}^{rel}$(lepton, closest AK4 jet)",
     )
     config.add_variable(
         name="jet_lep_delta_r_zoom",
         expression="jet_lep_delta_r",
         binning=(15, 0, 1.5),
-        x_title=r"$\Delta R(jet, lep)$",
+        x_title=r"$\Delta R$(lepton, closest AK4 jet)",
     )
 
     # HT: scalar jet pT sum

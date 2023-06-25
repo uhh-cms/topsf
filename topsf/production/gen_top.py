@@ -136,9 +136,15 @@ def gen_top_decay(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 @producer(
     uses={
         gen_top_decay_products,
+        # generator particle kinematics
         "GenPart.pt", "GenPart.eta", "GenPart.phi", "GenPart.mass",
+        # fat (AK8) jet kinematics
         "FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass",
+        # n-subjettiness variables
         "FatJet.tau3", "FatJet.tau2",
+        # subjets
+        "FatJet.subJetIdx1", "FatJet_subJetIdx2",
+        "SubJet.btagDeepB",  # DeepCSV (TODO: DeepJet)
     },
     produces={
         "GenTopDecay.n_lep",
@@ -147,6 +153,8 @@ def gen_top_decay(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         "ProbeJet.tau3", "ProbeJet.tau2",
         "ProbeJet.is_hadronic_top",
         "ProbeJet.n_merged",
+        "ProbeJet.subjet_1_btag_score_deepcsv",
+        "ProbeJet.subjet_2_btag_score_deepcsv",
     },
 )
 def probe_jet(
@@ -167,9 +175,19 @@ def probe_jet(
     # probe jet is leading fat jet on the opposite side of the lepton
     probejet = ak.firsts(fatjet_far, axis=1)
 
+    # fill subjet btag scores
+    for i in (1, 2):
+        subjet_idx = probejet[f"subJetIdx{i}"]
+        max_idx = ak.max(subjet_idx, axis=0)
+        probejet[f"subjet_{i}_btag_score_deepcsv"] = ak.pad_none(
+            events.SubJet["btagDeepB"],
+            max_idx,
+        )[subjet_idx]
+
     # default values for non-top samples
     n_merged = 0
     is_hadronic_top = False
+    subjets_max_btag_score_deepcsv = -1
 
     # get decay products of top quark
     if self.dataset_inst.has_tag("has_top"):
@@ -208,5 +226,12 @@ def probe_jet(
     events = set_ak_column(events, "ProbeJet.n_merged", n_merged)
     for v in ("pt", "eta", "phi", "mass", "tau3", "tau2"):
         events = set_ak_column(events, f"ProbeJet.{v}", probejet[v])
+
+    for i in (1, 2):
+        events = set_ak_column(
+            events,
+            f"ProbeJet.subjet_{i}_btag_score_deepcsv",
+            ak.fill_none(probejet[f"subjet_{i}_btag_score_deepcsv"], -1),
+        )
 
     return events
