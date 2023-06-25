@@ -511,18 +511,51 @@ cfg.x.event_weights = DotDict({
     "electron_weight": get_shifts("electron"),
 })
 
+# named references to actual versions to use for certain sets of tasks
+cfg.x.named_versions = DotDict.wrap({
+    "default": "test",
+    "csr": "test",
+    "merge": "test",
+    "produce": "test",
+    "hist": "test",
+    "plot": "test",
+    "datacards": "test",
+})
+
 # versions per task family and optionally also dataset and shift
 # None can be used as a key to define a default value
-cfg.x.main_version = "test"
 cfg.x.versions = {
-    None: cfg.x.main_version,
-    "cf.CalibrateEvents": cfg.x.main_version,
-    "cf.SelectEvents": cfg.x.main_version,
-    "cf.ReduceEvents": cfg.x.main_version,
-    "cf.MergeReducedEvents": cfg.x.main_version,
+    None: cfg.x.named_versions["default"],
+    # CSR tasks
+    "cf.CalibrateEvents": cfg.x.named_versions["csr"],
+    "cf.SelectEvents": cfg.x.named_versions["csr"],
+    "cf.ReduceEvents": cfg.x.named_versions["csr"],
+    # merging tasks
+    "cf.MergeSelectionStats": cfg.x.named_versions["merge"],
+    "cf.MergeSelectionMasks": cfg.x.named_versions["merge"],
+    "cf.MergeReducedEvents": cfg.x.named_versions["merge"],
+    "cf.MergeReductionStats": cfg.x.named_versions["merge"],
+    # column production
+    "cf.ProduceColumns": cfg.x.named_versions["produce"],
+    # histogramming
+    "cf.CreateCutflowHistograms": cfg.x.named_versions["hist"],
+    "cf.CreateHistograms": cfg.x.named_versions["hist"],
+    "cf.MergeHistograms": cfg.x.named_versions["hist"],
+    "cf.MergeShiftedHistograms": cfg.x.named_versions["hist"],
+    # plotting
+    "cf.PlotVariables1D": cfg.x.named_versions["plot"],
+    "cf.PlotVariables2D": cfg.x.named_versions["plot"],
+    "cf.PlotVariablesPerProcess2D": cfg.x.named_versions["plot"],
+    "cf.PlotShiftedVariables1D": cfg.x.named_versions["plot"],
+    "cf.PlotShiftedVariablesPerProcess1D": cfg.x.named_versions["plot"],
+    #
+    "cf.PlotCutflow": cfg.x.named_versions["plot"],
+    "cf.PlotCutflowVariables1D": cfg.x.named_versions["plot"],
+    "cf.PlotCutflowVariables2D": cfg.x.named_versions["plot"],
+    "cf.PlotCutflowVariablesPerProcess2D": cfg.x.named_versions["plot"],
+    # datacards
+    "cf.CreateDatacards": cfg.x.named_versions["datacards"],
 }
-
-#######
 
 # 2017 b-tag working points
 # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17?rev=15
