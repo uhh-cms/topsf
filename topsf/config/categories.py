@@ -324,6 +324,30 @@ def add_categories(config: od.Config) -> None:
 
         tau32_categories.append(cat)
 
+    # pass/fail categories from union of tau32 slices
+    assert len(tau32_wps) + 2 == len(tau32_bins)
+    for cat_idx, (tau32_wp, tau32_val) in enumerate(zip(tau32_wps, tau32_bins[1:-1])):
+        assert cat_idx < 9, "no space for category, ID reassignement necessary"
+        for i_pass_fail, (pass_fail, comp_symbol, cat_slice) in enumerate([
+            ("pass", ">", slice(None, cat_idx + 1)),
+            ("fail", "<", slice(cat_idx + 1, None)),
+        ]):
+            cat_label = rf"$\tau_{{32}}$ {comp_symbol} {tau32_val}"
+
+            cat_name = f"tau32_wp_{tau32_wp}_{pass_fail}"
+            sel_name = f"sel_{cat_name}"
+
+            # create category and add individual tau32 intervals as child categories
+            cat = config.add_category(
+                name=cat_name,
+                id=10000000 * (cat_idx + 1) + 1000000 * (i_pass_fail + 1),
+                selection=None,
+                label=cat_label,
+            )
+            child_cats = tau32_categories[cat_slice]
+            for child_cat in child_cats:
+                cat.add_category(child_cat)
+
     # -- combined categories
 
     category_groups = {
