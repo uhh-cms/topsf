@@ -62,8 +62,11 @@ def category_ids_init(self: Producer) -> None:
     # store a mapping from leaf category to selector classes for faster lookup
     self.category_to_selectors = defaultdict(list)
 
+    if not hasattr(self.config_inst, "cached_leaf_categories"):
+        self.config_inst.cached_leaf_categories = self.config_inst.get_leaf_categories()
+
     # add all selectors obtained from leaf category selection expressions to the used columns
-    for cat_inst in self.config_inst.get_leaf_categories():
+    for cat_inst in self.config_inst.cached_leaf_categories:
         # treat all selections as lists
         for sel in law.util.make_list(cat_inst.selection):
             if Selector.derived_by(sel):
