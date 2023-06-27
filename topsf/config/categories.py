@@ -32,10 +32,10 @@ parent category.
 import order as od
 
 from columnflow.util import maybe_import
-from columnflow.config_util import create_category_combinations
 from columnflow.selection import Selector, selector
 
 from topsf.production.gen_top import probe_jet
+from topsf.config.util import create_category_combinations
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -336,4 +336,10 @@ def add_categories(config: od.Config) -> None:
         "tau32": tau32_categories,
     }
 
-    create_category_combinations(config, category_groups, name_fn, kwargs_fn)
+    create_category_combinations(
+        config,
+        category_groups,
+        name_fn,
+        kwargs_fn,
+        only_leaves=True,
+    )
