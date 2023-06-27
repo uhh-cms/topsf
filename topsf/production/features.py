@@ -6,11 +6,8 @@ Column production methods related to higher-level features.
 
 from columnflow.production import Producer, producer
 from columnflow.util import maybe_import
+from columnflow.columnar_util import set_ak_column
 from columnflow.production.util import attach_coffea_behavior
-
-from topsf.production.lepton import choose_lepton
-from topsf.production.gen_top import gen_top_decay
-from topsf.production.probe_jet import probe_jet
 
 ak = maybe_import("awkward")
 coffea = maybe_import("coffea")
@@ -40,15 +37,11 @@ def jet_energy_shifts_init(self: Producer) -> None:
 @producer(
     uses={
         attach_coffea_behavior,
-        choose_lepton,
-        gen_top_decay,
-        probe_jet,
+        "event",
     },
     produces={
         attach_coffea_behavior,
-        choose_lepton,
-        gen_top_decay,
-        probe_jet,
+        "dummy",
     },
     shifts={
         jet_energy_shifts,
@@ -57,14 +50,7 @@ def jet_energy_shifts_init(self: Producer) -> None:
 def features(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """Producer for all high-level features."""
 
-    # merge Muon and Electron columns to single Lepton column
-    # depending on channel_id
-    events = self[choose_lepton](self, **kwargs)
-
-    # gen level top quark decay info
-    events = self[gen_top_decay](self, **kwargs)
-
-    # probe jet properties
-    events = self[probe_jet](self, **kwargs)
+    # dummy to ensure at least one field
+    events = set_ak_column(events, "dummy", ak.ones_like(events.event))
 
     return events
