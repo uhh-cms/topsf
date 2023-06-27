@@ -117,18 +117,20 @@ def create_category_combinations(
                 n_created_categories += 1
 
                 if only_leaves:
-                    continue
-
-                # find direct parents and connect them
-                for _parent_group_names in itertools.combinations(_group_names, _n_groups - 1):
-                    if len(_parent_group_names) == 1:
-                        parent_cat_name = root_cats[_parent_group_names[0]].name
-                    else:
-                        parent_cat_name = name_fn(**{
-                            group_name: root_cats[group_name].name
-                            for group_name in _parent_group_names
-                        })
-                    parent_cat = config.get_category(parent_cat_name, deep=True)
-                    parent_cat.add_category(cat)
+                    # connect root cats directly to leaves
+                    for root_cat in root_cats.values():
+                        root_cat.add_category(cat)
+                else:
+                    # find direct parents and connect them
+                    for _parent_group_names in itertools.combinations(_group_names, _n_groups - 1):
+                        if len(_parent_group_names) == 1:
+                            parent_cat_name = root_cats[_parent_group_names[0]].name
+                        else:
+                            parent_cat_name = name_fn(**{
+                                group_name: root_cats[group_name].name
+                                for group_name in _parent_group_names
+                            })
+                        parent_cat = config.get_category(parent_cat_name, deep=True)
+                        parent_cat.add_category(cat)
 
     return n_created_categories

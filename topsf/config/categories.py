@@ -29,6 +29,8 @@ to a set of leaf categories, the sum of the category IDs is the ID of the
 parent category.
 """
 
+import itertools
+
 import order as od
 
 from columnflow.util import maybe_import
@@ -172,7 +174,7 @@ def add_categories(config: od.Config) -> None:
                 n_merged_label = merge_labels[n_merged]
                 cat = config.add_category(
                     name=f"{proc.name}_{n_merged}q",
-                    id=100 * (proc_idx + 1) + 10 * (n_merged + 1),
+                    id=int(1e2 * (proc_idx + 1) + 1e1 * (n_merged + 1)),
                     selection=f"sel_{proc.name}_{n_merged}q",
                     label=f"{proc.label}, {n_merged_label} ({n_merged}q)",
                 )
@@ -213,7 +215,7 @@ def add_categories(config: od.Config) -> None:
 
             cat = config.add_category(
                 name=cat_name,
-                id=100 * (proc_idx + 1),
+                id=int(1e2 * (proc_idx + 1)),
                 selection=sel_name,
                 label=f"{proc.label}",
             )
@@ -224,6 +226,7 @@ def add_categories(config: od.Config) -> None:
     # group 3: probe jet pt bins
     #
 
+    # TODO: make configurable
     pt_bins = [300, 400, 480, 600, None]
     pt_categories = []
 
@@ -233,10 +236,10 @@ def add_categories(config: od.Config) -> None:
         pt_min_repr = f"{int(pt_min)}"
         if pt_max is None:
             pt_max_repr = "inf"
-            cat_label = rf"{pt_min} $\leq$ $p_{{T}}$ < {pt_max} GeV"
+            cat_label = rf"$p_{{T}}$ > {pt_min} GeV"
         else:
             pt_max_repr = f"{int(pt_max)}"
-            cat_label = rf"$p_{{T}}$ > {pt_min} GeV"
+            cat_label = rf"{pt_min} $\leq$ $p_{{T}}$ < {pt_max} GeV"
 
         cat_name = f"pt_{pt_min_repr}_{pt_max_repr}"
         sel_name = f"sel_{cat_name}"
@@ -260,9 +263,10 @@ def add_categories(config: od.Config) -> None:
                 False,
             )
 
+        assert cat_idx < 99, "no space for category, ID reassignement necessary"
         cat = config.add_category(
             name=cat_name,
-            id=1000 * (cat_idx + 1),
+            id=int(1e3 * (cat_idx + 1)),
             selection=sel_name,
             label=cat_label,
         )
@@ -291,7 +295,7 @@ def add_categories(config: od.Config) -> None:
     ):
         tau32_min_repr = f"{int(tau32_min*100):03d}"
         tau32_max_repr = f"{int(tau32_max*100):03d}"
-        cat_label = rf"{tau32_min} $\leq$ $\tau_{{32}}$ < {tau32_max}"
+        cat_label = rf"{tau32_min} $\leq$ $\tau_{{3}}/\tau_{{2}}$ < {tau32_max}"
 
         cat_name = f"tau32_{tau32_min_repr}_{tau32_max_repr}"
         sel_name = f"sel_{cat_name}"
@@ -315,9 +319,10 @@ def add_categories(config: od.Config) -> None:
                 False,
             )
 
+        assert cat_idx < 9, "no space for category, ID reassignement necessary"
         cat = config.add_category(
             name=cat_name,
-            id=100000 * (cat_idx + 1),
+            id=int(1e5 * (cat_idx + 1)),
             selection=sel_name,
             label=cat_label,
         )
@@ -332,7 +337,7 @@ def add_categories(config: od.Config) -> None:
             ("pass", ">", slice(None, cat_idx + 1)),
             ("fail", "<", slice(cat_idx + 1, None)),
         ]):
-            cat_label = rf"$\tau_{{32}}$ {comp_symbol} {tau32_val}"
+            cat_label = rf"$\tau_{{3}}/\tau_{{2}}$ {comp_symbol} {tau32_val}"
 
             cat_name = f"tau32_wp_{tau32_wp}_{pass_fail}"
             sel_name = f"sel_{cat_name}"
@@ -340,7 +345,7 @@ def add_categories(config: od.Config) -> None:
             # create category and add individual tau32 intervals as child categories
             cat = config.add_category(
                 name=cat_name,
-                id=10000000 * (cat_idx + 1) + 1000000 * (i_pass_fail + 1),
+                id=int(1e7 * (cat_idx + 1) + 1e6 * (i_pass_fail + 1)),
                 selection=None,
                 label=cat_label,
             )
@@ -350,20 +355,62 @@ def add_categories(config: od.Config) -> None:
 
     # -- combined categories
 
-    category_groups = {
-        "lepton": [
-            config.get_category(name)
-            for name in ["1e", "1m"]
-        ],
-        "process": proc_categories,
-        "pt": pt_categories,
-        "tau32": tau32_categories,
-    }
+    def add_combined_categories(config):
+        if getattr(config, "has_combined_categories", False):
+            return  # combined categories already added
 
-    create_category_combinations(
-        config,
-        category_groups,
-        name_fn,
-        kwargs_fn,
-        only_leaves=True,
-    )
+        category_groups = {
+            "lepton": [
+                config.get_category(name)
+                for name in ["1e", "1m"]
+            ],
+            "process": proc_categories,
+            "pt": pt_categories,
+            "tau32": tau32_categories,
+        }
+
+        create_category_combinations(
+            config,
+            category_groups,
+            name_fn,
+            kwargs_fn,
+            skip_existing=False,
+            only_leaves=True,
+        )
+
+        for cat_tau32_idx, (tau32_wp, tau32_val) in enumerate(zip(tau32_wps, tau32_bins[1:-1])):
+            assert cat_tau32_idx < 9, "no space for category, ID reassignement necessary"
+            for i_pass_fail, (pass_fail, comp_symbol, cat_slice) in enumerate([
+                ("pass", ">", slice(None, cat_tau32_idx + 1)),
+                ("fail", "<", slice(cat_tau32_idx + 1, None)),
+            ]):
+                cat_label = rf"$\tau_{{3}}/\tau_{{2}}$ {comp_symbol} {tau32_val}"
+                cat_name = f"tau32_wp_{tau32_wp}_{pass_fail}"
+                sel_name = f"sel_{cat_name}"
+                cat_id = int(1e7 * (cat_tau32_idx + 1) + 1e6 * (i_pass_fail + 1))
+
+                child_cats = tau32_categories[cat_slice]
+
+                # create category and add individual tau32 intervals as child categories
+                for cats in itertools.product(*list(category_groups.values())[:-1]):
+                    comb_cat_label = ", ".join([c.label for c in cats] + [cat_label])
+                    comb_cat_name = "__".join([c.name for c in cats] + [cat_name])
+                    parent_cat_id = sum(c.id for c in cats)
+                    comb_cat = config.add_category(
+                        name=comb_cat_name,
+                        id=parent_cat_id + cat_id,
+                        selection=None,
+                        label=comb_cat_label,
+                    )
+                    print(f"{comb_cat.label}")
+
+                    comb_child_cats = [
+                        config.get_category(parent_cat_id + child_cat.id)
+                        for child_cat in child_cats
+                    ]
+                    for comb_child_cat in comb_child_cats:
+                        comb_cat.add_category(comb_child_cat)
+
+        config.has_combined_categories = True
+
+    add_combined_categories(config)
