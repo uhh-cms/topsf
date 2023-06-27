@@ -7,6 +7,9 @@ from columnflow.production import Producer, producer
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 
+from topsf.selection.util import masked_sorted_indices
+from topsf.production.util import lv_mass
+from topsf.production.lepton import choose_lepton
 from topsf.production.gen_top import gen_top_decay_products
 
 ak = maybe_import("awkward")
@@ -17,17 +20,10 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 
 @producer(
     uses={
+        choose_lepton,
         gen_top_decay_products,
         # generator particle kinematics
         "GenPart.pt", "GenPart.eta", "GenPart.phi", "GenPart.mass",
-        # fat (AK8) jet kinematics
-        "FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass",
-        "FatJet.msoftdrop",
-        # n-subjettiness variables
-        "FatJet.tau3", "FatJet.tau2",
-        # subjets
-        "FatJet.subJetIdx1", "FatJet_subJetIdx2",
-        "SubJet.btagDeepB",  # DeepCSV (TODO: DeepJet)
     },
     produces={
         "ProbeJet.pt", "ProbeJet.eta", "ProbeJet.phi", "ProbeJet.mass",
@@ -35,14 +31,11 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
         "ProbeJet.tau3", "ProbeJet.tau2",
         "ProbeJet.is_hadronic_top",
         "ProbeJet.n_merged",
-        "ProbeJet.subjet_1_btag_score_deepcsv",
-        "ProbeJet.subjet_2_btag_score_deepcsv",
     },
 )
 def probe_jet(
     self: Producer,
     events: ak.Array,
-    results: ak.Array,
     merged_max_deltar: float = 0.8,
     **kwargs,
 ) -> ak.Array:
@@ -50,9 +43,22 @@ def probe_jet(
     Produce probe jet and related features (merge category)
     """
 
-    # obtain fat jets on opposite side of lepton
-    fatjet_far_indices = results.objects.FatJet.FatJetFar
-    fatjet_far = events.FatJet[fatjet_far_indices]
+    # choose jet column
+    fatjet = events[self.cfg.column]
+
+    # get lepton
+    events = self[choose_lepton](events, **kwargs)
+    lepton = events.Lepton
+
+    # TODO: code belwo duplicated, move to common producer
+
+    # get fatjets on the far side of lepton
+    fatjet_lepton_deltar = lv_mass(fatjet).delta_r(lepton)
+    fatjet_mask = (
+        (fatjet_lepton_deltar > 2 / 3 * np.pi)
+    )
+    fatjet_indices = masked_sorted_indices(fatjet_mask, fatjet.pt, ascending=False)
+    fatjet_far = fatjet[fatjet_indices]
 
     # probe jet is leading fat jet on the opposite side of the lepton
     probejet = ak.firsts(fatjet_far, axis=1)
@@ -60,10 +66,11 @@ def probe_jet(
     # fill subjet btag scores
     for i in (1, 2):
         subjet_idx = probejet[f"subJetIdx{i}"]
+        subjet_idx = ak.mask(subjet_idx, subjet_idx >= 0)
         max_idx = ak.max(subjet_idx, axis=0)
-        probejet[f"subjet_{i}_btag_score_deepcsv"] = ak.pad_none(
-            events.SubJet["btagDeepB"],
-            max_idx,
+        probejet[f"subjet_{i}_{self.cfg.subjet_btag}"] = ak.pad_none(
+            events[self.cfg.subjet_column][self.cfg.subjet_btag],
+            max_idx + 1 if max_idx is not None else 0,
         )[subjet_idx]
 
     # default values for non-top samples
@@ -74,11 +81,11 @@ def probe_jet(
     if self.dataset_inst.has_tag("has_top"):
         events = self[gen_top_decay_products](events, **kwargs)
 
-        t = events.gen_top_decay[:, :, 0]  # t quark
-        b = events.gen_top_decay[:, :, 1]  # b quark
-        #w = events.gen_top_decay[:, :, 2]  # W boson  # noqa
-        q1_or_l = events.gen_top_decay[:, :, 3]  # light quark 1 / lepton
-        q2_or_n = events.gen_top_decay[:, :, 4]  # light quark 2 / neutrino
+        t = events.GenTopDecay.products[:, :, 0]  # t quark
+        b = events.GenTopDecay.products[:, :, 1]  # b quark
+        #w = events.GenTopDecay.products[:, :, 2]  # W boson  # noqa
+        q1_or_l = events.GenTopDecay.products[:, :, 3]  # light quark 1 / lepton
+        q2_or_n = events.GenTopDecay.products[:, :, 4]  # light quark 2 / neutrino
 
         # top quark + decay products mapped to leading fat jet
         t_probejet_deltar = probejet.delta_r(t)
@@ -116,3 +123,36 @@ def probe_jet(
         )
 
     return events
+
+
+@probe_jet.init
+def probe_jet_init(self: Producer) -> None:
+    # return immediately if config not yet loaded
+    config_inst = getattr(self, "config_inst", None)
+    if not config_inst:
+        return
+
+    # set config dict
+    self.cfg = self.config_inst.x.jet_selection.ak8
+
+    # set input columns
+    self.uses |= {
+        # kinematics
+        f"{self.cfg.column}.pt",
+        f"{self.cfg.column}.eta",
+        f"{self.cfg.column}.phi",
+        f"{self.cfg.column}.mass",
+        f"{self.cfg.column}.msoftdrop",
+        # n-subjettiness variables
+        f"{self.cfg.column}.tau3",
+        f"{self.cfg.column}.tau2",
+        # subjet indices
+        f"{self.cfg.column}.subJetIdx1",
+        f"{self.cfg.column}.subJetIdx2",
+        f"{self.cfg.subjet_column}.{self.cfg.subjet_btag}",
+    }
+
+    self.produces |= {
+        "ProbeJet.subjet_1_{self.cfg.subjet_btag}",
+        "ProbeJet.subjet_2_{self.cfg.subjet_btag}",
+    }
