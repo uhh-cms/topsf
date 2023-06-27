@@ -259,8 +259,6 @@ cfg.x.met_filters = {
 # (used in the muon producer)
 cfg.x.muon_sf_names = ("NUM_TightRelIso_DEN_TightIDandIPCut", f"{year}_UL")
 
-# +++
-
 # location of JEC txt files
 cfg.x.jec = DotDict.wrap({
     "campaign": "Summer19UL17",
@@ -342,8 +340,61 @@ cfg.x.jer = DotDict.wrap({
 })
 
 
-# -- electron scale factor names
+# names of electron correction sets and working points
+# (used in the electron_sf producer)
+# TODO: check that these are appropriate
 cfg.x.electron_sf_names = ("UL-Electron-ID-SF", "2017", "wp80iso")
+
+# names of muon correction sets and working points
+# (used in the muon producer)
+# TODO: check that these are appropriate
+cfg.x.muon_sf_names = ("NUM_TightRelIso_DEN_TightIDandIPCut", "2017_UL")
+
+# JEC uncertainty sources propagated to btag scale factors
+# (names derived from contents in BTV correctionlib file)
+year = cfg.campaign.x.year
+cfg.x.btag_sf_jec_sources = [
+    "",  # same as "Total"
+    # "Absolute",
+    # "AbsoluteMPFBias",
+    # "AbsoluteScale",
+    # "AbsoluteStat",
+    # f"Absolute_{year}",
+    # "BBEC1",
+    # f"BBEC1_{year}",
+    # "EC2",
+    # f"EC2_{year}",
+    # "FlavorQCD",
+    # "Fragmentation",
+    # "HF",
+    # f"HF_{year}",
+    # "PileUpDataMC",
+    # "PileUpPtBB",
+    # "PileUpPtEC1",
+    # "PileUpPtEC2",
+    # "PileUpPtHF",
+    # "PileUpPtRef",
+    # "RelativeBal",
+    # "RelativeFSR",
+    # "RelativeJEREC1",
+    # "RelativeJEREC2",
+    # "RelativeJERHF",
+    # "RelativePtBB",
+    # "RelativePtEC1",
+    # "RelativePtEC2",
+    # "RelativePtHF",
+    # "RelativeSample",
+    # f"RelativeSample_{year}",
+    # "RelativeStatEC",
+    # "RelativeStatFSR",
+    # "RelativeStatHF",
+    # "SinglePionECAL",
+    # "SinglePionHCAL",
+    # "TimePtEta",
+]
+
+# name of the btag_sf correction set and jec uncertainties to propagate through
+cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
 
 
 #
@@ -482,22 +533,82 @@ cfg.x.reduced_file_size = 512.0
 # columns to keep after certain steps
 cfg.x.keep_columns = DotDict.wrap({
     "cf.ReduceEvents": {
+        #
+        # NanoAOD columns
+        #
+
         # general event info
         "run", "luminosityBlock", "event",
-        # object info
-        "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.btagDeepFlavB", "Jet.hadronFlavour",
-        "FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass", "FatJet.tau2", "FatJet.tau3", "FatJet.msoftdrop",
-        "ProbeJet.*",
-        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Muon.pfRelIso03_all", "Muon.pfRelIso04_all",
+
+        # weights
+        "genWeight",
+        "LHEWeight.*",
+        "LHEPdfWeight", "LHEScaleWeight",
+
+        # muons
+        "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
+        "Muon.pdgId",
+        "Muon.pfRelIso03_all", "Muon.pfRelIso04_all",
+        "Muon.jetIdx", "Muon.nStations",
+
+        # electrons
         "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
-        "Lepton.*",
+        "Electron.pdgId",
+        "Electron.deltaEtaSC",
+        "Electron.pfRelIso03_all",
+
+        # AK4 jets
+        "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass",
+        "Jet.btagDeepFlavB", "Jet.hadronFlavour",
+        "Jet.nConstituents", "Jet.nElectrons", "Jet.nMuons",
+
+        # AK8 jets (TODO: optimize)
+        "FatJet.*",
+        #"FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass",
+        #"FatJet.msoftdrop", "FatJet.tau1", "FatJet.tau2", "FatJet.tau3",
+        #"FatJet.subJetIdx1", "FatJet.subJetIdx2",
+
+        # subjets
+        "SubJet.btagDeepB",
+
+        # generator quantities (TODO: optimize)
+        "Generator.*",
+
+        # generator particles
+        "GenPart.*",
+
+        # missing transverse momentum
         "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
+
+        # number of primary vertices
         "PV.npvs",
+
+        #
         # columns added during selection
-        "deterministic_seed", "process_id", "mc_weight", "cutflow.*",
+        #
+
+        # generator top-quark decay info
+        "GenTopDecay.*",
+
+        # generic leptons (merger of Muon/Electron)
+        "Lepton.*",
+
+        # probe jet
+        "ProbeJet.*",
+
+        # columns for PlotCutflowVariables
+        "cutflow.*",
+
+        # others
+        "channel_id", "category_ids", "process_id",
+        "deterministic_seed",
+        "mc_weight",
+        "pu_weight*",
     },
     "cf.MergeSelectionMasks": {
-        "normalization_weight", "process_id", "category_ids", "cutflow.*",
+        "channel_id", "process_id", "category_ids",
+        "normalization_weight",
+        "cutflow.*",
     },
     "cf.UniteColumns": {
         "*",
@@ -513,14 +624,17 @@ cfg.x.event_weights = DotDict({
 })
 
 # named references to actual versions to use for certain sets of tasks
+main_ver = "v2"
 cfg.x.named_versions = DotDict.wrap({
-    "default": "test",
-    "csr": "test",
-    "merge": "test",
-    "produce": "test",
-    "hist": "test",
-    "plot": "test",
-    "datacards": "test",
+    "default": f"{main_ver}",
+    "calibrate": f"{main_ver}",
+    "select": f"{main_ver}",
+    "reduce": f"{main_ver}",
+    "merge": f"{main_ver}",
+    "produce": f"{main_ver}",
+    "hist": f"{main_ver}",
+    "plot": f"{main_ver}",
+    "datacards": f"{main_ver}",
 })
 
 # versions per task family and optionally also dataset and shift
@@ -528,9 +642,9 @@ cfg.x.named_versions = DotDict.wrap({
 cfg.x.versions = {
     None: cfg.x.named_versions["default"],
     # CSR tasks
-    "cf.CalibrateEvents": cfg.x.named_versions["csr"],
-    "cf.SelectEvents": cfg.x.named_versions["csr"],
-    "cf.ReduceEvents": cfg.x.named_versions["csr"],
+    "cf.CalibrateEvents": cfg.x.named_versions["calibrate"],
+    "cf.SelectEvents": cfg.x.named_versions["select"],
+    "cf.ReduceEvents": cfg.x.named_versions["reduce"],
     # merging tasks
     "cf.MergeSelectionStats": cfg.x.named_versions["merge"],
     "cf.MergeSelectionMasks": cfg.x.named_versions["merge"],
@@ -672,9 +786,9 @@ cfg.x.jet_selection = DotDict.wrap({
 # https://twiki.cern.ch/twiki/bin/view/CMS/JetTopTagging?rev=41
 cfg.x.jet_selection.ak8_subjetBtag = DotDict.wrap(cfg.x.jet_selection.ak8, **{
     # "subjet_btag": "btagDeepCSV",
-    # "subjet_btag_wp": 0.1355,  # loose UL17 (varies by year)
+    # "subjet_btag_wp": cfg.x.btag_working_points.deepcsv.loose,
     "subjet_btag" "btagDeepB"
-    "subjet_btag_wp": cfg.x.btag_working_points.deepcsv.loose,
+    "subjet_btag_wp": cfg.x.btag_working_points.deepjet.loose,
 })
 
 # MET selection parameters
