@@ -781,7 +781,7 @@ cfg.x.jet_selection = DotDict.wrap({
         "min_pt": 15,  # TODO: check UHH2
         "max_abseta": 2.5,  # TODO: check UHH2
         "btag_column": "btagDeepFlavB",  # nano v9: "DeepJet b+bb+lepb tag discriminator"
-        "btag_wp": "medium",  # TODO: use cfg.x.btag_working_points.deepjet.medium
+        "btag_wp": cfg.x.btag_working_points.deepjet.medium,
     },
 })
 

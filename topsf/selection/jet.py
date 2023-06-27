@@ -43,8 +43,8 @@ def jet_selection(
     btag_val = jet[self.cfg.btag_column]
 
     # selection masks for b-tagged and non-b-tagged (light) jets
-    bjet_mask = (btag_val >= self.btag_wp_value)
-    lightjet_mask = (btag_val < self.btag_wp_value)
+    bjet_mask = (btag_val >= self.cfg.btag_wp)
+    lightjet_mask = (btag_val < self.cfg.btag_wp)
 
     # indices of the b-tagged and non-b-tagged (light) jets
     bjet_indices = masked_sorted_indices(bjet_mask, jet.pt)
@@ -74,9 +74,6 @@ def jet_selection_init(self: Selector) -> None:
 
     # set config dict
     self.cfg = config_inst.x.jet_selection.ak4
-
-    # set b-tagging WP cut value
-    self.btag_wp_value = self.config_inst.x.btag_working_points.deepjet[self.cfg.btag_wp]
 
     # set input columns
     column = self.cfg.column
