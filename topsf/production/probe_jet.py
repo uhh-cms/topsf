@@ -64,14 +64,24 @@ def probe_jet(
     probejet = ak.firsts(fatjet_far, axis=1)
 
     # fill subjet btag scores
+    subjet_btag_scores = []
     for i in (1, 2):
         subjet_idx = probejet[f"subJetIdx{i}"]
         subjet_idx = ak.mask(subjet_idx, subjet_idx >= 0)
         max_idx = ak.max(subjet_idx, axis=0)
-        probejet[f"subjet_{i}_{self.cfg.subjet_btag}"] = ak.pad_none(
+        #probejet[f"subjet_{i}_{self.cfg.subjet_btag}"] = ak.pad_none(
+        subjet_btag_scores.append(ak.pad_none(
             events[self.cfg.subjet_column][self.cfg.subjet_btag],
             max_idx + 1 if max_idx is not None else 0,
-        )[subjet_idx]
+        )[subjet_idx])
+
+    probejet[f"subjet_btag_scores_{self.cfg.subjet_btag}"] = ak.drop_none(
+        ak.concatenate([
+            ak.singletons(subjet_btag_score)
+            for subjet_btag_score in subjet_btag_scores
+        ], axis=2),
+        axis=2,
+    )
 
     # default values for non-top samples
     n_merged = 0
@@ -153,6 +163,5 @@ def probe_jet_init(self: Producer) -> None:
     }
 
     self.produces |= {
-        "ProbeJet.subjet_1_{self.cfg.subjet_btag}",
-        "ProbeJet.subjet_2_{self.cfg.subjet_btag}",
+        "ProbeJet.subjet_btag_scores_{self.cfg.subjet_btag}",
     }
