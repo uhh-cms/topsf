@@ -226,8 +226,8 @@ def add_categories(config: od.Config) -> None:
     # group 3: probe jet pt bins
     #
 
-    # TODO: make configurable
-    pt_bins = [300, 400, 480, 600, None]
+    # get pt bins from config
+    pt_bins = config.x.jet_selection.ak8.pt_bins
     pt_categories = []
 
     for cat_idx, (pt_min, pt_max) in enumerate(
@@ -402,7 +402,6 @@ def add_categories(config: od.Config) -> None:
                         selection=None,
                         label=comb_cat_label,
                     )
-                    print(f"{comb_cat.label}")
 
                     comb_child_cats = [
                         config.get_category(parent_cat_id + child_cat.id)

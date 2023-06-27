@@ -758,6 +758,8 @@ cfg.x.jet_selection = DotDict.wrap({
         "min_pt": 300,
         "max_abseta": 2.5,
         "msoftdrop_range": (105, 210),
+        # probe jet pt bins )used by category builder)
+        "pt_bins": [300, 400, 480, 600, None],
         # parameters for b-tagged subjets
         "subjet_column": "SubJet",
         "subjet_btag": "btagDeepB",
