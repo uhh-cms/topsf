@@ -17,7 +17,9 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
     uses={
         "channel_id",
         "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
+        "Electron.pdgId",
         "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
+        "Muon.pdgId",
     },
     produces={
         "Lepton.pt", "Lepton.eta", "Lepton.phi", "Lepton.mass",
