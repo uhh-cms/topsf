@@ -50,7 +50,7 @@ def probe_jet(
     events = self[choose_lepton](events, **kwargs)
     lepton = events.Lepton
 
-    # TODO: code belwo duplicated, move to common producer
+    # TODO: code below duplicated, move to common producer (?)
 
     # get fatjets on the far side of lepton
     fatjet_lepton_deltar = lv_mass(fatjet).delta_r(lepton)
@@ -63,25 +63,17 @@ def probe_jet(
     # probe jet is leading fat jet on the opposite side of the lepton
     probejet = ak.firsts(fatjet_far, axis=1)
 
-    # fill subjet btag scores
-    subjet_btag_scores = []
+    # unite subJetIdx* into ragged column
+    subjet_idxs = []
     for i in (1, 2):
         subjet_idx = probejet[f"subJetIdx{i}"]
-        subjet_idx = ak.mask(subjet_idx, subjet_idx >= 0)
-        max_idx = ak.max(subjet_idx, axis=0)
-        #probejet[f"subjet_{i}_{self.cfg.subjet_btag}"] = ak.pad_none(
-        subjet_btag_scores.append(ak.pad_none(
-            events[self.cfg.subjet_column][self.cfg.subjet_btag],
-            max_idx + 1 if max_idx is not None else 0,
-        )[subjet_idx])
+        subjet_idx = ak.singletons(ak.mask(subjet_idx, subjet_idx >= 0))
+        subjet_idxs.append(subjet_idx)
+    subjet_idxs = ak.concatenate(subjet_idxs, axis=1)
 
-    probejet[f"subjet_btag_scores_{self.cfg.subjet_btag}"] = ak.drop_none(
-        ak.concatenate([
-            ak.singletons(subjet_btag_score)
-            for subjet_btag_score in subjet_btag_scores
-        ], axis=2),
-        axis=2,
-    )
+    # get btag score for probejet subjets
+    subjet_btag = events[self.cfg.subjet_column][self.cfg.subjet_btag]
+    probejet_subjet_btag_scores = subjet_btag[subjet_idxs]
 
     # default values for non-top samples
     n_merged = 0
@@ -125,12 +117,11 @@ def probe_jet(
     for v in ("pt", "eta", "phi", "mass", "tau3", "tau2", "msoftdrop"):
         events = set_ak_column(events, f"ProbeJet.{v}", probejet[v])
 
-    for i in (1, 2):
-        events = set_ak_column(
-            events,
-            f"ProbeJet.subjet_{i}_btag_score_deepcsv",
-            ak.fill_none(probejet[f"subjet_{i}_btag_score_deepcsv"], -1),
-        )
+    events = set_ak_column(
+        events,
+        f"ProbeJet.subjet_btag_scores_{self.cfg.subjet_btag}",
+        probejet_subjet_btag_scores,
+    )
 
     return events
 
@@ -163,5 +154,5 @@ def probe_jet_init(self: Producer) -> None:
     }
 
     self.produces |= {
-        "ProbeJet.subjet_btag_scores_{self.cfg.subjet_btag}",
+        f"ProbeJet.subjet_btag_scores_{self.cfg.subjet_btag}",
     }
