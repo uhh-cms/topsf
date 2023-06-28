@@ -6,27 +6,41 @@ Definition of categories.
 Categories are assigned a unique integer ID according to a fixed numbering
 scheme, with digits/groups of digits indicating the different category groups:
 
-                   lowest digit
-                              |
-    +---+---+---+---+---+---+---+
-    | W | W | T | T | P | M | C |
-    +---+---+---+---+---+---+---+
+           lowest digit
+                      |
+    +---+---+---+---+---+
+    | S | W | P | P | C |
+    +---+---+---+---+---+
 
-    C = channel       (1: electron [1e], 2: muon [1m])
-    M = merge type    (1: top fully merged [t3q], 2: top semi-merged [t2q],
-                       3: top not merged [t1q], 4: top background [t0q])
-    P = process
-    T = pt bin
-    W = working point bin
++=======+===============+======================+================================+
+| Digit | Description   | Values               | Category name                  |
++=======+===============+======================+================================+
+| C     | channel       | 1: electron          | 1e                             |
+|    x1 |               | 2: muon              | 1m                             |
++-------+---------------+----------------------+--------------------------------+
+| P     | probe jet     | 1: e.g. 300-400 GeV  | pt_{pt_min}_{pt_max}           |
+|   x10 | pt bin        | ...                  |                                |
++-------+---------------+----------------------+--------------------------------+
+| W     | working point | 1: very tight        |                                |
+|       | (wp)          | ...                  | tau32_wp_{wp_name}_{pass,fail} |
+| x1000 |               | 5: very loose        | (if *S* is 1/pass or 2/fail)   |
++-------+---------------+----------------------+                                |
+| S     | wp category   | 1: pass wp *W*       |              - or -            |
+|       | type          | 2: fail wp *W*       |                                |
+|       |               | 3: strict, i.e.      | tau32_{tau32_min}_{tau32_max}  |
+|       |               |    pass wp *W*,      | (if *S* is 3/strict)           |
+|       |               |    fail next-loosest |                                |
+| x 1e4 |               |    wp *W-1*          |                                |
++-------+---------------+----------------------+--------------------------------+
 
 A digit group consisting entirely of zeroes ('0') represents the inclusive
 category for the corresponding category group, i.e. no selection from that
 group is applied.
 
 This scheme encodes child/parent relations into the ID, making it easy
-to check if categories overlap or are categories of each other. When applied
-to a set of leaf categories, the sum of the category IDs is the ID of the
-parent category.
+to check if categories overlap or are subcategories of each other. When applied
+to a set of categories from different groups, the sum of the category IDs is the
+ID of the combined category.
 """
 
 import itertools
@@ -78,6 +92,9 @@ def add_categories(config: od.Config) -> None:
     # group 1: channel
     #
 
+    cat_idx_lsd = 0  # 10-power of least significant digit
+    cat_idx_ndigits = 1  # number of digits to use for category group
+
     # electron channel
     config.add_category(
         name="1e",
@@ -94,137 +111,12 @@ def add_categories(config: od.Config) -> None:
         label=r"1$\mu$",
     )
 
-    #
-    # group 2: process (with split by # of merged quarks for top processes)
-    #
-
-    # used for assigning labels for top process categories
-    merge_labels = {
-        0: "background",
-        1: "not merged",
-        2: "semi-merged",
-        3: "fully merged",
-    }
-
-    # used for assigning process category IDs
-    process_indexes = {
-        "st": 1,
-        "tt": 2,
-        "dy_lep": 3,
-        "w_lnu": 4,
-        "vv": 5,
-        "qcd": 6,
-        "data": 7,
-    }
-
-    # build categories and corresponding selectors
-    proc_categories = []
-    for proc, _, _ in config.walk_processes():
-
-        # don't add categories for proesses without a mapped index
-        if proc.name not in process_indexes:
-            continue
-
-        # get index used to compute the category ID
-        proc_idx = process_indexes[proc.name]
-
-        # separate categories for top processes
-        # split by # of quarks merged to probe jet
-        if proc.has_tag("has_top"):
-            for n_merged in range(4):
-
-                cat_name = f"{proc.name}_{n_merged}q"
-                sel_name = f"sel_{cat_name}"
-
-                @selector(
-                    uses={probe_jet},
-                    produces={probe_jet},
-                    cls_name=sel_name,
-                )
-                def sel_proc_n_merged(
-                    self: Selector, events: ak.Array,
-                    proc: od.Process = proc,
-                    n_merged: int = n_merged,
-                    **kwargs,
-                ) -> ak.Array:
-                    f"""
-                    Select events from process '{proc}' with {n_merged} quarks merged to a hadronic probe jet.
-                    """
-                    # get process
-                    if len(self.dataset_inst.processes) != 1:
-                        raise NotImplementedError(
-                            f"dataset {self.dataset_inst.name} has {len(self.dataset_inst.processes)} processes "
-                            "assigned, which is not supported",
-                        )
-                    this_proc = self.dataset_inst.processes.get_first()
-                    sel_proc = this_proc.has_parent_process(proc)
-
-                    # get probe jet
-                    events = self[probe_jet](events, **kwargs)
-
-                    return ak.fill_none(
-                        (
-                            sel_proc &
-                            (events.ProbeJet.n_merged == n_merged) &
-                            events.ProbeJet.is_hadronic_top
-                        ),
-                        False,
-                    )
-
-                n_merged_label = merge_labels[n_merged]
-                cat = config.add_category(
-                    name=f"{proc.name}_{n_merged}q",
-                    id=int(1e2 * (proc_idx + 1) + 1e1 * (n_merged + 1)),
-                    selection=f"sel_{proc.name}_{n_merged}q",
-                    label=f"{proc.label}, {n_merged_label} ({n_merged}q)",
-                )
-
-                proc_categories.append(cat)
-
-        # one category per non-top processes
-        else:
-
-            cat_name = f"{proc.name}"
-            sel_name = f"sel_{cat_name}"
-
-            @selector(
-                uses={"event"},
-                cls_name=sel_name,
-            )
-            def sel_proc(
-                self: Selector, events: ak.Array,
-                proc: od.Process = proc,
-                **kwargs,
-            ) -> ak.Array:
-                f"""
-                Select events from process '{proc}'
-                """
-                # get process
-                if len(self.dataset_inst.processes) != 1:
-                    raise NotImplementedError(
-                        f"dataset {self.dataset_inst.name} has {len(self.dataset_inst.processes)} processes "
-                        "assigned, which is not supported",
-                    )
-                this_proc = self.dataset_inst.processes.get_first()
-                sel_proc = this_proc.has_parent_process(proc)
-
-                return (
-                    sel_proc &
-                    ak.ones_like(events.event, dtype=bool)
-                )
-
-            cat = config.add_category(
-                name=cat_name,
-                id=int(1e2 * (proc_idx + 1)),
-                selection=sel_name,
-                label=f"{proc.label}",
-            )
-
-            proc_categories.append(cat)
 
     #
-    # group 3: probe jet pt bins
+    # group 2: probe jet pt bins
     #
+    cat_idx_lsd += cat_idx_ndigits
+    cat_idx_ndigits = 2
 
     # get pt bins from config
     pt_bins = config.x.jet_selection.ak8.pt_bins
@@ -263,10 +155,10 @@ def add_categories(config: od.Config) -> None:
                 False,
             )
 
-        assert cat_idx < 99, "no space for category, ID reassignement necessary"
+        assert cat_idx < 10**cat_idx_ndigits - 1, "no space for category, ID reassignement necessary"
         cat = config.add_category(
             name=cat_name,
-            id=int(1e3 * (cat_idx + 1)),
+            id=int(10**cat_idx_lsd * (cat_idx + 1)),
             selection=sel_name,
             label=cat_label,
         )
@@ -274,8 +166,10 @@ def add_categories(config: od.Config) -> None:
         pt_categories.append(cat)
 
     #
-    # group 4: probe jet tau3/tau2 bins
+    # group 3: probe jet tau3/tau2 bins
     #
+    cat_idx_lsd += cat_idx_ndigits
+    cat_idx_ndigits = 2
 
     tau32_wps = [
         "very_tight",
@@ -319,25 +213,24 @@ def add_categories(config: od.Config) -> None:
                 False,
             )
 
-        assert cat_idx < 9, "no space for category, ID reassignement necessary"
+        assert cat_idx < 10**cat_idx_ndigits - 1, "no space for category, ID reassignement necessary"
         cat = config.add_category(
             name=cat_name,
-            id=int(1e5 * (cat_idx + 1)),
+            id=int(10**cat_idx_lsd * ((cat_idx + 1) + 10 * 3)),
             selection=sel_name,
             label=cat_label,
         )
 
         tau32_categories.append(cat)
 
-    # pass/fail categories from union of tau32 slices
+    # pass/fail categories from union of tau32 bins
     assert len(tau32_wps) + 2 == len(tau32_bins)
     for cat_idx, (tau32_wp, tau32_val) in enumerate(zip(tau32_wps, tau32_bins[1:-1])):
-        assert cat_idx < 9, "no space for category, ID reassignement necessary"
-        for i_pass_fail, (pass_fail, comp_symbol, cat_slice) in enumerate([
-            ("pass", ">", slice(None, cat_idx + 1)),
-            ("fail", "<", slice(cat_idx + 1, None)),
+        for cat_type_idx, (pass_fail, comp_symbol, cat_slice) in enumerate([
+            ("pass", "<", slice(None, cat_idx + 1)),
+            ("fail", ">", slice(cat_idx + 1, None)),
         ]):
-            cat_label = rf"$\tau_{{3}}/\tau_{{2}}$ {comp_symbol} {tau32_val}"
+            cat_label = rf"$\tau_{{3}}/\tau_{{2}}$ {comp_symbol} {tau32_val} ({pass_fail})"
 
             cat_name = f"tau32_wp_{tau32_wp}_{pass_fail}"
             sel_name = f"sel_{cat_name}"
@@ -345,7 +238,7 @@ def add_categories(config: od.Config) -> None:
             # create category and add individual tau32 intervals as child categories
             cat = config.add_category(
                 name=cat_name,
-                id=int(1e7 * (cat_idx + 1) + 1e6 * (i_pass_fail + 1)),
+                id=int(10**cat_idx_lsd * ((cat_idx + 1) + 10 * (cat_type_idx + 1))),
                 selection=None,
                 label=cat_label,
             )
@@ -364,7 +257,6 @@ def add_categories(config: od.Config) -> None:
                 config.get_category(name)
                 for name in ["1e", "1m"]
             ],
-            "process": proc_categories,
             "pt": pt_categories,
             "tau32": tau32_categories,
         }
@@ -375,40 +267,7 @@ def add_categories(config: od.Config) -> None:
             name_fn,
             kwargs_fn,
             skip_existing=False,
-            only_leaves=True,
         )
-
-        for cat_tau32_idx, (tau32_wp, tau32_val) in enumerate(zip(tau32_wps, tau32_bins[1:-1])):
-            assert cat_tau32_idx < 9, "no space for category, ID reassignement necessary"
-            for i_pass_fail, (pass_fail, comp_symbol, cat_slice) in enumerate([
-                ("pass", ">", slice(None, cat_tau32_idx + 1)),
-                ("fail", "<", slice(cat_tau32_idx + 1, None)),
-            ]):
-                cat_label = rf"$\tau_{{3}}/\tau_{{2}}$ {comp_symbol} {tau32_val}"
-                cat_name = f"tau32_wp_{tau32_wp}_{pass_fail}"
-                sel_name = f"sel_{cat_name}"
-                cat_id = int(1e7 * (cat_tau32_idx + 1) + 1e6 * (i_pass_fail + 1))
-
-                child_cats = tau32_categories[cat_slice]
-
-                # create category and add individual tau32 intervals as child categories
-                for cats in itertools.product(*list(category_groups.values())[:-1]):
-                    comb_cat_label = ", ".join([c.label for c in cats] + [cat_label])
-                    comb_cat_name = "__".join([c.name for c in cats] + [cat_name])
-                    parent_cat_id = sum(c.id for c in cats)
-                    comb_cat = config.add_category(
-                        name=comb_cat_name,
-                        id=parent_cat_id + cat_id,
-                        selection=None,
-                        label=comb_cat_label,
-                    )
-
-                    comb_child_cats = [
-                        config.get_category(parent_cat_id + child_cat.id)
-                        for child_cat in child_cats
-                    ]
-                    for comb_child_cat in comb_child_cats:
-                        comb_cat.add_category(comb_child_cat)
 
         config.has_combined_categories = True
 
