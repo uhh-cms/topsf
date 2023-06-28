@@ -76,6 +76,78 @@ campaign = campaign_run2_2017_nano_v9.copy()
 # get all root processes
 procs = get_root_processes_from_campaign(campaign)
 
+# create sub-processes for st, tt
+# (defined via cuts on gen-level objects; will be normalized
+# to xs of parent process)
+top_subprocess_cfg = DotDict.wrap({
+    "0o1q": {
+        "index": 1,
+        "label": "not merged (0q or 1q)",
+        "colors": {
+            "tt": "#990066",
+            "st": "#F49901",
+        },
+    },
+    "2q": {
+        "index": 2,
+        "label": "semi-merged (2q)",
+        "colors": {
+            "tt": "#F666CD",
+            "st": "#F9FF04",
+        },
+    },
+    "3q": {
+        "index": 3,
+        "label": "fully merged (3q)",
+        "colors": {
+            "tt": "#F31766",
+            "st": "#F6CC01",
+        },
+    },
+    "bkg": {
+        "index": 4,
+        "label": "background",
+        "colors": {
+            "tt": "#660233",
+            "st": "#993300",
+        },
+    },
+})
+
+# helper function for adding subprocesses
+def add_subprocesses(proc, color_key):
+    """Add subprocesses to an existing process."""
+    subprocs = {}
+    for subproc_name, subproc_cfg in top_subprocess_cfg.items():
+        subprocs[subproc_name] = subproc = proc.add_process(
+            name=f"{proc.name}_{subproc_name}",
+            id=int(proc.id + 1e6 * (subproc_cfg.index + 1)),
+            label=f"{proc.label}, {subproc_cfg.label}",
+            color=subproc_cfg.colors[color_key],
+            aux={
+                "subprocess_name": subproc_name,
+            },
+        )
+        subproc.add_tag("is_subprocess")
+    proc.add_tag("has_subprocesses")
+    return subprocs
+
+# add subprocesses to processes with top quarks
+for base_proc_name in ("st", "tt"):
+    base_proc = getattr(procs.n, base_proc_name)
+    leaf_procs = base_proc.get_leaf_processes()
+
+    # add subprocesses to top-level process (tt, st)
+    base_subprocs = add_subprocesses(base_proc, color_key=base_proc_name)
+
+    # add subprocesses to leaf processes (tt_sl, st_tchannel_t, ...)
+    for leaf_proc in leaf_procs:
+        leaf_subprocs = add_subprocesses(leaf_proc, color_key=base_proc_name)
+
+        # add leaf subprocesses as children to top-level subprocesses
+        for subproc_name, leaf_subproc in leaf_subprocs.items():
+            base_subprocs[subproc_name].add_process(leaf_subproc)
+
 # create a config by passing the campaign, so id and name will be identical
 cfg = ana.add_config(campaign)
 
@@ -88,7 +160,6 @@ colors = {
     "tt": "#E04F21",  # red
     "qcd": "#5E8FFC",  # blue
     "w_lnu": "#82FF28",  # green
-    "higgs": "#984ea3",  # purple
     "st": "#3E00FB",  # dark purple
     "dy_lep": "#FBFF36",  # yellow
     "vv": "#B900FC",  # pink

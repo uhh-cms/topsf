@@ -83,11 +83,11 @@ def probe_jet(
     if self.dataset_inst.has_tag("has_top"):
         events = self[gen_top_decay_products](events, **kwargs)
 
-        t = events.GenTopDecay.products[:, :, 0]  # t quark
-        b = events.GenTopDecay.products[:, :, 1]  # b quark
-        #w = events.GenTopDecay.products[:, :, 2]  # W boson  # noqa
-        q1_or_l = events.GenTopDecay.products[:, :, 3]  # light quark 1 / lepton
-        q2_or_n = events.GenTopDecay.products[:, :, 4]  # light quark 2 / neutrino
+        t = events.GenTopDecay[:, :, 0]  # t quark
+        b = events.GenTopDecay[:, :, 1]  # b quark
+        #w = events.GenTopDecay[:, :, 2]  # W boson  # noqa
+        q1_or_l = events.GenTopDecay[:, :, 3]  # light quark 1 / lepton
+        q2_or_n = events.GenTopDecay[:, :, 4]  # light quark 2 / neutrino
 
         # top quark + decay products mapped to leading fat jet
         t_probejet_deltar = probejet.delta_r(t)

@@ -15,7 +15,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 
 @producer(
     uses={"nGenPart", "GenPart.genPartIdxMother", "GenPart.pdgId", "GenPart.statusFlags"},
-    produces={"GenTopDecay.products"},
+    produces={"GenTopDecay"},
 )
 def gen_top_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
@@ -81,7 +81,7 @@ def gen_top_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Arr
     )
 
     # save the column
-    events = set_ak_column(events, "GenTopDecay.products", groups)
+    events = set_ak_column(events, "GenTopDecay", groups)
 
     return events
 
@@ -99,13 +99,14 @@ def gen_top_decay_products_skip(self: Producer) -> bool:
     return self.dataset_inst.is_data or not self.dataset_inst.has_tag("has_top")
 
 
+# TODO: remove
 @producer(
     uses={
         gen_top_decay_products,
     },
     produces={
         gen_top_decay_products,
-        "GenTopDecay.n_had",
+        "gen_top_decay_n_had",
     },
 )
 def gen_top_decay(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -120,15 +121,11 @@ def gen_top_decay(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     if self.dataset_inst.has_tag("has_top"):
         events = self[gen_top_decay_products](events, **kwargs)
 
-        q1_or_l = events.GenTopDecay.products[:, :, 3]  # light quark 1 / lepton
-        q2_or_n = events.GenTopDecay.products[:, :, 4]  # light quark 2 / neutrino
-
-        n_had = (
-            ak.num(abs(q1_or_l.pdgId) <= 5, axis=1) +
-            ak.num(abs(q2_or_n.pdgId) <= 5, axis=1)
-        )
+        # count quark decay products
+        q1_or_l = events.GenTopDecay[:, :, 3]  # light quark 1 / lepton
+        n_had = ak.sum(abs(q1_or_l.pdgId) <= 5, axis=1)
 
     # write out columns
-    events = set_ak_column(events, "GenTopDecay.n_had", n_had)
+    events = set_ak_column(events, "gen_top_decay_n_had", n_had)
 
     return events

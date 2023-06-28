@@ -14,7 +14,6 @@ from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
 from columnflow.selection.cms.json_filter import json_filter
 
-from columnflow.production.processes import process_ids
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.util import attach_coffea_behavior
 
@@ -26,8 +25,8 @@ from topsf.selection.met import met_selection
 from topsf.selection.w_lep import w_lep_selection
 from topsf.selection.cutflow_features import cutflow_features
 
+from topsf.production.processes import process_ids
 from topsf.production.categories import category_ids
-from topsf.production.gen_top import gen_top_decay
 from topsf.production.probe_jet import probe_jet
 
 
@@ -111,7 +110,6 @@ def increment_stats(
         jet_lepton_2d_selection,
         fatjet_selection,
         increment_stats,
-        gen_top_decay,
         probe_jet,
     },
     produces={
@@ -126,7 +124,6 @@ def increment_stats(
         jet_lepton_2d_selection,
         fatjet_selection,
         increment_stats,
-        gen_top_decay,
         probe_jet,
     },
     exposed=True,
@@ -191,7 +188,6 @@ def default(
 
     # produce features relevant for selection
     events = self[probe_jet](events, **kwargs)
-    events = self[gen_top_decay](events, **kwargs)
 
     # create process ids
     events = self[process_ids](events, **kwargs)

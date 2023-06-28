@@ -10,9 +10,10 @@ from columnflow.production.cms.btag import btag_weights
 from columnflow.production.cms.electron import electron_weights
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
-from columnflow.production.normalization import normalization_weights
 from columnflow.production.cms.pileup import pu_weight
 from columnflow.util import maybe_import
+
+from topsf.production.normalization import normalization_weights
 
 ak = maybe_import("awkward")
 
