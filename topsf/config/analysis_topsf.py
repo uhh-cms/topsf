@@ -10,6 +10,7 @@ import order as od
 import os
 import yaml
 
+from order import Process
 from scinum import Number
 
 from columnflow.util import DotDict
@@ -76,6 +77,22 @@ campaign = campaign_run2_2017_nano_v9.copy()
 # get all root processes
 procs = get_root_processes_from_campaign(campaign)
 
+# create parent processes for w_lep, dy_lep and qcd
+for i_proc, (proc_name, proc_label, child_procs) in enumerate([
+    ("vx", "V+jets, VV", ["dy_lep", "w_lnu", "vv"]),
+    ("mj", "Multijet", ["qcd"]),
+]):
+    proc = Process(
+       name=proc_name,
+       id=int(1e7 + (i_proc + 1)),
+       label=proc_label,
+    )
+    for child_proc in child_procs:
+        procs.n(child_proc).add_parent_process(proc)
+
+# get all root processes (including newly added ones)
+procs = get_root_processes_from_campaign(campaign)
+
 # create sub-processes for st, tt
 # (defined via cuts on gen-level objects; will be normalized
 # to xs of parent process)
@@ -84,32 +101,32 @@ top_subprocess_cfg = DotDict.wrap({
         "index": 1,
         "label": "not merged (0q or 1q)",
         "colors": {
-            "tt": "#990066",
-            "st": "#F49901",
+            "tt": "#A80068",
+            "st": "#FF9300",
         },
     },
     "2q": {
         "index": 2,
         "label": "semi-merged (2q)",
         "colors": {
-            "tt": "#F666CD",
-            "st": "#F9FF04",
+            "tt": "#FF58D0",
+            "st": "#FFFF00",
         },
     },
     "3q": {
         "index": 3,
         "label": "fully merged (3q)",
         "colors": {
-            "tt": "#F31766",
-            "st": "#F6CC01",
+            "tt": "#FF0064",
+            "st": "#FFC900",
         },
     },
     "bkg": {
         "index": 4,
         "label": "background",
         "colors": {
-            "tt": "#660233",
-            "st": "#993300",
+            "tt": "#700034",
+            "st": "#A62800",
         },
     },
 })
@@ -164,6 +181,9 @@ colors = {
     "dy_lep": "#FBFF36",  # yellow
     "vv": "#B900FC",  # pink
     "other": "#999999",  # grey
+    # christopher's color scheme
+    "vx": "#00FF00",
+    "mj": "#00D0FF",
 }
 
 # add processes we are interested in
@@ -171,10 +191,12 @@ process_names = [
     "data",
     "tt",
     "st",
-    "dy_lep",
-    "w_lnu",
-    "vv",
-    "qcd",
+    #"dy_lep",
+    #"w_lnu",
+    #"vv",
+    #"qcd",
+    "vx",
+    "mj",
 ]
 for process_name in process_names:
     # add the process
