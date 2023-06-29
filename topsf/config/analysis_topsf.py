@@ -619,34 +619,69 @@ cfg.x.keep_columns = DotDict.wrap({
         # muons
         "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
         "Muon.pdgId",
+        "Muon.jetIdx",
+        "Muon.nStations",
         "Muon.pfRelIso03_all", "Muon.pfRelIso04_all",
-        "Muon.jetIdx", "Muon.nStations",
 
         # electrons
         "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
         "Electron.pdgId",
+        "Electron.jetIdx",
         "Electron.deltaEtaSC",
         "Electron.pfRelIso03_all",
 
         # AK4 jets
         "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass",
+        "Jet.rawFactor",
         "Jet.btagDeepFlavB", "Jet.hadronFlavour",
-        "Jet.nConstituents", "Jet.nElectrons", "Jet.nMuons",
+        # # optional, enable if needed
+        # "Jet.area",
+        # "Jet.hadronFlavour", "Jet.partonFlavour",
+        # "Jet.jetId", "Jet.puId", "Jet.puIdDisc",
+        # # cleaning
+        # "Jet.cleanmask",
+        # "Jet.muonSubtrFactor",
+        # # indices to other collections
+        # "Jet.electronIdx*",
+        # "Jet.muonIdx*",
+        # "Jet.genJetIdx*",
+        # # number of jet constituents
+        # "Jet.nConstituents",
+        # "Jet.nElectrons",
+        # "Jet.nMuons",
+        # # PF energy fractions
+        # "Jet.chEmEF",
+        # "Jet.chHEF",
+        # "Jet.neEmEF",
+        # "Jet.neHEF",
+        # "Jet.muEF",
+        # # taggers
+        # "Jet.qgl",
+        # "Jet.btag*",
 
-        # AK8 jets (TODO: optimize)
-        "FatJet.*",
-        #"FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass",
-        #"FatJet.msoftdrop", "FatJet.tau1", "FatJet.tau2", "FatJet.tau3",
-        #"FatJet.subJetIdx1", "FatJet.subJetIdx2",
+        # AK8 jets
+        "FatJet.pt", "FatJet.eta", "FatJet.phi", "FatJet.mass", "FatJet.msoftdrop",
+        "FatJet.rawFactor",
+        "FatJet.tau1", "FatJet.tau2", "FatJet.tau3", "FatJet.tau4",
+        "FatJet.subJetIdx1", "FatJet.subJetIdx2",
+        # # optional, enable if needed
+        # "FatJet.area", "FatJet.jetId", "FatJet.hadronFlavour",
+        # "FatJet.genJetAK8Idx",
+        # "FatJet.muonIdx3SJ", "FatJet.electronIdx3SJ",
+        # "FatJet.nBHadrons", "FatJet.nCHadrons",
+        # # taggers
+        # "FatJet.btag*", "FatJet.deepTag*", "FatJet.particleNet*",
 
         # subjets
         "SubJet.btagDeepB",
 
-        # generator quantities (TODO: optimize)
+        # generator quantities
         "Generator.*",
 
         # generator particles
-        "GenPart.*",
+        # "GenPart.pt", "GenPart.eta", "GenPart.phi", "GenPart.mass",
+        # "GenPart.pdgId",
+        # "GenPart.*",
 
         # missing transverse momentum
         "MET.pt", "MET.phi", "MET.significance", "MET.covXX", "MET.covXY", "MET.covYY",
