@@ -234,8 +234,8 @@ dataset_names = [
     "st_twchannel_t_powheg",
     "st_twchannel_tbar_powheg",
     # DY
-    "dy_lep_m50_ht70to100_madgraph",
-    "dy_lep_m50_ht100to200_madgraph",
+    #"dy_lep_m50_ht70to100_madgraph",  # rm?
+    #"dy_lep_m50_ht100to200_madgraph",  # rm?
     "dy_lep_m50_ht200to400_madgraph",
     "dy_lep_m50_ht400to600_madgraph",
     "dy_lep_m50_ht600to800_madgraph",
@@ -243,8 +243,8 @@ dataset_names = [
     "dy_lep_m50_ht1200to2500_madgraph",
     "dy_lep_m50_ht2500_madgraph",
     # WJets
-    "w_lnu_ht70To100_madgraph",
-    "w_lnu_ht100To200_madgraph",
+    #"w_lnu_ht70To100_madgraph",  # rm?
+    #"w_lnu_ht100To200_madgraph",  # rm?
     "w_lnu_ht200To400_madgraph",
     "w_lnu_ht400To600_madgraph",
     "w_lnu_ht600To800_madgraph",
@@ -256,15 +256,15 @@ dataset_names = [
     "wz_pythia",
     "zz_pythia",
     # QCD
-    "qcd_ht50to100_madgraph",
-    "qcd_ht100to200_madgraph",
-    "qcd_ht200to300_madgraph",
-    "qcd_ht300to500_madgraph",
+    #"qcd_ht50to100_madgraph",  # rm?
+    #"qcd_ht100to200_madgraph",  # rm?
+    #"qcd_ht200to300_madgraph",  # rm?
+    "qcd_ht300to500_madgraph",  # rm?
     "qcd_ht500to700_madgraph",
     "qcd_ht700to1000_madgraph",
-    "qcd_ht1000to1500_madgraph",
+    "qcd_ht1000to1500_madgraph",  # rm?
     "qcd_ht1500to2000_madgraph",
-    "qcd_ht2000_madgraph",
+    "qcd_ht2000_madgraph",  # rm?
 ]
 for dataset_name in dataset_names:
     # add the dataset
@@ -752,10 +752,10 @@ cfg.x.event_weights = DotDict({
 })
 
 # named references to actual versions to use for certain sets of tasks
-main_ver = "v2"
+main_ver = "v6"
 cfg.x.named_versions = DotDict.wrap({
     "default": f"{main_ver}",
-    "calibrate": f"{main_ver}",
+    "calibrate": f"v2",
     "select": f"{main_ver}",
     "reduce": f"{main_ver}",
     "merge": f"{main_ver}",

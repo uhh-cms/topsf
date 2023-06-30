@@ -201,9 +201,9 @@ def add_variables(config: od.Config) -> None:
         x_title=r"Probe jet $\tau_{3}/\tau_{2}$",
     )
     config.add_variable(
-        name="probejet_max_subjet_btag_score_deepcsv",
+        name="probejet_max_subjet_btag_score_btagDeepB",
         expression=lambda events: ak.max(
-            events.ProbeJet.subjet_btag_scores_deepcsv,
+            events.ProbeJet.subjet_btag_scores_btagDeepB,
             axis=1,
         ),
         null_value=EMPTY_FLOAT,
