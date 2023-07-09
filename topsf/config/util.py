@@ -20,10 +20,11 @@ import order as od
 
 def create_category_combinations(
     config: od.Config,
-    categories: dict[str, list[od.Categories]],
+    categories: dict[str, list[od.Category]],
     name_fn: Callable[[Any], str],
     kwargs_fn: Callable[[Any], dict] | None = None,
     skip_existing: bool = True,
+    skip_fn: Callable[[dict[str, od.Category], str], bool] | None = None,
     only_leaves: bool = False,
 ) -> int:
     """
@@ -43,7 +44,9 @@ def create_category_combinations(
     and a list of all parent selection statements.
 
     If the name of a new category is already known to *config* it is skipped unless *skip_existing*
-    is *False*.
+    is *False*. In addition, *skip_fn* can be a callable that receives a dictionary mapping group
+    names to categories that represents the combination of categories to be added. In case *skip_fn*
+    returns *True*, the combination is skipped.
 
     If *only_leaves* is *True*, only categories with at least one member per group are added.
 
@@ -57,10 +60,9 @@ def create_category_combinations(
             "n_tags": [cfg.get_category("0t"), cfg.get_category("1t")],
         }
 
-        def name_fn(lepton=None, n_jets=None, n_tags=None):
+        def name_fn(categories):
             # simple implementation: join names in defined order if existing
-            parts = [lepton, n_jets, n_tags]
-            return "__".join(part for part in parts if part is not None)
+            return "__".join(cat.name for cat in categories.values() if cat)
 
         def kwargs_fn(categories):
             # return arguments that are forwarded to the category init
@@ -96,13 +98,14 @@ def create_category_combinations(
             for root_cats in itertools.product(*_categories):
                 # build the name
                 root_cats = dict(zip(_group_names, root_cats))
-                cat_name = name_fn(**{
-                    group_name: cat.name
-                    for group_name, cat in root_cats.items()
-                })
+                cat_name = name_fn(root_cats)
 
                 # skip when already existing
                 if skip_existing and config.has_category(cat_name, deep=True):
+                    continue
+
+                # skip when manually triggered
+                if callable(skip_fn) and skip_fn(root_cats):
                     continue
 
                 # create arguments for the new category
@@ -126,8 +129,8 @@ def create_category_combinations(
                         if len(_parent_group_names) == 1:
                             parent_cat_name = root_cats[_parent_group_names[0]].name
                         else:
-                            parent_cat_name = name_fn(**{
-                                group_name: root_cats[group_name].name
+                            parent_cat_name = name_fn({
+                                group_name: root_cats[group_name]
                                 for group_name in _parent_group_names
                             })
                         parent_cat = config.get_category(parent_cat_name, deep=True)

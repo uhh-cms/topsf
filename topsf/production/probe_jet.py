@@ -32,6 +32,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
         "ProbeJet.is_hadronic_top",
         "ProbeJet.n_merged",
     },
+    check_columns_present={"produces"}, # some used columns optional
 )
 def probe_jet(
     self: Producer,

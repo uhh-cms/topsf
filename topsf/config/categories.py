@@ -57,12 +57,9 @@ np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
 
-def name_fn(**groups):
+def name_fn(categories: dict[str, od.Category]):
     """Naming function for automatically generated combined categories."""
-    return "__".join(
-        cat_name for cat_name in groups.values()
-        if cat_name is not None
-    )
+    return "__".join(cat.name for cat in categories.values() if cat)
 
 
 def kwargs_fn(categories: dict[str, od.Category]):

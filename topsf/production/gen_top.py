@@ -14,8 +14,9 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 
 
 @producer(
-    uses={"nGenPart", "GenPart.genPartIdxMother", "GenPart.pdgId", "GenPart.statusFlags"},
+    uses={"GenPart.genPartIdxMother", "GenPart.pdgId", "GenPart.statusFlags"},
     produces={"GenTopDecay"},
+    mc_only=True,
 )
 def gen_top_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
