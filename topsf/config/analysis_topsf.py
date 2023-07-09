@@ -298,6 +298,13 @@ cfg.x.process_groups = {}
 # (used in wrapper_factory and during plotting)
 cfg.x.dataset_groups = {
     "all": dataset_names,
+    "data": ["data_*"],
+    "dy_lep": ["dy_lep*"],
+    "w_lnu": ["w_lnu*"],
+    "qcd": ["qcd_ht*"],
+    "st": ["st*"],
+    "tt": ["tt*"],
+    "vv": ["ww_pythia", "wz_pythia", "zz_pythia"],
 }
 
 # category groups for conveniently looping over certain categories
