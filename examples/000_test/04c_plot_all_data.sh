@@ -11,7 +11,7 @@ action () {
         --processes data,$all_processes
         --variables $all_variables
         #--variables probejet_msoftdrop_widebins
-        --categories 1m,1m__pt_600_inf__tau32_000_038,1m__pt_300_400__tau32_000_038,1e,1e__pt_600_inf__tau32_000_038,1e__pt_300_400__tau32_000_038
+        --categories $test_categories
         --shape-norm
         "$@"
     )

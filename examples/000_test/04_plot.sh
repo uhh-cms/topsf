@@ -9,7 +9,7 @@ action () {
     args=(
         --version $my_version
         #--processes tt
-        --processes tt_3q,tt_2q,tt_1o0q,tt_bkg
+        --processes tt_3q,tt_2q,tt_0o1q,tt_bkg
         --dataset tt_sl_powheg
         #--variables probejet_msoftdrop_widebins
         --variables $all_variables
