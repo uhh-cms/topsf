@@ -207,8 +207,7 @@ for process_name in process_names:
         proc.add_tag("has_top")
 
     # configuration of colors, labels, etc. can happen here
-    proc.color1 = colors.get(proc.name, "#aaaaaa")
-    proc.color2 = colors.get(proc.name, "#000000")
+    proc.color = colors.get(proc.name, "#aaaaaa")
 
 # add datasets we need to study
 dataset_names = [
