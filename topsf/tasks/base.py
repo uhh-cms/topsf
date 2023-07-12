@@ -7,6 +7,6 @@ Custom base tasks.
 from columnflow.tasks.framework.base import BaseTask
 
 
-class TOPSFTask(BaseTask):
+class TopSFTask(BaseTask):
 
     task_namespace = "topsf"
