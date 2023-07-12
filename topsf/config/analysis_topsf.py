@@ -258,7 +258,7 @@ dataset_names = [
     #"qcd_ht50to100_madgraph",  # rm?
     #"qcd_ht100to200_madgraph",  # rm?
     #"qcd_ht200to300_madgraph",  # rm?
-    "qcd_ht300to500_madgraph",  # rm?
+    #"qcd_ht300to500_madgraph",  # rm?
     "qcd_ht500to700_madgraph",
     "qcd_ht700to1000_madgraph",
     "qcd_ht1000to1500_madgraph",  # rm?
