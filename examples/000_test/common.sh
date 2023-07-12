@@ -4,7 +4,7 @@
 #
 
 # version tag
-export my_version="v4"
+export my_version="v7"
 
 # background process & dataset
 #   - standard model ttbar (semileptonic decay channel)

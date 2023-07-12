@@ -273,9 +273,9 @@ for dataset_name in dataset_names:
     if any(dataset_name.startswith(s) for s in ("tt", "st")):
         dataset.add_tag("has_top")
 
-    # for testing purposes, limit the number of files to 1
-    for info in dataset.info.values():
-        info.n_files = min(info.n_files, 1)
+    ## for testing purposes, limit the number of files to 1
+    #for info in dataset.info.values():
+    #    info.n_files = min(info.n_files, 1)
 
 # verify that the root process of all datasets is part of any of the registered processes
 verify_config_processes(cfg, warn=True)
@@ -758,11 +758,11 @@ cfg.x.event_weights = DotDict({
 })
 
 # named references to actual versions to use for certain sets of tasks
-main_ver = "v6"
+main_ver = "v7"
 cfg.x.named_versions = DotDict.wrap({
     "default": f"{main_ver}",
     "calibrate": f"v2",
-    "select": f"{main_ver}",
+    "select": "v6",  # f"{main_ver}",
     "reduce": f"{main_ver}",
     "merge": f"{main_ver}",
     "produce": f"{main_ver}",
