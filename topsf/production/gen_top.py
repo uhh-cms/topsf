@@ -20,7 +20,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 )
 def gen_top_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
-    Creates a new ragged column "gen_top_decay" with one element per hard top quark. Each element is
+    Creates a new ragged column "GenTopDecay" with one element per hard top quark. Each element is
     a GenParticleArray with five or more objects in a distinct order: top quark, bottom quark,
     W boson, down-type quark or charged lepton, up-type quark or neutrino, and any additional decay
     produces of the W boson (if any, then most likly photon radiations). Per event, the structure
@@ -101,6 +101,40 @@ def gen_top_decay_products_skip(self: Producer) -> bool:
 
 
 @producer(
+    uses={"GenPart.pdgId", "GenPart.statusFlags"},
+    produces={"GenPartonTop"},
+    mc_only=True,
+)
+def gen_parton_top(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Produce parton-level top quarks (before showering and detector simulation).
+    """
+    # find parton-level top quarks
+    abs_id = abs(events.GenPart.pdgId)
+    t = events.GenPart[abs_id == 6]
+    t = t[t.hasFlags("isLastCopy")]
+    t = t[~ak.is_none(t, axis=1)]
+
+    # save the column
+    events = set_ak_column(events, "GenPartonTop", t)
+
+    return events
+
+
+@gen_top_decay_products.skip
+def gen_parton_top_skip(self: Producer) -> bool:
+    """
+    Custom skip function that checks whether the dataset is a MC simulation containing top
+    quarks in the first place.
+    """
+    # never skip when there is not dataset
+    if not getattr(self, "dataset_inst", None):
+        return False
+
+    return self.dataset_inst.is_data or not self.dataset_inst.has_tag("has_top")
+
+
+@producer(
     uses={
         gen_top_decay_products,
     },
@@ -127,3 +161,56 @@ def gen_top_decay_n_had(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column(events, "gen_top_decay_n_had", n_had)
 
     return events
+
+
+@producer(
+    uses={
+        gen_top_decay_products,
+    },
+    produces={
+        "top_pt_weight", "top_pt_weight_up", "top_pt_weight_down",
+    },
+)
+def top_pt_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Compute SF to be used for top pt reweighting.
+
+    The SF should *only be applied in ttbar MC* as an event weight computed
+    based on the gen-level top quark transverse momenta.
+    """
+
+    # fail if not run in ttbar simulation
+    if not self.dataset_inst.has_tag("is_ttbar"):
+        raise Exception(f"gen_top_pt_weight should only run for ttbar dataset, got {self.dataset_inst}")
+
+    # get SF function parameters from config
+    params = self.config_inst.x.top_pt_reweighting_params
+
+    # obtain gen-level top quark information
+    events = self[gen_top_decay_products](events, **kwargs)
+
+    # clamp top pT < 500 GeV and evaluate SF function
+    pt_clamped = ak.where(events.GenPartonTop.pt > 500.0, 500.0, events.GenPartonTop.pt)
+    sf = ak.pad_none(np.exp(params["a"] + params["b"] * pt_clamped), 2)
+
+    # compute weight from SF product for top and anti-top
+    weight = np.sqrt(sf[:, 0] * sf[:, 1])
+
+    # write out weights
+    events = set_ak_column(events, "top_pt_weight", ak.fill_none(weight, 1.0))
+    events = set_ak_column(events, "top_pt_weight_up", ak.fill_none(weight * 1.5, 1.0))
+    events = set_ak_column(events, "top_pt_weight_down", ak.fill_none(weight * 0.5, 1.0))
+
+    return events
+
+
+@top_pt_weight.skip
+def top_pt_weight_skip(self: Producer) -> bool:
+    """
+    Skip if running on anything except ttbar MC simulation.
+    """
+    # never skip when there is no dataset
+    if not getattr(self, "dataset_inst", None):
+        return False
+
+    return self.dataset_inst.is_data or not self.dataset_inst.has_tag("is_ttbar")

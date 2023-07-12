@@ -28,6 +28,7 @@ from topsf.selection.cutflow_features import cutflow_features
 from topsf.production.processes import process_ids
 from topsf.production.categories import category_ids
 from topsf.production.probe_jet import probe_jet
+from topsf.production.gen_top import gen_parton_top
 
 
 np = maybe_import("numpy")
@@ -112,6 +113,7 @@ def increment_stats(
         fatjet_selection,
         increment_stats,
         probe_jet,
+        gen_parton_top,
     },
     produces={
         mc_weight, process_ids, category_ids,
@@ -126,6 +128,7 @@ def increment_stats(
         fatjet_selection,
         increment_stats,
         probe_jet,
+        gen_parton_top,
     },
     exposed=True,
 )
@@ -187,7 +190,8 @@ def default(
     n_sel = ak.sum(event_sel, axis=-1)
     print(f"__all__: {n_sel}")
 
-    # produce features relevant for selection
+    # produce features relevant for selection and event weights
+    events = self[gen_parton_top](events, **kwargs)
     events = self[probe_jet](events, **kwargs)
 
     # create process ids

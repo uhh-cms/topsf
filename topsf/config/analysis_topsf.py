@@ -208,6 +208,10 @@ for process_name in process_names:
     if any(proc.name.startswith(s) for s in ("tt", "st")):
         proc.add_tag("has_top")
 
+    # mark ttbar processes (needed for top pt reweighting)
+    if proc.name.startswith("tt"):
+        proc.add_tag("is_ttbar")
+
     # configuration of colors, labels, etc. can happen here
     proc.color = colors.get(proc.name, "#aaaaaa")
 
@@ -725,6 +729,7 @@ cfg.x.keep_columns = DotDict.wrap({
 
         # generator top-quark decay info
         "GenTopDecay.*",
+        "GenPartonTop.*",
 
         # generic leptons (merger of Muon/Electron)
         "Lepton.*",
@@ -757,6 +762,7 @@ cfg.x.event_weights = DotDict({
     "normalization_weight": [],
     "muon_weight": get_shifts("muon"),
     "electron_weight": get_shifts("electron"),
+    "top_pt_weight": get_shifts("top_pt"),
 })
 
 # named references to actual versions to use for certain sets of tasks
@@ -806,6 +812,13 @@ cfg.x.versions = {
     "cf.PlotCutflowVariablesPerProcess2D": cfg.x.named_versions["plot"],
     # datacards
     "cf.CreateDatacards": cfg.x.named_versions["datacards"],
+}
+
+# top pt reweighting parameters
+# https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting#TOP_PAG_corrections_based_on_dat?rev=31
+cfg.x.top_pt_reweighting_params = {
+    "a": 0.0615,
+    "b": -0.0005,
 }
 
 # 2017 b-tag working points
