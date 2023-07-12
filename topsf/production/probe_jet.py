@@ -31,6 +31,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
         "ProbeJet.tau3", "ProbeJet.tau2",
         "ProbeJet.is_hadronic_top",
         "ProbeJet.n_merged",
+        "ProbeJet.n_merged_closest",
     },
     check_columns_present={"produces"},  # some used columns optional
 )
@@ -78,43 +79,75 @@ def probe_jet(
 
     # default values for non-top samples
     n_merged = 0
-    is_hadronic_top = False
+    n_merged_closest = 0
+    is_t_hadronic_closest = False
 
     # get decay products of top quark
     if self.dataset_inst.has_tag("has_top"):
         events = self[gen_top_decay_products](events, **kwargs)
 
+        # obtain decay products of all top quarks
         t = events.GenTopDecay[:, :, 0]  # t quark
         b = events.GenTopDecay[:, :, 1]  # b quark
-        #w = events.GenTopDecay[:, :, 2]  # W boson  # noqa
         q1_or_l = events.GenTopDecay[:, :, 3]  # light quark 1 / lepton
         q2_or_n = events.GenTopDecay[:, :, 4]  # light quark 2 / neutrino
 
-        # top quark + decay products mapped to leading fat jet
+        #
+        # method 1: n_merged calculation based on all top quarks
+        #
+
+        # check merging criteria for each top quark
+        is_b_merged = probejet.delta_r(b) < merged_max_deltar
+        is_q1_or_l_merged = probejet.delta_r(q1_or_l) < merged_max_deltar
+        is_q2_or_n_merged = probejet.delta_r(q2_or_n) < merged_max_deltar
+
+        # number of decay products merged to probe jet for each top quark
+        n_merged = (
+            ak.zeros_like(t, dtype=np.uint8) +
+            is_b_merged +
+            is_q1_or_l_merged +
+            is_q2_or_n_merged
+        )
+
+        # non-hadronic tops are considered not merged
+        is_t_hadronic = (abs(q1_or_l.pdgId) <= 4)
+        n_merged = ak.where(is_t_hadronic, n_merged, 0)
+
+        # choose largest number of merged products
+        n_merged = ak.max(n_merged, axis=-1)
+
+        #
+        # method 2: n_merged calculation based on top quark closest to probe jet
+        #
+
+        # get decay products of top quark closest to probe jet
         t_probejet_deltar = probejet.delta_r(t)
         t_probejet_indices = ak.argsort(t_probejet_deltar, axis=1, ascending=True)
-        #t_probejet = ak.firsts(t[t_probejet_indices])  # noqa
-        b_probejet = ak.firsts(b[t_probejet_indices])
-        q1_or_l_probejet = ak.firsts(q1_or_l[t_probejet_indices])
-        q2_or_n_probejet = ak.firsts(q2_or_n[t_probejet_indices])
+        b_closest = ak.firsts(b[t_probejet_indices])
+        q1_or_l_closest = ak.firsts(q1_or_l[t_probejet_indices])
+        q2_or_n_closest = ak.firsts(q2_or_n[t_probejet_indices])
 
-        # leading fat jet properties
-        is_hadronic_top = (abs(q1_or_l_probejet.pdgId) <= 4)
-        is_b_merged = (probejet.delta_r(b_probejet) < merged_max_deltar)
-        is_q1_or_l_merged = (probejet.delta_r(q1_or_l_probejet) < merged_max_deltar)
-        is_q2_or_n_merged = (probejet.delta_r(q2_or_n_probejet) < merged_max_deltar)
+        # quantities for top quark closest to probe jet
+        is_b_closest_merged = (probejet.delta_r(b_closest) < merged_max_deltar)
+        is_q1_or_l_closest_merged = (probejet.delta_r(q1_or_l_closest) < merged_max_deltar)
+        is_q2_or_n_closest_merged = (probejet.delta_r(q2_or_n_closest) < merged_max_deltar)
+
+        # non-hadronic tops are considered not merged
+        is_t_hadronic_closest = (abs(q1_or_l_closest.pdgId) <= 4)
+        n_merged_closest = ak.where(is_t_hadronic_closest, n_merged, 0)
 
         # number of decay products merged to jet
-        n_merged = (
+        n_merged_closest = (
             ak.zeros_like(events.event, dtype=np.uint8) +
-            is_q2_or_n_merged +
-            is_q1_or_l_merged +
-            is_b_merged
+            is_b_closest_merged +
+            is_q1_or_l_closest_merged +
+            is_q2_or_n_closest_merged
         )
 
     # write out columns
-    events = set_ak_column(events, "ProbeJet.is_hadronic_top", is_hadronic_top)
     events = set_ak_column(events, "ProbeJet.n_merged", n_merged)
+    events = set_ak_column(events, "ProbeJet.n_merged_closest", n_merged_closest)
+    events = set_ak_column(events, "ProbeJet.is_hadronic_top", is_t_hadronic_closest)
     for v in ("pt", "eta", "phi", "mass", "tau3", "tau2", "msoftdrop"):
         events = set_ak_column(events, f"ProbeJet.{v}", probejet[v])
 
