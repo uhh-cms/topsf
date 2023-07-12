@@ -100,20 +100,17 @@ def gen_top_decay_products_skip(self: Producer) -> bool:
     return self.dataset_inst.is_data or not self.dataset_inst.has_tag("has_top")
 
 
-# TODO: remove
 @producer(
     uses={
         gen_top_decay_products,
     },
     produces={
-        gen_top_decay_products,
         "gen_top_decay_n_had",
     },
 )
-def gen_top_decay(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+def gen_top_decay_n_had(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
-    Produce gen top decay information:
-      * number of hadronically decaying top quarks
+    Produce number of hadronically decaying top quarks.
     """
 
     n_had = 0

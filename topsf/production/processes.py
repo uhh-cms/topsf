@@ -8,7 +8,7 @@ from columnflow.production import Producer, producer
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 
-from topsf.production.gen_top import gen_top_decay_products
+from topsf.production.gen_top import gen_top_decay_products, gen_top_decay_n_had
 from topsf.production.probe_jet import probe_jet
 
 np = maybe_import("numpy")
@@ -16,7 +16,7 @@ ak = maybe_import("awkward")
 
 
 @producer(
-    uses={gen_top_decay_products, probe_jet},
+    uses={gen_top_decay_products, gen_top_decay_n_had, probe_jet},
     produces={"process_id"},
 )
 def process_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -59,14 +59,11 @@ def process_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         }
 
         events = self[gen_top_decay_products](events, **kwargs)
+        events = self[gen_top_decay_n_had](events, **kwargs)
         events = self[probe_jet](events, **kwargs)
 
-        # count quark decay products
-        q1_or_l = events.GenTopDecay[:, :, 3]  # light quark 1 / lepton
-        n_had = ak.sum(abs(q1_or_l.pdgId) <= 5, axis=1)
-
         # tag events with exactly one hadronic top
-        is_had_top = ak.fill_none(n_had == 1, False)
+        is_had_top = ak.fill_none(events.gen_top_decay_n_had == 1, False)
 
         # background: all events where number of hadronically
         #             decaying top quarks is not exactly 1
