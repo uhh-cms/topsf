@@ -73,6 +73,16 @@ def kwargs_fn(categories: dict[str, od.Category]):
     }
 
 
+def skip_fn(categories: dict[str, od.Category]):
+    """Custom function for skipping certain category combinations."""
+    # skip if combination involves both `tau32` and `tau32_wp` groups,
+    # since these are not disjoint
+    if all(group in categories for group in ["tau32", "tau32_wp"]):
+        return True
+
+    return False  # don't skip
+
+
 def add_categories(config: od.Config) -> None:
     """
     Adds categories to a *config* that are available after the selection step.
@@ -222,6 +232,7 @@ def add_categories(config: od.Config) -> None:
 
     # pass/fail categories from union of tau32 bins
     assert len(tau32_wps) + 2 == len(tau32_bins)
+    tau32_wp_categories = []
     for cat_idx, (tau32_wp, tau32_val) in enumerate(zip(tau32_wps, tau32_bins[1:-1])):
         for cat_type_idx, (pass_fail, comp_symbol, cat_slice) in enumerate([
             ("pass", "<", slice(None, cat_idx + 1)),
@@ -243,6 +254,8 @@ def add_categories(config: od.Config) -> None:
             for child_cat in child_cats:
                 cat.add_category(child_cat)
 
+            tau32_wp_categories.append(cat)
+
     # -- combined categories
 
     def add_combined_categories(config):
@@ -256,6 +269,7 @@ def add_categories(config: od.Config) -> None:
             ],
             "pt": pt_categories,
             "tau32": tau32_categories,
+            "tau32_wp": tau32_wp_categories,
         }
 
         create_category_combinations(
@@ -263,8 +277,35 @@ def add_categories(config: od.Config) -> None:
             category_groups,
             name_fn,
             kwargs_fn,
+            skip_fn=skip_fn,
             skip_existing=False,
         )
+
+        # conenct intermediary `tau32_wp` and `tau32` categories
+        category_groups_no_tau32 = {
+            "lepton": [
+                config.get_category(name)
+                for name in ["1e", "1m"]
+            ],
+            "pt": pt_categories,
+        }
+        for n in range(1, len(category_groups_no_tau32) + 1):
+            for group_names in itertools.combinations(category_groups_no_tau32, n):
+                root_cats = [category_groups_no_tau32[gn] for gn in group_names]
+                for root_cats in itertools.product(*root_cats):
+                    root_cats = dict(zip(group_names, root_cats))
+                    for tau32_wp_cat in tau32_wp_categories:
+                        root_cats_1 = dict(root_cats, **{"tau32_wp": tau32_wp_cat})
+                        name_1 = name_fn(root_cats_1)
+                        cat_1 = config.get_category(name_1)
+                        for tau32_cat in tau32_wp_cat.categories:
+                            # skip compound children
+                            if "__" in tau32_cat.name:
+                                continue
+                            root_cats_2 = dict(root_cats, **{"tau32": tau32_cat})
+                            name_2 = name_fn(root_cats_2)
+                            cat_2 = config.get_category(name_2)
+                            cat_1.add_category(cat_2)
 
         config.has_combined_categories = True
 
