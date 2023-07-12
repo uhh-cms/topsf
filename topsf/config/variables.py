@@ -199,6 +199,9 @@ def add_variables(config: od.Config) -> None:
         null_value=EMPTY_FLOAT,
         binning=(50, 0, 1),
         x_title=r"Probe jet $\tau_{3}/\tau_{2}$",
+        aux={
+            "inputs": {"ProbeJet.tau3", "ProbeJet.tau2"},
+        },
     )
     config.add_variable(
         name="probejet_max_subjet_btag_score_btagDeepB",
@@ -209,6 +212,10 @@ def add_variables(config: od.Config) -> None:
         null_value=EMPTY_FLOAT,
         binning=(50, 0, 1),
         x_title=r"Max. DeepCSV score of probe subjets",
+        log_y=True,
+        aux={
+            "inputs": {"ProbeJet.subjet_btag_scores_btagDeepB"},
+        },
     )
 
     # jet lepton features
@@ -244,4 +251,7 @@ def add_variables(config: od.Config) -> None:
         binning=(40, 0.0, 800.0),
         unit="GeV",
         x_title="$H_{T}$",
+        aux={
+            "inputs": {"Jet.pt"},
+        },
     )
