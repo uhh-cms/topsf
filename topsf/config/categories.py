@@ -118,7 +118,6 @@ def add_categories(config: od.Config) -> None:
         label=r"1$\mu$",
     )
 
-
     #
     # group 2: probe jet pt bins
     #

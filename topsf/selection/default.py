@@ -36,7 +36,7 @@ ak = maybe_import("awkward")
 
 @selector(
     uses={"mc_weight", "process_id"},
-    check_columns_present={"produces"}, # some used columns optional
+    check_columns_present={"produces"},  # some used columns optional
 )
 def increment_stats(
     self: Selector,

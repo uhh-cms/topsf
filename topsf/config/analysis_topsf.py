@@ -83,9 +83,9 @@ for i_proc, (proc_name, proc_label, child_procs) in enumerate([
     ("mj", "Multijet", ["qcd"]),
 ]):
     proc = Process(
-       name=proc_name,
-       id=int(1e7 + (i_proc + 1)),
-       label=proc_label,
+        name=proc_name,
+        id=int(1e7 + (i_proc + 1)),
+        label=proc_label,
     )
     for child_proc in child_procs:
         procs.n(child_proc).add_parent_process(proc)
@@ -131,6 +131,7 @@ top_subprocess_cfg = DotDict.wrap({
     },
 })
 
+
 # helper function for adding subprocesses
 def add_subprocesses(proc, color_key):
     """Add subprocesses to an existing process."""
@@ -148,6 +149,7 @@ def add_subprocesses(proc, color_key):
         subproc.add_tag("is_subprocess")
     proc.add_tag("has_subprocesses")
     return subprocs
+
 
 # add subprocesses to processes with top quarks
 for base_proc_name in ("st", "tt"):
@@ -191,10 +193,10 @@ process_names = [
     "data",
     "tt",
     "st",
-    #"dy_lep",
-    #"w_lnu",
-    #"vv",
-    #"qcd",
+    # "dy_lep",
+    # "w_lnu",
+    # "vv",
+    # "qcd",
     "vx",
     "mj",
 ]
@@ -233,8 +235,8 @@ dataset_names = [
     "st_twchannel_t_powheg",
     "st_twchannel_tbar_powheg",
     # DY
-    #"dy_lep_m50_ht70to100_madgraph",  # rm?
-    #"dy_lep_m50_ht100to200_madgraph",  # rm?
+    #"dy_lep_m50_ht70to100_madgraph",  # rm?  # noqa
+    #"dy_lep_m50_ht100to200_madgraph",  # rm?  # noqa
     "dy_lep_m50_ht200to400_madgraph",
     "dy_lep_m50_ht400to600_madgraph",
     "dy_lep_m50_ht600to800_madgraph",
@@ -242,8 +244,8 @@ dataset_names = [
     "dy_lep_m50_ht1200to2500_madgraph",
     "dy_lep_m50_ht2500_madgraph",
     # WJets
-    #"w_lnu_ht70To100_madgraph",  # rm?
-    #"w_lnu_ht100To200_madgraph",  # rm?
+    #"w_lnu_ht70To100_madgraph",  # rm?  # noqa
+    #"w_lnu_ht100To200_madgraph",  # rm?  # noqa
     "w_lnu_ht200To400_madgraph",
     "w_lnu_ht400To600_madgraph",
     "w_lnu_ht600To800_madgraph",
@@ -255,10 +257,10 @@ dataset_names = [
     "wz_pythia",
     "zz_pythia",
     # QCD
-    #"qcd_ht50to100_madgraph",  # rm?
-    #"qcd_ht100to200_madgraph",  # rm?
-    #"qcd_ht200to300_madgraph",  # rm?
-    #"qcd_ht300to500_madgraph",  # rm?
+    #"qcd_ht50to100_madgraph",  # rm?  # noqa
+    #"qcd_ht100to200_madgraph",  # rm?  # noqa
+    #"qcd_ht200to300_madgraph",  # rm?  # noqa
+    #"qcd_ht300to500_madgraph",  # rm?  # noqa
     "qcd_ht500to700_madgraph",
     "qcd_ht700to1000_madgraph",
     "qcd_ht1000to1500_madgraph",  # rm?
@@ -273,9 +275,9 @@ for dataset_name in dataset_names:
     if any(dataset_name.startswith(s) for s in ("tt", "st")):
         dataset.add_tag("has_top")
 
-    ## for testing purposes, limit the number of files to 1
-    #for info in dataset.info.values():
-    #    info.n_files = min(info.n_files, 1)
+    # for testing purposes, limit the number of files to 1
+    # for info in dataset.info.values():
+    #     info.n_files = min(info.n_files, 1)
 
 # verify that the root process of all datasets is part of any of the registered processes
 verify_config_processes(cfg, warn=True)
@@ -761,8 +763,8 @@ cfg.x.event_weights = DotDict({
 main_ver = "v7"
 cfg.x.named_versions = DotDict.wrap({
     "default": f"{main_ver}",
-    "calibrate": f"v2",
-    "select": "v6",  # f"{main_ver}",
+    "calibrate": "v2",
+    "select": "v6",
     "reduce": f"{main_ver}",
     "merge": f"{main_ver}",
     "produce": f"{main_ver}",
