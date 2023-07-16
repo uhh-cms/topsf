@@ -501,6 +501,17 @@ cfg.x.btag_sf_jec_sources = [
 # name of the btag_sf correction set and jec uncertainties to propagate through
 cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
 
+# L1 prefiring configuration
+cfg.x.l1_prefiring = DotDict.wrap({
+    "jet": {
+        "value": "l1_prefiring_efficiency_value_jetpt_2017BtoF",
+        "error": "l1_prefiring_efficiency_error_jetpt_2017BtoF",
+    },
+    "photon": {
+        "value": "l1_prefiring_efficiency_value_photonpt_2017BtoF",
+        "error": "l1_prefiring_efficiency_error_photonpt_2017BtoF",
+    },
+})
 
 #
 # register shifts
@@ -567,6 +578,11 @@ def add_shifts(cfg):
     cfg.add_shift(name="electron_down", id=114, type="shape")
     add_shift_aliases(cfg, "electron", {"electron_weight": "electron_weight_{direction}"})
 
+    # prefiring weights
+    cfg.add_shift(name="l1_prefiring_up", id=301, type="shape")
+    cfg.add_shift(name="l1_prefiring_down", id=302, type="shape")
+    add_shift_aliases(cfg, "l1_prefiring", {"l1_prefiring_weight": "l1_prefiring_weight_{direction}"})
+
     # jet energy scale (JEC) uncertainty variations
     for jec_source in cfg.x.jec.uncertainty_sources:
         idx = all_jec_sources.index(jec_source)
@@ -613,6 +629,9 @@ cfg.x.external_files = DotDict.wrap({
 
     # muon scale factors
     "muon_sf": (f"{json_mirror}/POG/MUO/{year}_UL/muon_Z.json.gz", "v1"),
+
+    # L1 prefiring corrections
+    "l1_prefiring": f"{os.getenv('TOPSF_BASE')}/data/json/l1_prefiring.json.gz",
 
     # lumi files
     "lumi": {
@@ -663,6 +682,10 @@ cfg.x.keep_columns = DotDict.wrap({
         "Electron.jetIdx",
         "Electron.deltaEtaSC",
         "Electron.pfRelIso03_all",
+
+        # photons (for L1 prefiring)
+        "Photon.pt", "Photon.eta", "Photon.phi", "Photon.mass",
+        "Photon.jetIdx",
 
         # AK4 jets
         "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass",
@@ -763,6 +786,7 @@ cfg.x.event_weights = DotDict({
     "muon_weight": get_shifts("muon"),
     "electron_weight": get_shifts("electron"),
     "top_pt_weight": get_shifts("top_pt"),
+    "l1_prefiring_weight": get_shifts("l1_prefiring"),
 })
 
 # named references to actual versions to use for certain sets of tasks

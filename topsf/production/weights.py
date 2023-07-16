@@ -14,6 +14,7 @@ from columnflow.production.cms.pileup import pu_weight
 from columnflow.util import maybe_import
 
 from topsf.production.normalization import normalization_weights
+from topsf.production.l1_prefiring import l1_prefiring_weights
 
 ak = maybe_import("awkward")
 
@@ -36,6 +37,9 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         jet_mask = (events.Jet.pt >= 100) & (abs(events.Jet.eta) < 2.5)
         events = self[btag_weights](events, jet_mask=jet_mask, **kwargs)
 
+        # compute L1 prefiring weights
+        events = self[l1_prefiring_weights](events, **kwargs)
+
         # compute normalization weights
         events = self[normalization_weights](events, **kwargs)
 
@@ -55,8 +59,10 @@ def weights_init(self: Producer) -> None:
         self.uses |= {
             electron_weights, muon_weights, btag_weights,
             normalization_weights, pu_weight, mc_weight,
+            l1_prefiring_weights,
         }
         self.produces |= {
             electron_weights, muon_weights, btag_weights,
             normalization_weights, pu_weight, mc_weight,
+            l1_prefiring_weights,
         }
