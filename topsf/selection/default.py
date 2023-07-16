@@ -29,6 +29,7 @@ from topsf.production.processes import process_ids
 from topsf.production.categories import category_ids
 from topsf.production.probe_jet import probe_jet
 from topsf.production.gen_top import gen_parton_top
+from topsf.production.gen_v import gen_v_boson
 
 
 np = maybe_import("numpy")
@@ -114,6 +115,7 @@ def increment_stats(
         increment_stats,
         probe_jet,
         gen_parton_top,
+        gen_v_boson,
     },
     produces={
         mc_weight, process_ids, category_ids,
@@ -129,6 +131,7 @@ def increment_stats(
         increment_stats,
         probe_jet,
         gen_parton_top,
+        gen_v_boson,
     },
     exposed=True,
 )
@@ -193,6 +196,9 @@ def default(
     # produce features relevant for selection and event weights
     if self.dataset_inst.has_tag("is_ttbar"):
         events = self[gen_parton_top](events, **kwargs)
+
+    if self.dataset_inst.has_tag("is_v_jets"):
+        events = self[gen_v_boson](events, **kwargs)
 
     events = self[probe_jet](events, **kwargs)
 

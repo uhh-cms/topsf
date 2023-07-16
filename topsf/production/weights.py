@@ -15,6 +15,7 @@ from columnflow.util import maybe_import
 
 from topsf.production.normalization import normalization_weights
 from topsf.production.gen_top import top_pt_weight
+from topsf.production.gen_v import vjets_weight
 from topsf.production.l1_prefiring import l1_prefiring_weights
 
 ak = maybe_import("awkward")
@@ -45,6 +46,10 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # compute L1 prefiring weights
         events = self[l1_prefiring_weights](events, **kwargs)
 
+        # compute V+jets K factor weights
+        if self.dataset_inst.has_tag("is_v_jets"):
+            events = self[vjets_weight](events, **kwargs)
+
         # compute normalization weights
         events = self[normalization_weights](events, **kwargs)
 
@@ -66,10 +71,12 @@ def weights_init(self: Producer) -> None:
             normalization_weights, pu_weight, mc_weight,
             l1_prefiring_weights,
             top_pt_weight,
+            vjets_weight,
         }
         self.produces |= {
             electron_weights, muon_weights, btag_weights,
             normalization_weights, pu_weight, mc_weight,
             l1_prefiring_weights,
             top_pt_weight,
+            vjets_weight,
         }

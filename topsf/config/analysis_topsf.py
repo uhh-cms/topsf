@@ -283,6 +283,14 @@ for dataset_name in dataset_names:
     if dataset_name.startswith("tt"):
         dataset.add_tag("is_ttbar")
 
+    # mark v+jets processes (for NLO reweighting)
+    if dataset_name.startswith("w_lnu"):
+        dataset.add_tag("is_v_jets")
+        dataset.add_tag("is_w_jets")
+    if dataset_name.startswith("dy_lep"):
+        dataset.add_tag("is_v_jets")
+        dataset.add_tag("is_z_jets")
+
     # for testing purposes, limit the number of files to 1
     # for info in dataset.info.values():
     #     info.n_files = min(info.n_files, 1)
@@ -517,6 +525,18 @@ cfg.x.l1_prefiring = DotDict.wrap({
     },
 })
 
+# V+jets reweighting
+cfg.x.vjets_reweighting = DotDict.wrap({
+    "w": {
+        "value": "wjets_kfactor_value",
+        "error": "wjets_kfactor_error",
+    },
+    "z": {
+        "value": "zjets_kfactor_value",
+        "error": "zjets_kfactor_error",
+    },
+})
+
 #
 # register shifts
 #
@@ -582,6 +602,11 @@ def add_shifts(cfg):
     cfg.add_shift(name="electron_down", id=114, type="shape")
     add_shift_aliases(cfg, "electron", {"electron_weight": "electron_weight_{direction}"})
 
+    # V+jets reweighting
+    cfg.add_shift(name="vjets_up", id=201, type="shape")
+    cfg.add_shift(name="vjets_down", id=202, type="shape")
+    add_shift_aliases(cfg, "vjets", {"vjets_weight": "vjets_weight_{direction}"})
+
     # prefiring weights
     cfg.add_shift(name="l1_prefiring_up", id=301, type="shape")
     cfg.add_shift(name="l1_prefiring_down", id=302, type="shape")
@@ -636,6 +661,9 @@ cfg.x.external_files = DotDict.wrap({
 
     # L1 prefiring corrections
     "l1_prefiring": f"{os.getenv('TOPSF_BASE')}/data/json/l1_prefiring.json.gz",
+
+    # V+jets reweighting
+    "vjets_reweighting": f"{os.getenv('TOPSF_BASE')}/data/json/vjets_reweighting.json.gz",
 
     # lumi files
     "lumi": {
@@ -754,9 +782,10 @@ cfg.x.keep_columns = DotDict.wrap({
         # columns added during selection
         #
 
-        # generator top-quark decay info
+        # generator particle info
         "GenTopDecay.*",
         "GenPartonTop.*",
+        "GenVBoson.*",
 
         # generic leptons (merger of Muon/Electron)
         "Lepton.*",
@@ -791,6 +820,7 @@ cfg.x.event_weights = DotDict({
     "electron_weight": get_shifts("electron"),
     "top_pt_weight": get_shifts("top_pt"),
     "l1_prefiring_weight": get_shifts("l1_prefiring"),
+    "vjets_weight": get_shifts("vjets"),
 })
 
 # named references to actual versions to use for certain sets of tasks
