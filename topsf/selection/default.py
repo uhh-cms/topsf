@@ -191,7 +191,9 @@ def default(
     print(f"__all__: {n_sel}")
 
     # produce features relevant for selection and event weights
-    events = self[gen_parton_top](events, **kwargs)
+    if self.dataset_inst.has_tag("is_ttbar"):
+        events = self[gen_parton_top](events, **kwargs)
+
     events = self[probe_jet](events, **kwargs)
 
     # create process ids

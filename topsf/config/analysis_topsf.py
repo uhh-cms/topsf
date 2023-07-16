@@ -279,6 +279,10 @@ for dataset_name in dataset_names:
     if any(dataset_name.startswith(s) for s in ("tt", "st")):
         dataset.add_tag("has_top")
 
+    # mark ttbar (for top pT reweighting)
+    if dataset_name.startswith("tt"):
+        dataset.add_tag("is_ttbar")
+
     # for testing purposes, limit the number of files to 1
     # for info in dataset.info.values():
     #     info.n_files = min(info.n_files, 1)
