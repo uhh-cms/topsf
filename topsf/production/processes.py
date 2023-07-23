@@ -21,7 +21,7 @@ ak = maybe_import("awkward")
 )
 def process_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
-    Determines the process ID based on the dataset and, if applicable, subprocess
+    Determine the process ID based on the dataset and, if applicable, subprocess
     information stored in the configuration.
 
     For ttbar & single top datasets, subprocesses are defined based on the decay
@@ -39,7 +39,26 @@ def process_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     st          hadronic            3                   st_3q
                                     2                   st_2q
                                     1 or 0              st_1o0q
-                leptonic            any                 st_bkg
+                leptonic            (see below)
+
+    For single-top production in association with a W boson, the top quark may
+    decay leptonically, but the associated W boson decay may be hadronic. In this
+    case, the number of merged quarks is determined not from the top quark decay
+    products, but from the decay products of the associated hadronic W boson.
+    The corresponding subprocess is determined as follows:
+
+    Process     Top decay  Assoc. W decay    # of merged quarks  Subprocess
+    -------     ---------  --------------    ------------------  ----
+    st_tW       leptonic   hadronic          3                   st_bkg*
+                                             2                   st_2q
+                                             1 or 0              st_1o0q
+    st_tW       leptonic   leptonic          any                 st_bkg
+    st_other    leptonic   --                any                 st_bkg
+
+    *) This case arises only if an additional associated b quark is found in close
+       proximity to the probe jet. Since this b quark is not related to the actual
+       top process, it is classified as background.
+
     """
     # get process to which the dataset belongs
     if len(self.dataset_inst.processes) != 1:
@@ -58,36 +77,54 @@ def process_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
             if p.has_tag("is_subprocess")
         }
 
+        # get number of decay products merged to hadronic top
         events = self[gen_top_decay_products](events, **kwargs)
-        events = self[gen_top_decay_n_had](events, **kwargs)
         events = self[probe_jet](events, **kwargs)
+        has_probejet = ~ak.is_none(events.ProbeJet.pt)
+        n_merged = ak.fill_none(events.ProbeJet.n_merged, 0)
+        is_hadronic = ak.fill_none(events.ProbeJet.is_hadronic_decay, False)
+        is_assoc = ak.fill_none(events.ProbeJet.is_associated_decay, False)
 
-        # tag events with exactly one hadronic top
-        is_had_top = ak.fill_none(events.gen_top_decay_n_had == 1, False)
+        # treat events with associated hadronic W but three merged
+        # decay products (i.e. w/ unrelated b quark) as background
+        n_merged = ak.where(
+            is_hadronic & is_assoc & (n_merged == 3),
+            0,
+            n_merged,
+        )
 
-        # background: all events where number of hadronically
-        #             decaying top quarks is not exactly 1
-        #             or without probe jet
+        # background: all events where there is no probe jet, or where
+        #             the decay merged to the probe jet is not hadronic,
+        #             or where an associated b quark and both associated
+        #             W decay products are merged to the probe jet
+        is_background = (
+            (~has_probejet) |
+            (~is_hadronic) |
+            (is_hadronic & is_assoc & (n_merged == 3))
+        )
         process_id = ak.where(
-            (~is_had_top) | ak.is_none(events.ProbeJet.n_merged),
+            is_background,
             subprocess_ids["bkg"],
             process_id,
         )
 
         # nq: events where exactly n quarks are merged
         #     to the probe jet
-        for n_merged in (3, 2):
+        for n_merged_comp in (3, 2):
             process_id = ak.where(
-                is_had_top & ak.fill_none(events.ProbeJet.n_merged == n_merged, False),
-                subprocess_ids[f"{n_merged}q"],
+                (~is_background) & (n_merged == n_merged_comp),
+                subprocess_ids[f"{n_merged_comp}q"],
                 process_id,
             )
 
         # 0o1q: events where 0 or 1 quarks are merged
         #       to the probe jet
         process_id = ak.where(
-            is_had_top & ak.fill_none(
-                ((events.ProbeJet.n_merged == 0) | (events.ProbeJet.n_merged == 1)),
+            ak.fill_none(
+                (~is_background) & (
+                    (n_merged == 0) |
+                    (n_merged == 1)
+                ),
                 False,
             ),
             subprocess_ids["0o1q"],

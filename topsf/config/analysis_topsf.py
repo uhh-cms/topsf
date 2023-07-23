@@ -285,6 +285,8 @@ for dataset_name in dataset_names:
     # mark the presence of a top quark
     if any(dataset_name.startswith(s) for s in ("tt", "st")):
         dataset.add_tag("has_top")
+        if "twchannel" in dataset_name:
+            dataset.add_tag("has_top_associated_w")
 
     # mark ttbar (for top pT reweighting)
     if dataset_name.startswith("tt"):
@@ -791,6 +793,7 @@ cfg.x.keep_columns = DotDict.wrap({
 
         # generator particle info
         "GenTopDecay.*",
+        "GenTopAssociatedDecay.*",
         "GenPartonTop.*",
         "GenVBoson.*",
 
