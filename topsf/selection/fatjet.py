@@ -45,6 +45,8 @@ def fatjet_selection(
 
     # lepton
     events = self[lepton_selection](events, **kwargs)
+    if isinstance(events, tuple):
+        events = events[0]
     lepton = events.Lepton
 
     # split fatjet collection into near and far from lepton

@@ -34,6 +34,8 @@ def bjet_lepton_selection(
 
     # lepton
     events = self[lepton_selection](events, **kwargs)
+    if isinstance(events, tuple):
+        events = events[0]
     lepton = events.Lepton
 
     # b-tagged jets
