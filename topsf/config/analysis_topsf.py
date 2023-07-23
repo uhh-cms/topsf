@@ -152,26 +152,29 @@ def add_subprocesses(proc, color_key):
 
 
 # add subprocesses to processes with top quarks
-for base_proc_name in ("st", "tt"):
-    base_proc = getattr(procs.n, base_proc_name)
-    leaf_procs = base_proc.get_leaf_processes()
+for root_proc in ("st", "tt"):
+    root_proc_inst = getattr(procs.n, root_proc)
+    subprocs = {}  # [depth][subproc_key] -> od.Process
+    for proc, depth, children in root_proc_inst.walk_processes(algo="bfs", include_self=True):
+        # add subprocesses to top-level process (tt, st)
+        subprocs[depth] = add_subprocesses(proc, color_key=root_proc)
 
-    # add subprocesses to top-level process (tt, st)
-    base_subprocs = add_subprocesses(base_proc, color_key=base_proc_name)
-
-    # add subprocesses to leaf processes (tt_sl, st_tchannel_t, ...)
-    for leaf_proc in leaf_procs:
-        leaf_subprocs = add_subprocesses(leaf_proc, color_key=base_proc_name)
-
-        # add leaf subprocesses as children to top-level subprocesses
-        for subproc_name, leaf_subproc in leaf_subprocs.items():
-            base_subprocs[subproc_name].add_process(leaf_subproc)
+        # mark subprocesses as children of parent subprocesses
+        parent_subprocs = subprocs.get(depth - 1, {})
+        if not parent_subprocs:
+            continue
+        for subproc_name, subproc_inst in subprocs[depth].items():
+            parent_subprocs[subproc_name].add_process(subproc_inst)
 
 # create a config by passing the campaign, so id and name will be identical
 cfg = ana.add_config(campaign)
 
 # gather campaign data
 year = campaign.x.year
+
+#
+# processes
+#
 
 # set color of some processes
 colors = {
@@ -214,6 +217,10 @@ for process_name in process_names:
 
     # configuration of colors, labels, etc. can happen here
     proc.color = colors.get(proc.name, "#aaaaaa")
+
+#
+# datasets
+#
 
 # add datasets we need to study
 dataset_names = [
