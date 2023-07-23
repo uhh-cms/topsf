@@ -35,8 +35,9 @@ def category_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # loop through selectors
         for selector in self.category_to_selectors[cat_inst]:
             # run the selector for events that still match the mask, then AND concat
-            _cat_mask = self[selector](events[cat_mask], **kwargs)
-            cat_mask[cat_mask] &= np.asarray(_cat_mask == 1)
+            cat_mask = cat_mask & self[selector](events, **kwargs)
+            # _cat_mask = self[selector](events[cat_mask], **kwargs)
+            # cat_mask[cat_mask] &= np.asarray(_cat_mask == 1)
 
             # stop if no events are left
             if not ak.any(cat_mask):

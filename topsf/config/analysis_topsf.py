@@ -139,7 +139,7 @@ def add_subprocesses(proc, color_key):
     for subproc_name, subproc_cfg in top_subprocess_cfg.items():
         subprocs[subproc_name] = subproc = proc.add_process(
             name=f"{proc.name}_{subproc_name}",
-            id=int(proc.id + 1e6 * (subproc_cfg.index + 1)),
+            id=int(proc.id + 1e6 * (subproc_cfg.index)),
             label=f"{proc.label}, {subproc_cfg.label}",
             color=subproc_cfg.colors[color_key],
             aux={
