@@ -15,7 +15,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 
 @producer(
     uses={"GenPart.genPartIdxMother", "GenPart.pdgId", "GenPart.statusFlags"},
-    produces={"GenTopDecay"},
+    produces={"GenTopDecay.*"},
     mc_only=True,
 )
 def gen_top_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -168,8 +168,13 @@ def gen_top_decay_products_skip(self: Producer) -> bool:
 
 @producer(
     uses={"GenPart.pdgId", "GenPart.statusFlags"},
-    produces={"GenPartonTop"},
-    mc_only=True,
+    produces={
+        "GenPartonTop.pt",
+        "GenPartonTop.eta",
+        "GenPartonTop.phi",
+        "GenPartonTop.mass",
+        "GenPartonTop.pdgId",
+    },
 )
 def gen_parton_top(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
@@ -181,13 +186,13 @@ def gen_parton_top(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     t = t[t.hasFlags("isLastCopy")]
     t = t[~ak.is_none(t, axis=1)]
 
-    # save the column
+    # write columns
     events = set_ak_column(events, "GenPartonTop", t)
 
     return events
 
 
-@gen_top_decay_products.skip
+@gen_parton_top.skip
 def gen_parton_top_skip(self: Producer) -> bool:
     """
     Custom skip function that checks whether the dataset is a MC simulation containing top
