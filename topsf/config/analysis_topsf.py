@@ -661,6 +661,7 @@ add_shifts(cfg)
 
 # external files
 json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-dfd90038"
+local_repo = "/nfs/dust/cms/user/dsavoiu/Work/TopSF/topsf"  # TODO: avoid hardcoding path
 cfg.x.external_files = DotDict.wrap({
     # jet energy corrections
     "jet_jerc": (f"{json_mirror}/POG/JME/{year}_UL/jet_jerc.json.gz", "v1"),  # noqa
@@ -675,10 +676,10 @@ cfg.x.external_files = DotDict.wrap({
     "muon_sf": (f"{json_mirror}/POG/MUO/{year}_UL/muon_Z.json.gz", "v1"),
 
     # L1 prefiring corrections
-    "l1_prefiring": f"{os.getenv('TOPSF_BASE')}/data/json/l1_prefiring.json.gz",
+    "l1_prefiring": f"{local_repo}/data/json/l1_prefiring.json.gz",
 
     # V+jets reweighting
-    "vjets_reweighting": f"{os.getenv('TOPSF_BASE')}/data/json/vjets_reweighting.json.gz",
+    "vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
 
     # lumi files
     "lumi": {
