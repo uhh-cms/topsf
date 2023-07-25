@@ -207,7 +207,7 @@ def gen_parton_top_skip(self: Producer) -> bool:
 
 @producer(
     uses={
-        gen_top_decay_products,
+        "GenPartonTop.pt",
     },
     produces={
         "top_pt_weight", "top_pt_weight_up", "top_pt_weight_down",
