@@ -314,7 +314,13 @@ cfg.x.default_producer = "default"
 cfg.x.default_ml_model = None
 cfg.x.default_inference_model = "default"
 cfg.x.default_categories = ("incl",)
-cfg.x.default_variables = ("n_jet", "jet1_pt")
+cfg.x.default_variables = (
+    "probejet_pt",
+    "probejet_mass",
+    "probejet_msoftdrop_widebins",
+    "probejet_tau32",
+    "probejet_max_subjet_btag_score_btagDeepB",
+)
 
 # process groups for conveniently looping over certain processs
 # (used in wrapper_factory and during plotting)
