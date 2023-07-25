@@ -623,9 +623,9 @@ def add_shifts(cfg):
     add_shift_aliases(cfg, "vjets", {"vjets_weight": "vjets_weight_{direction}"})
 
     # prefiring weights
-    cfg.add_shift(name="l1_prefiring_up", id=301, type="shape")
-    cfg.add_shift(name="l1_prefiring_down", id=302, type="shape")
-    add_shift_aliases(cfg, "l1_prefiring", {"l1_prefiring_weight": "l1_prefiring_weight_{direction}"})
+    cfg.add_shift(name="l1_ecal_prefiring_up", id=301, type="shape")
+    cfg.add_shift(name="l1_ecal_prefiring_down", id=302, type="shape")
+    add_shift_aliases(cfg, "l1_ecal_prefiring", {"l1_ecal_prefiring_weight": "l1_ecal_prefiring_weight_{direction}"})
 
     # jet energy scale (JEC) uncertainty variations
     for jec_source in cfg.x.jec.uncertainty_sources:
@@ -834,10 +834,20 @@ cfg.x.event_weights = DotDict({
     "normalization_weight": [],
     "muon_weight": get_shifts("muon"),
     "electron_weight": get_shifts("electron"),
-    "top_pt_weight": get_shifts("top_pt"),
-    "l1_prefiring_weight": get_shifts("l1_prefiring"),
-    "vjets_weight": get_shifts("vjets"),
 })
+
+# event weights only present in certain datasets
+for dataset in cfg.datasets:
+    dataset.x.event_weights = DotDict()
+    if dataset.has_tag("is_ttbar"):
+        # top pt reweighting
+        dataset.x.event_weights["top_pt_weight"] = get_shifts("top_pt")
+    if dataset.has_tag("is_v_jets"):
+        # V+jets QCD NLO reweighting
+        dataset.x.event_weights["vjets_weight"] = get_shifts("vjets")
+    if not dataset.is_data:
+        # prefiring weights (all datasets except real data)
+        dataset.x.event_weights["l1_ecal_prefiring_weight"] = get_shifts("l1_ecal_prefiring")
 
 # named references to actual versions to use for certain sets of tasks
 main_ver = "v7"
