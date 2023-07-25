@@ -128,7 +128,7 @@ setup_topsf() {
     #
 
     export LAW_HOME="${TOPSF_BASE}/.law"
-    export LAW_CONFIG_FILE="${TOPSF_BASE}/law.nocert.cfg"
+    export LAW_CONFIG_FILE="${TOPSF_BASE}/law.cfg"
 
     if which law &> /dev/null; then
         # source law's bash completion scipt
