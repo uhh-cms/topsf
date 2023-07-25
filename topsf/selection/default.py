@@ -9,6 +9,7 @@ from functools import reduce
 from collections import defaultdict, OrderedDict
 
 from columnflow.util import maybe_import
+from columnflow.columnar_util import optional_column as optional
 
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
@@ -37,7 +38,7 @@ ak = maybe_import("awkward")
 
 
 @selector(
-    uses={"mc_weight", "process_id"},
+    uses={optional("mc_weight"), "process_id"},
     check_columns_present={"produces"},  # some used columns optional
 )
 def increment_stats(

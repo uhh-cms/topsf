@@ -5,7 +5,7 @@ Column producers related to probe jet.
 """
 from columnflow.production import Producer, producer
 from columnflow.util import maybe_import
-from columnflow.columnar_util import set_ak_column
+from columnflow.columnar_util import set_ak_column, optional_column as optional
 
 from topsf.selection.util import masked_sorted_indices
 from topsf.production.util import lv_mass
@@ -23,7 +23,10 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
         choose_lepton,
         gen_top_decay_products,
         # generator particle kinematics
-        "GenPart.pt", "GenPart.eta", "GenPart.phi", "GenPart.mass",
+        optional("GenPart.pt"),
+        optional("GenPart.eta"),
+        optional("GenPart.phi"),
+        optional("GenPart.mass"),
     },
     produces={
         "ProbeJet.pt", "ProbeJet.eta", "ProbeJet.phi", "ProbeJet.mass",
