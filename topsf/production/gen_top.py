@@ -210,35 +210,6 @@ def gen_parton_top_skip(self: Producer) -> bool:
         gen_top_decay_products,
     },
     produces={
-        "gen_top_decay_n_had",
-    },
-)
-def gen_top_decay_n_had(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    """
-    Produce number of hadronically decaying top quarks.
-    """
-
-    n_had = 0
-
-    # get decay products of top quark
-    if self.dataset_inst.has_tag("has_top"):
-        events = self[gen_top_decay_products](events, **kwargs)
-
-        # count quark decay products
-        q1_or_l = events.GenTopDecay[:, :, 3]  # light quark 1 / lepton
-        n_had = ak.sum(abs(q1_or_l.pdgId) <= 5, axis=1)
-
-    # write out columns
-    events = set_ak_column(events, "gen_top_decay_n_had", n_had)
-
-    return events
-
-
-@producer(
-    uses={
-        gen_top_decay_products,
-    },
-    produces={
         "top_pt_weight", "top_pt_weight_up", "top_pt_weight_down",
     },
 )

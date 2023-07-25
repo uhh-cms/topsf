@@ -8,7 +8,7 @@ from columnflow.production import Producer, producer
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 
-from topsf.production.gen_top import gen_top_decay_products, gen_top_decay_n_had
+from topsf.production.gen_top import gen_top_decay_products
 from topsf.production.probe_jet import probe_jet
 
 np = maybe_import("numpy")
@@ -16,7 +16,7 @@ ak = maybe_import("awkward")
 
 
 @producer(
-    uses={gen_top_decay_products, gen_top_decay_n_had, probe_jet},
+    uses={gen_top_decay_products, probe_jet},
     produces={"process_id"},
 )
 def process_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
