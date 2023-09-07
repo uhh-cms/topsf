@@ -22,6 +22,10 @@ def gen_top_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Arr
     """
     Creates a new ragged column "GenTopDecay" with one element per hard top quark.
 
+    .. note::
+
+        Can only be run when processing NanoAODs, i.e. during *CalibrateEvents* or *SelectEvents*.
+
     Each element of "GenTopDecay" contains the particles originating from the top quark decay, and is
     organized as a GenParticleArray with five or more objects in a distinct order: top quark, bottom
     quark, W boson, down-type quark or charged lepton, up-type quark or neutrino, and any additional
@@ -227,9 +231,6 @@ def top_pt_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
     # get SF function parameters from config
     params = self.config_inst.x.top_pt_reweighting_params
-
-    # obtain gen-level top quark information
-    events = self[gen_top_decay_products](events, **kwargs)
 
     # clamp top pT < 500 GeV and evaluate SF function
     pt_clamped = ak.where(events.GenPartonTop.pt > 500.0, 500.0, events.GenPartonTop.pt)
