@@ -878,6 +878,7 @@ cfg.x.keep_columns = DotDict.wrap({
 get_shifts = functools.partial(get_shifts_from_sources, cfg)
 cfg.x.event_weights = DotDict({
     "normalization_weight": [],
+    "pu_weight": get_shifts("minbias_xs"),
     "muon_weight": get_shifts("muon"),
     "electron_weight": get_shifts("electron"),
 })
