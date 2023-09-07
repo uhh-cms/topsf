@@ -15,6 +15,6 @@ action() {
     export CF_COMBINE_ENV_NAME="$( basename "${this_file%.sh}" )"
     export CF_COMBINE_FLAG="1"  # increment when content changed
 
-    source "${this_dir}/_setup_combine.sh" standalone "$@"
+    source "${this_dir}/_setup_combine.sh" lcg "$@"
 }
 action "$@"
