@@ -1,7 +1,11 @@
 # coding: utf-8
 
 """
-Configuration of the topsf analysis.
+Configuration of the Run2 top-tagging working point analysis.
+
+This analysis is meant for measuring the working points
+for cut-based tau32 top tagging from a single set of
+QCD MC samples.
 """
 
 import law
@@ -15,9 +19,9 @@ thisdir = os.path.dirname(os.path.abspath(__file__))
 # the main analysis object
 #
 
-analysis_topsf = ana = od.Analysis(
-    name="analysis_topsf",
-    id=1,
+analysis_wp = ana = od.Analysis(
+    name="analysis_wp",
+    id=2_02_00_00,
 )
 
 # analysis-global versions
@@ -49,22 +53,22 @@ ana.x.config_groups = {}
 # set up configs
 #
 
-from topsf.config.config_run2 import add_config as add_config_run2
+from topsf.config.run2.config_wp import add_config
 from cmsdb.campaigns.run2_2017_nano_v9 import campaign_run2_2017_nano_v9
 
 # default config
-config_2017 = add_config_run2(
-    analysis_topsf,
+config_2017 = add_config(
+    analysis_wp,
     campaign_run2_2017_nano_v9.copy(),
-    config_name="campaign_run2_2017_nano_v9",
-    config_id=1701,
+    config_name="run2_wp_2017_nano_v9",
+    config_id=2_02_17_01,
 )
 
 # config with limited number of files
-config_2017_limited = add_config_run2(
-    analysis_topsf,
+config_2017_limited = add_config(
+    analysis_wp,
     campaign_run2_2017_nano_v9.copy(),
-    config_name="campaign_run2_2017_nano_v9_limited",
-    config_id=101701,
+    config_name="run2_wp_2017_nano_v9_limited",
+    config_id=2_02_17_02,
     limit_dataset_files=1,
 )

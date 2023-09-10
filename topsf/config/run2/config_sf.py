@@ -1,7 +1,8 @@
 # coding: utf-8
 
 """
-Configuration creation for run2 topsf analysis
+Configuration creation for top-tagging scale factor
+derivation using Run2 samples.
 """
 
 from __future__ import annotations
@@ -283,9 +284,10 @@ def add_config(
             dataset.add_tag("is_v_jets")
             dataset.add_tag("is_z_jets")
 
-        # for testing purposes, limit the number of files to 1
-        # for info in dataset.info.values():
-        #     info.n_files = min(info.n_files, 1)
+        # for testing purposes, limit the number of files per dataset
+        if limit_dataset_files:
+            for info in dataset.info.values():
+                info.n_files = min(info.n_files, limit_dataset_files)
 
     # verify that the root processes of each dataset (or one of their
     # ancestor processes) are registered in the config
@@ -301,7 +303,7 @@ def add_config(
     cfg.x.default_selector = "default"
     cfg.x.default_producer = "default"
     cfg.x.default_ml_model = None
-    cfg.x.default_inference_model = "default"
+    cfg.x.default_inference_model = "uhh2"
     cfg.x.default_categories = ("incl",)
     cfg.x.default_variables = (
         "probejet_pt",
@@ -797,8 +799,6 @@ def add_config(
     # systematic shifts
     #
 
-    # TODO: compare with hbw
-
     # read in JEC sources from file
     with open(os.path.join(thisdir, "jec_sources.yaml"), "r") as f:
         all_jec_sources = yaml.load(f, yaml.Loader)["names"]
@@ -825,27 +825,26 @@ def add_config(
         cfg.add_shift(name="top_pt_up", id=9, type="shape")
         cfg.add_shift(name="top_pt_down", id=10, type="shape")
         add_shift_aliases(cfg, "top_pt", {"top_pt_weight": "top_pt_weight_{direction}"})
-        # FIXME: set selection_dependent=True ?
 
         # renormalization scale
-        cfg.add_shift(name="mur_up", id=101, type="shape")
-        cfg.add_shift(name="mur_down", id=102, type="shape")
+        cfg.add_shift(name="mur_up", id=901, type="shape")
+        cfg.add_shift(name="mur_down", id=902, type="shape")
 
         # factorization scale
-        cfg.add_shift(name="muf_up", id=103, type="shape")
-        cfg.add_shift(name="muf_down", id=104, type="shape")
+        cfg.add_shift(name="muf_up", id=903, type="shape")
+        cfg.add_shift(name="muf_down", id=904, type="shape")
 
         # scale variation (?)
-        cfg.add_shift(name="scale_up", id=105, type="shape")
-        cfg.add_shift(name="scale_down", id=106, type="shape")
+        cfg.add_shift(name="scale_up", id=905, type="shape")
+        cfg.add_shift(name="scale_down", id=906, type="shape")
 
         # pdf variations
-        cfg.add_shift(name="pdf_up", id=107, type="shape")
-        cfg.add_shift(name="pdf_down", id=108, type="shape")
+        cfg.add_shift(name="pdf_up", id=951, type="shape")
+        cfg.add_shift(name="pdf_down", id=952, type="shape")
 
         # alpha_s variation
-        cfg.add_shift(name="alpha_up", id=109, type="shape")
-        cfg.add_shift(name="alpha_down", id=110, type="shape")
+        cfg.add_shift(name="alpha_up", id=961, type="shape")
+        cfg.add_shift(name="alpha_down", id=962, type="shape")
 
         # TODO: murf_envelope?
         for unc in ["mur", "muf", "scale", "pdf", "alpha"]:
@@ -860,31 +859,9 @@ def add_config(
         add_shift_aliases(cfg, "muon", {"muon_weight": "muon_weight_{direction}"})
 
         # event weights due to electron scale factors
-        cfg.add_shift(name="electron_up", id=113, type="shape")
-        cfg.add_shift(name="electron_down", id=114, type="shape")
+        cfg.add_shift(name="electron_up", id=121, type="shape")
+        cfg.add_shift(name="electron_down", id=122, type="shape")
         add_shift_aliases(cfg, "electron", {"electron_weight": "electron_weight_{direction}"})
-
-        # event weights due to b-tagging
-        btag_uncs = [
-            "hf", "lf",
-            f"hfstats1_{year}", f"hfstats2_{year}",
-            f"lfstats1_{year}", f"lfstats2_{year}",
-            "cferr1", "cferr2",
-        ]
-        for i, unc in enumerate(btag_uncs):
-            cfg.add_shift(name=f"btag_{unc}_up", id=100 + 2 * i, type="shape")
-            cfg.add_shift(name=f"btag_{unc}_down", id=101 + 2 * i, type="shape")
-            add_shift_aliases(
-                cfg,
-                f"btag_{unc}",
-                {
-                    # TODO: normalized?
-                    #"normalized_btag_weight": f"normalized_btag_weight_{unc}_{{direction}}",  # noqa
-                    #"normalized_njet_btag_weight": f"normalized_njet_btag_weight_{unc}_{{direction}}",  # noqa
-                    "btag_weight": f"btag_weight_{unc}_{{direction}}",
-                },
-                selection_dependent=False,
-            )
 
         # V+jets reweighting
         cfg.add_shift(name="vjets_up", id=201, type="shape")
@@ -901,6 +878,27 @@ def add_config(
                 "l1_ecal_prefiring_weight": "l1_ecal_prefiring_weight_{direction}",
             },
         )
+
+        # b-tagging shifts
+        btag_uncs = [
+            "hf", "lf",
+            f"hfstats1_{year}", f"hfstats2_{year}",
+            f"lfstats1_{year}", f"lfstats2_{year}",
+            "cferr1", "cferr2",
+        ]
+        for i, unc in enumerate(btag_uncs):
+            cfg.add_shift(name=f"btag_{unc}_up", id=501 + 2 * i, type="shape")
+            cfg.add_shift(name=f"btag_{unc}_down", id=502 + 2 * i, type="shape")
+            add_shift_aliases(
+                cfg,
+                f"btag_{unc}",
+                {
+                    # TODO: normalized?
+                    #"normalized_btag_weight": f"normalized_btag_weight_{unc}_{{direction}}",  # noqa
+                    #"normalized_njet_btag_weight": f"normalized_njet_btag_weight_{unc}_{{direction}}",  # noqa
+                    "btag_weight": f"btag_weight_{unc}_{{direction}}",
+                },
+            )
 
         # jet energy scale (JEC) uncertainty variations
         for jec_source in cfg.x.jec.uncertainty_sources:
@@ -936,8 +934,6 @@ def add_config(
     #
     # external files
     #
-
-    # TODO: compare to hbw
 
     # some things only implemented for 2017
     if year != 2017:
@@ -1080,6 +1076,9 @@ def add_config(
 
             # number of primary vertices
             "PV.npvs",
+
+            # average number of pileup interactions
+            "Pileup.nTrueInt",
 
             #
             # columns added during selection
