@@ -76,7 +76,43 @@ def add_variables(config: od.Config) -> None:
 
     # Object properties
 
-    # Jets (4 pt-leading jets)
+    # all fat jets in event
+    # (used by WP analysis)
+    config.add_variable(
+        name="fatjet_pt",
+        expression="FatJet.pt",
+        null_value=EMPTY_FLOAT,
+        binning=[300, 400, 480, 600, 3000],
+        x_title=r"AK8 jet $p_{T}$",
+        unit="GeV",
+    )
+    config.add_variable(
+        name="fatjet_tau32",
+        expression=lambda events: events.FatJet.tau3 / events.FatJet.tau2,
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 1),
+        x_title=r"AK8 jet $\tau_{3}/\tau_{2}$",
+        aux={
+            "inputs": {"FatJet.tau3", "FatJet.tau2"},
+        },
+    )
+    config.add_variable(
+        name="fatjet_msoftdrop",
+        expression="FatJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 500),
+        x_title=r"AK8 jet $m_{SD}$",
+        unit="GeV",
+    )
+    config.add_variable(
+        name="fatjet_is_unique_top_matched",
+        expression="FatJet.is_unique_top_matched",
+        null_value=EMPTY_FLOAT,
+        binning=[-0.5, 0.5, 1.5],
+        x_title=r"AK8 jet has unique top quark match",
+    )
+
+    # pt-leading jets
     for i in range(4):
         for obj in ("Jet", "FatJet"):
             config.add_variable(
