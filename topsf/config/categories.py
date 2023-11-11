@@ -48,7 +48,7 @@ import itertools
 import order as od
 
 from columnflow.util import maybe_import
-from columnflow.selection import Selector, selector
+from columnflow.categorization import Categorizer, categorizer
 
 from topsf.config.util import create_category_combinations
 from topsf.production.probe_jet import probe_jet
@@ -142,12 +142,12 @@ def add_categories(config: od.Config) -> None:
         cat_name = f"pt_{pt_min_repr}_{pt_max_repr}"
         sel_name = f"sel_{cat_name}"
 
-        @selector(
+        @categorizer(
             uses={probe_jet},
             cls_name=sel_name,
         )
         def sel_pt(
-            self: Selector, events: ak.Array,
+            self: Categorizer, events: ak.Array,
             pt_range: tuple = (pt_min, pt_max),
             **kwargs,
         ) -> ak.Array:
@@ -155,7 +155,7 @@ def add_categories(config: od.Config) -> None:
             Select events with probe jet pt the range [{pt_min_repr}, {pt_max_repr})
             """
             events = self[probe_jet](events, **kwargs)
-            return ak.fill_none(
+            return events, ak.fill_none(
                 (events.ProbeJet.pt >= pt_range[0]) &
                 ((events.ProbeJet.pt < pt_range[1]) if pt_range[1] is not None else True),
                 False,
@@ -200,12 +200,12 @@ def add_categories(config: od.Config) -> None:
         cat_name = f"tau32_{tau32_min_repr}_{tau32_max_repr}"
         sel_name = f"sel_{cat_name}"
 
-        @selector(
+        @categorizer(
             uses={probe_jet},
             cls_name=sel_name,
         )
         def sel_tau32(
-            self: Selector, events: ak.Array,
+            self: Categorizer, events: ak.Array,
             tau32_range: tuple = (tau32_min, tau32_max),
             **kwargs,
         ) -> ak.Array:
@@ -214,7 +214,7 @@ def add_categories(config: od.Config) -> None:
             """
             events = self[probe_jet](events, **kwargs)
             tau32 = events.ProbeJet.tau3 / events.ProbeJet.tau2
-            return ak.fill_none(
+            return events, ak.fill_none(
                 (tau32 >= tau32_range[0]) & (tau32 < tau32_range[1]),
                 False,
             )
