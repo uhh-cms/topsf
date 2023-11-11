@@ -3,3 +3,4 @@
 
 # provisioning imports
 import topsf.tasks.base
+import topsf.tasks.wp
