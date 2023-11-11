@@ -67,13 +67,13 @@ def add_config(
 
     # set color of some processes
     colors = {
-        "tt_fh": "#E04F21",  # red
+        "tt": "#E04F21",  # red
         "qcd": "#5E8FFC",  # blue
     }
 
     # add processes we are interested in
     process_names = [
-        "tt_fh",
+        "tt",
         "qcd",
     ]
     for process_name in process_names:
@@ -128,15 +128,13 @@ def add_config(
     # ml model, inference model, etc
     cfg.x.default_calibrator = "default"
     cfg.x.default_selector = "wp"
-    cfg.x.default_producer = "wp"
+    cfg.x.default_producer = "default"
     cfg.x.default_ml_model = None
     cfg.x.default_inference_model = None
     cfg.x.default_categories = ("incl",)
     cfg.x.default_variables = (
-        "jet_pt",
-        "jet_is_unique_top_matched",
-        "jet_msoftdrop_widebins",  # needed?
-        "jet_tau32",
+        "fatjet_pt",
+        "fatjet_tau32",
     )
 
     #
@@ -171,7 +169,7 @@ def add_config(
     # (used in cutflow tasks)
     cfg.x.selector_step_groups = {
         "default": [
-            "Jet", "METFilters",
+            "FatJet", "METFilters",
         ],
     }
 
@@ -391,34 +389,14 @@ def add_config(
         "ak8": {
             "column": "FatJet",
             "min_pt": 300,
-            "max_abseta": 2.5,
+            "max_abseta": 2.4,  # note: SF analysis has 2.5
             "msoftdrop_range": (105, 210),
-            # probe jet pt bins )used by category builder)
+            # probe jet pt bins (used by category builder)
             "pt_bins": [300, 400, 480, 600, None],
             # parameters for b-tagged subjets
             "subjet_column": "SubJet",
             "subjet_btag": "btagDeepB",
             "subjet_btag_wp": cfg.x.btag_working_points.deepcsv.loose,
-        },
-        # TODO: implement (requires custom nano)
-        "hotvr": {
-            "column": "HOTVRJetForTopTagging",
-            "min_pt": 200,
-            "max_abseta": 2.5,
-            # clustering parameters (not needed for analysis, added for reference)
-            # https://twiki.cern.ch/twiki/bin/view/CMS/JetTopTagging?rev=41
-            "r_min_max": (0.1, 1.5),
-            "rho": 600,  # GeV
-            "mu": 30,  # Gev, mass jump threshold
-            "theta": 0.7,  # mass jump strength
-            "min_pt_subjet": 30,  # min pt of subject
-        },
-        "ak4": {
-            "column": "Jet",
-            "min_pt": 15,  # TODO: check UHH2
-            "max_abseta": 2.5,  # TODO: check UHH2
-            "btag_column": "btagDeepFlavB",  # nano v9: "DeepJet b+bb+lepb tag discriminator"
-            "btag_wp": cfg.x.btag_working_points.deepjet.medium,
         },
     })
 
@@ -815,11 +793,11 @@ def add_config(
     #
 
     # named references to actual versions to use for certain sets of tasks
-    main_ver = "v7"
+    main_ver = "v1"
     cfg.x.named_versions = DotDict.wrap({
         "default": f"{main_ver}",
-        "calibrate": "v2",
-        "select": "v6",
+        "calibrate": f"{main_ver}",
+        "select": f"{main_ver}",
         "reduce": f"{main_ver}",
         "merge": f"{main_ver}",
         "produce": f"{main_ver}",
