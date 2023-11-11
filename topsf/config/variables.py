@@ -85,6 +85,9 @@ def add_variables(config: od.Config) -> None:
         binning=[300, 400, 480, 600, 3000],
         x_title=r"AK8 jet $p_{T}$",
         unit="GeV",
+        aux={
+            "short_label": "$p_{T}$",
+        },
     )
     config.add_variable(
         name="fatjet_tau32",
@@ -94,15 +97,30 @@ def add_variables(config: od.Config) -> None:
         x_title=r"AK8 jet $\tau_{3}/\tau_{2}$",
         aux={
             "inputs": {"FatJet.tau3", "FatJet.tau2"},
+            "short_label": "$\tau_{3}/\tau_{2}$",
         },
     )
     config.add_variable(
-        name="fatjet_msoftdrop",
+        name="fatjet_tau32_fine",
+        expression=lambda events: events.FatJet.tau3 / events.FatJet.tau2,
+        null_value=EMPTY_FLOAT,
+        binning=(500, 0, 1),
+        x_title=r"$\tau_{3}/\tau_{2}$ upper limit",
+        aux={
+            "inputs": {"FatJet.tau3", "FatJet.tau2"},
+            "short_label": "$\tau_{3}/\tau_{2}$",
+        },
+    )
+    config.add_variable(
+        name="fatjet_msoftdrop_for_wp",
         expression="FatJet.msoftdrop",
         null_value=EMPTY_FLOAT,
-        binning=(50, 0, 500),
+        binning=[0, 105, 210, 1000],
         x_title=r"AK8 jet $m_{SD}$",
         unit="GeV",
+        aux={
+            "short_label": "$m_{SD}$",
+        },
     )
     config.add_variable(
         name="fatjet_is_unique_top_matched",
