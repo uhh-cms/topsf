@@ -171,13 +171,19 @@ def gen_top_decay_products_skip(self: Producer) -> bool:
 
 
 @producer(
-    uses={"GenPart.pdgId", "GenPart.statusFlags"},
+    uses={
+        "GenPart.pdgId", "GenPart.statusFlags",
+        "GenPart.pt",
+        "GenPart.eta",
+        "GenPart.phi",
+        "GenPart.mass",
+    },
     produces={
+        "GenPartonTop.pdgId",
         "GenPartonTop.pt",
         "GenPartonTop.eta",
         "GenPartonTop.phi",
         "GenPartonTop.mass",
-        "GenPartonTop.pdgId",
     },
 )
 def gen_parton_top(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
