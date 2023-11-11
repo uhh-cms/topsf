@@ -45,10 +45,11 @@ def met_selection_init(self: Selector) -> None:
         return
 
     # get selection parameters from the config
-    self.cfg = self.config_inst.x.met_selection.default
+    self.cfg = self.config_inst.x.met_selection.get(default, {})
 
     # set input columns
-    column = self.cfg.column
-    self.uses |= {
-        f"{column}.pt",
-    }
+    column = self.cfg.get("column", None)
+    if column:
+        self.uses |= {
+            f"{column}.pt",
+        }

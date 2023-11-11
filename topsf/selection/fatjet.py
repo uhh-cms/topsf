@@ -31,7 +31,7 @@ def fatjet_selection(
     """
 
     # get selection parameters from the config
-    self.cfg = self.config_inst.x.jet_selection.ak8
+    self.cfg = self.config_inst.x.jet_selection.get("ak8", "FatJet")
 
     # choose jet column
     fatjet = events[self.cfg.column]
@@ -85,7 +85,7 @@ def fatjet_selection_init(self: Selector) -> None:
         return
 
     # set config dict
-    self.cfg = config_inst.x.jet_selection.ak8
+    self.cfg = config_inst.x.jet_selection.get("ak8", "FatJet")
 
     # set input columns
     column = self.cfg.column

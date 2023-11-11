@@ -97,22 +97,30 @@ def channel_selection_init(self: Selector) -> None:
     if not config_inst:
         return
 
+    # return early if specified channel is not present in config
+    if not self.config_inst.has_channel(self.channel):
+        return
+
     # get channel and selection parameters from the config
     channel_inst = self.config_inst.get_channel(self.channel)
-    self.cfg = config_inst.x.lepton_selection[channel_inst.name]
+    self.cfg = config_inst.x.lepton_selection.get(channel_inst.name, {})
 
     # set input columns
-    column = self.cfg.column
+    column = self.cfg.get("column")
+    if column:
+        self.uses |= {
+            f"{column}.pt",
+            f"{column}.eta",
+            f"{column}.phi",
+            f"{column}.mass",
+            f"{column}.{self.cfg.id.column}",
+            f"{column}.{self.cfg.id_addveto.column}",
+        }
+
+    # set input trigger columns
     self.uses |= {
-        f"{column}.pt",
-        f"{column}.eta",
-        f"{column}.phi",
-        f"{column}.mass",
-        f"{column}.{self.cfg.id.column}",
-        f"{column}.{self.cfg.id_addveto.column}",
-    } | {
         f"HLT.{trigger}"
-        for trigger in self.cfg.triggers
+        for trigger in self.cfg.get("triggers", [])
     }
 
     # optionally wire relative isolation

@@ -27,7 +27,7 @@ def jet_selection(
     """
 
     # get selection parameters from the config
-    self.cfg = self.config_inst.x.jet_selection.ak4
+    self.cfg = self.config_inst.x.jet_selection.get("ak4", "Jet")
 
     # choose jet column
     jet = events[self.cfg.column]
@@ -73,17 +73,18 @@ def jet_selection_init(self: Selector) -> None:
         return
 
     # set config dict
-    self.cfg = config_inst.x.jet_selection.ak4
+    self.cfg = config_inst.x.jet_selection.get("ak4", {})
 
     # set input columns
-    column = self.cfg.column
-    self.uses |= {
-        f"{column}.pt",
-        f"{column}.eta",
-        f"{column}.phi",
-        f"{column}.mass",
-        f"{column}.{self.cfg.btag_column}",
-    }
+    column = self.cfg.get(column, None)
+    if column:
+        self.uses |= {
+            f"{column}.pt",
+            f"{column}.eta",
+            f"{column}.phi",
+            f"{column}.mass",
+            f"{column}.{self.cfg.btag_column}",
+        }
 
 
 @selector(
