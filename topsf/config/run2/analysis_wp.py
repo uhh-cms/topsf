@@ -20,7 +20,7 @@ thisdir = os.path.dirname(os.path.abspath(__file__))
 #
 
 analysis_wp = ana = od.Analysis(
-    name="analysis_wp",
+    name="analysis_run2_wp",
     id=2_02_00_00,
 )
 

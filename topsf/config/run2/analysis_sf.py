@@ -20,7 +20,7 @@ thisdir = os.path.dirname(os.path.abspath(__file__))
 #
 
 analysis_sf = ana = od.Analysis(
-    name="analysis_sf",
+    name="analysis_run2_sf",
     id=2_01_00_00,
 )
 

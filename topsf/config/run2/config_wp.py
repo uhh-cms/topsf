@@ -22,10 +22,10 @@ from columnflow.config_util import (
     get_shifts_from_sources,
     verify_config_processes,
 )
+from columnflow.selection import selector
 
 from topsf.config.variables import add_variables
-from topsf.config.categories import add_categories
-from topsf.config.analysis_topsf import analysis_topsf
+from topsf.config.categories_wp import add_categories
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
 
@@ -56,7 +56,7 @@ def add_config(
 
     # create a config by passing the campaign
     # (if id and name are not set they will be taken from the campaign)
-    cfg = analysis_topsf.add_config(campaign, name=config_name, id=config_id)
+    cfg = analysis.add_config(campaign, name=config_name, id=config_id)
 
     #
     # configure processes
