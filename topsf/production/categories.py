@@ -8,7 +8,7 @@ from collections import defaultdict
 
 import law
 
-from columnflow.selection import Selector
+from columnflow.categorization import Categorizer
 from columnflow.production import Producer, producer
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
@@ -32,11 +32,12 @@ def category_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # start with a true mask
         cat_mask = np.ones(len(events)) > 0
 
-        # loop through selectors
-        for selector in self.category_to_selectors[cat_inst]:
-            # run the selector for events that still match the mask, then AND concat
-            cat_mask = cat_mask & self[selector](events, **kwargs)
-            # _cat_mask = self[selector](events[cat_mask], **kwargs)
+        # loop through categorizers
+        for categorizer in self.category_to_categorizers[cat_inst]:
+            # run the categorizer for events that still match the mask, then AND concat
+            events, mask = self[categorizer](events, **kwargs)
+            cat_mask = cat_mask & mask
+            # _cat_mask = self[categorizer](events[cat_mask], **kwargs)
             # cat_mask[cat_mask] &= np.asarray(_cat_mask == 1)
 
             # stop if no events are left
@@ -60,36 +61,28 @@ def category_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
 @category_ids.init
 def category_ids_init(self: Producer) -> None:
-    # store a mapping from leaf category to selector classes for faster lookup
-    self.category_to_selectors = defaultdict(list)
+    # store a mapping from leaf category to categorizer classes for faster lookup
+    self.category_to_categorizers = defaultdict(list)
 
     if not hasattr(self.config_inst, "cached_leaf_categories"):
         self.config_inst.cached_leaf_categories = self.config_inst.get_leaf_categories()
 
-    # add all selectors obtained from leaf category selection expressions to the used columns
+    # add all categorizers obtained from leaf category selection expressions to the used columns
     for cat_inst in self.config_inst.cached_leaf_categories:
         # treat all selections as lists
         for sel in law.util.make_list(cat_inst.selection):
-            if Selector.derived_by(sel):
-                selector = sel
-            elif Selector.has_cls(sel):
-                selector = Selector.get_cls(sel)
+            if Categorizer.derived_by(sel):
+                categorizer = sel
+            elif Categorizer.has_cls(sel):
+                categorizer = Categorizer.get_cls(sel)
             else:
                 raise Exception(
                     f"selection '{sel}' of category '{cat_inst.name}' cannot be resolved to an "
-                    "existing Selector object",
-                )
-
-            # variables should refer to unexposed selectors as they should usually not
-            # return SelectionResult's but a flat per-event mask
-            if selector.exposed:
-                logger.warning(
-                    f"selection of category {cat_inst.name} seems to refer to an exposed selector "
-                    "whose return value is most likely incompatible with category masks",
+                    "existing Categorizer object",
                 )
 
             # update dependency sets
-            self.uses.add(selector)
-            self.produces.add(selector)
+            self.uses.add(categorizer)
+            self.produces.add(categorizer)
 
-            self.category_to_selectors[cat_inst].append(selector)
+            self.category_to_categorizers[cat_inst].append(categorizer)
