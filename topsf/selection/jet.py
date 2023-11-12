@@ -76,7 +76,7 @@ def jet_selection_init(self: Selector) -> None:
     self.cfg = config_inst.x.jet_selection.get("ak4", {})
 
     # set input columns
-    column = self.cfg.get(column, None)
+    column = self.cfg.get("column", None)
     if column:
         self.uses |= {
             f"{column}.pt",

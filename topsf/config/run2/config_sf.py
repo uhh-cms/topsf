@@ -302,7 +302,7 @@ def add_config(
     cfg.x.default_selector = "default"
     cfg.x.default_producer = "default"
     cfg.x.default_ml_model = None
-    cfg.x.default_inference_model = "uhh2"
+    cfg.x.default_inference_model = "default"  # "uhh2"
     cfg.x.default_categories = ("incl",)
     cfg.x.default_variables = (
         "probejet_pt",
@@ -1145,7 +1145,7 @@ def add_config(
     #
 
     # named references to actual versions to use for certain sets of tasks
-    main_ver = "v7"
+    main_ver = "v8"
     cfg.x.named_versions = DotDict.wrap({
         "default": f"{main_ver}",
         "calibrate": "v2",
