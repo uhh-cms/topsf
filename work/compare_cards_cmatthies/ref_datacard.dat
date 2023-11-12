@@ -1,0 +1,124 @@
+imax *
+jmax *
+kmax *
+------------------------------------------
+shapes * * combineTask-ak8_t__tau-BkgEff0p001-pt_300to400-UL17-DataCardTemplates.root $CHANNEL/$PROCESS $CHANNEL/$PROCESS_$SYSTEMATIC
+------------------------------------------
+bin CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400
+observation -1 -1 -1 -1
+------------------------------------------
+bin CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-muo-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Pass-ele-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-muo-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400 CombBin-Main-Fail-ele-UL17-pt_300to400
+process TTbar__MSc_FullyMerged__UL17__pt_300to400 TTbar__MSc_SemiMerged__UL17__pt_300to400 TTbar__MSc_NotMerged__UL17__pt_300to400 TTbar__MSc_Background ST__MSc_FullyMerged__UL17__pt_300to400 ST__MSc_SemiMerged__UL17__pt_300to400 ST__MSc_NotMerged__UL17__pt_300to400 ST__MSc_Background VJetsAndVV QCD TTbar__MSc_FullyMerged__UL17__pt_300to400 TTbar__MSc_SemiMerged__UL17__pt_300to400 TTbar__MSc_NotMerged__UL17__pt_300to400 TTbar__MSc_Background ST__MSc_FullyMerged__UL17__pt_300to400 ST__MSc_SemiMerged__UL17__pt_300to400 ST__MSc_NotMerged__UL17__pt_300to400 ST__MSc_Background VJetsAndVV TTbar__MSc_FullyMerged__UL17__pt_300to400 TTbar__MSc_SemiMerged__UL17__pt_300to400 TTbar__MSc_NotMerged__UL17__pt_300to400 TTbar__MSc_Background ST__MSc_FullyMerged__UL17__pt_300to400 ST__MSc_SemiMerged__UL17__pt_300to400 ST__MSc_NotMerged__UL17__pt_300to400 ST__MSc_Background VJetsAndVV QCD TTbar__MSc_FullyMerged__UL17__pt_300to400 TTbar__MSc_SemiMerged__UL17__pt_300to400 TTbar__MSc_NotMerged__UL17__pt_300to400 TTbar__MSc_Background ST__MSc_FullyMerged__UL17__pt_300to400 ST__MSc_SemiMerged__UL17__pt_300to400 ST__MSc_NotMerged__UL17__pt_300to400 ST__MSc_Background VJetsAndVV QCD
+process -22 -26 -34 19 -46 -58 -62 37 41 43 -33 -39 -51 19 -69 -87 -93 37 41 -55 -65 -85 19 -115 -145 -155 37 41 43 -77 -91 -119 19 -161 -203 -217 37 41 43
+rate -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+------------------------------------------
+lumiCorrelated161718 lnN 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009 1.009
+lumiCorrelated1718 lnN 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006 1.006
+lumiUncorrelated17 lnN 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02 1.02
+xsec_TTbar lnN 1.05 1.05 1.05 1.05 - - - - - - 1.05 1.05 1.05 1.05 - - - - - 1.05 1.05 1.05 1.05 - - - - - - 1.05 1.05 1.05 1.05 - - - - - -
+xsec_ST lnN - - - - 1.5 1.5 1.5 1.5 - - - - - - 1.5 1.5 1.5 1.5 - - - - - 1.5 1.5 1.5 1.5 - - - - - - 1.5 1.5 1.5 1.5 - -
+xsec_VJetsAndVV lnN - - - - - - - - 1.2 - - - - - - - - - 1.2 - - - - - - - - 1.2 - - - - - - - - - 1.2 -
+xsec_QCD lnN - - - - - - - - - 2.0 - - - - - - - - - - - - - - - - - - 2.0 - - - - - - - - - 2.0
+jesAbsoluteStat shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesPileUpPtBB shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesTimePtEta shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesPileUpPtEC1 shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesFlavorQCD shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativeFSR shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativePtEC2 shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativePtEC1 shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+btagBCPileup shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativeJEREC2 shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativeJEREC1 shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jer shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesAbsoluteScale shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+topptA shape 1.0 1.0 1.0 1.0 - - - - - - 1.0 1.0 1.0 1.0 - - - - - 1.0 1.0 1.0 1.0 - - - - - - 1.0 1.0 1.0 1.0 - - - - - -
+pu shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesPileUpPtHF shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesSinglePionECAL shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesPileUpPtEC2 shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesFragmentation shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+btagLightCorrelated shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesAbsoluteMPFBias shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+Scale shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativeStatHF shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+topptB shape 1.0 1.0 1.0 1.0 - - - - - - 1.0 1.0 1.0 1.0 - - - - - 1.0 1.0 1.0 1.0 - - - - - - 1.0 1.0 1.0 1.0 - - - - - -
+jesRelativeStatEC shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativeStatFSR shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+FSR2 shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 - 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 - 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 -
+jesPileUpPtRef shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativeBal shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+btagBCJES shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativePtBB shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesSinglePionHCAL shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+btagLightUncorrelated shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativeJERHF shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+btagBCType3 shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativeSample shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesPileUpDataMC shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+jesRelativePtHF shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+btagBCStatistic shape 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesAbsoluteStat jesAbsoluteStat_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesAbsoluteStat jesAbsoluteStat_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesAbsoluteStat jesAbsoluteStat_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesAbsoluteStat jesAbsoluteStat_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesTimePtEta jesTimePtEta_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesTimePtEta jesTimePtEta_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesTimePtEta jesTimePtEta_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesTimePtEta jesTimePtEta_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesRelativePtEC2 jesRelativePtEC2_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesRelativePtEC2 jesRelativePtEC2_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesRelativePtEC2 jesRelativePtEC2_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesRelativePtEC2 jesRelativePtEC2_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesRelativePtEC1 jesRelativePtEC1_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesRelativePtEC1 jesRelativePtEC1_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesRelativePtEC1 jesRelativePtEC1_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesRelativePtEC1 jesRelativePtEC1_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesRelativeJEREC2 jesRelativeJEREC2_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesRelativeJEREC2 jesRelativeJEREC2_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesRelativeJEREC2 jesRelativeJEREC2_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesRelativeJEREC2 jesRelativeJEREC2_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesRelativeJEREC1 jesRelativeJEREC1_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesRelativeJEREC1 jesRelativeJEREC1_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesRelativeJEREC1 jesRelativeJEREC1_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesRelativeJEREC1 jesRelativeJEREC1_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jer jer_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jer jer_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jer jer_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jer jer_UL17
+nuisance edit rename TTbar__MSc_FullyMerged__UL17__pt_300to400 * Scale Scale_TTbar ifexists
+nuisance edit rename TTbar__MSc_SemiMerged__UL17__pt_300to400 * Scale Scale_TTbar ifexists
+nuisance edit rename TTbar__MSc_NotMerged__UL17__pt_300to400 * Scale Scale_TTbar ifexists
+nuisance edit rename TTbar__MSc_Background * Scale Scale_TTbar ifexists
+nuisance edit rename ST__MSc_FullyMerged__UL17__pt_300to400 * Scale Scale_ST ifexists
+nuisance edit rename ST__MSc_SemiMerged__UL17__pt_300to400 * Scale Scale_ST ifexists
+nuisance edit rename ST__MSc_NotMerged__UL17__pt_300to400 * Scale Scale_ST ifexists
+nuisance edit rename ST__MSc_Background * Scale Scale_ST ifexists
+nuisance edit rename VJetsAndVV * Scale Scale_VJetsAndVV ifexists
+nuisance edit rename QCD * Scale Scale_QCD ifexists
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesRelativeStatHF jesRelativeStatHF_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesRelativeStatHF jesRelativeStatHF_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesRelativeStatHF jesRelativeStatHF_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesRelativeStatHF jesRelativeStatHF_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesRelativeStatEC jesRelativeStatEC_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesRelativeStatEC jesRelativeStatEC_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesRelativeStatEC jesRelativeStatEC_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesRelativeStatEC jesRelativeStatEC_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesRelativeStatFSR jesRelativeStatFSR_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesRelativeStatFSR jesRelativeStatFSR_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesRelativeStatFSR jesRelativeStatFSR_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesRelativeStatFSR jesRelativeStatFSR_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 btagLightUncorrelated btagLightUncorrelated_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 btagLightUncorrelated btagLightUncorrelated_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 btagLightUncorrelated btagLightUncorrelated_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 btagLightUncorrelated btagLightUncorrelated_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 jesRelativeSample jesRelativeSample_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 jesRelativeSample jesRelativeSample_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 jesRelativeSample jesRelativeSample_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 jesRelativeSample jesRelativeSample_UL17
+nuisance edit rename * CombBin-Main-Pass-muo-UL17-pt_300to400 btagBCStatistic btagBCStatistic_UL17
+nuisance edit rename * CombBin-Main-Pass-ele-UL17-pt_300to400 btagBCStatistic btagBCStatistic_UL17
+nuisance edit rename * CombBin-Main-Fail-muo-UL17-pt_300to400 btagBCStatistic btagBCStatistic_UL17
+nuisance edit rename * CombBin-Main-Fail-ele-UL17-pt_300to400 btagBCStatistic btagBCStatistic_UL17
+* autoMCStats 0 1 1
+uncertsEraCorrelated group = lumiCorrelated161718 lumiCorrelated1718 xsec_TTbar xsec_ST xsec_VJetsAndVV xsec_QCD jesPileUpPtBB jesPileUpPtEC1 jesFlavorQCD jesRelativeFSR btagBCPileup jesAbsoluteScale topptA pu jesPileUpPtHF jesSinglePionECAL jesPileUpPtEC2 jesFragmentation btagLightCorrelated jesAbsoluteMPFBias Scale_TTbar Scale_ST Scale_VJetsAndVV Scale_QCD topptB FSR2 jesPileUpPtRef jesRelativeBal btagBCJES jesRelativePtBB jesSinglePionHCAL jesRelativeJERHF btagBCType3 jesPileUpDataMC jesRelativePtHF
