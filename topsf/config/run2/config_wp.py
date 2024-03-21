@@ -598,41 +598,47 @@ def add_config(
     if year != 2017:
         raise NotImplementedError("TODO: external files only implemented for 2017")
 
-    json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-dfd90038"
-    local_repo = "/nfs/dust/cms/user/dsavoiu/Work/TopSF/topsf"  # TODO: avoid hardcoding path
+    sources = {
+        "cert": "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV",
+        "local_repo": "/nfs/dust/cms/user/dsavoiu/Work/TopSF/topsf",  # TODO: avoid hardcoding path
+        "json_mirror": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/jsonpog-integration-a81953b1",
+        "jet": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/cms-jet-JSON_Format-54860a23",
+        "normtag": "/afs/cern.ch/user/d/dsavoiu/public/lumi/snapshot_2023-11-10_1610Z",
+    }
     cfg.x.external_files = DotDict.wrap({
         # jet energy corrections
-        "jet_jerc": (f"{json_mirror}/POG/JME/{year}_UL/jet_jerc.json.gz", "v1"),  # noqa
+        "jet_jerc": (f"{sources['json_mirror']}/POG/JME/{year}_UL/jet_jerc.json.gz", "v1"),  # noqa
 
         # btag scale factors
-        "btag_sf_corr": (f"{json_mirror}/POG/BTV/{year}_UL/btagging.json.gz", "v1"),  # noqa
+        "btag_sf_corr": (f"{sources['json_mirror']}/POG/BTV/{year}_UL/btagging.json.gz", "v1"),  # noqa
 
         # electron scale factors
-        "electron_sf": (f"{json_mirror}/POG/EGM/{year}_UL/electron.json.gz", "v1"),  # noqa
+        "electron_sf": (f"{sources['json_mirror']}/POG/EGM/{year}_UL/electron.json.gz", "v1"),  # noqa
 
         # muon scale factors
-        "muon_sf": (f"{json_mirror}/POG/MUO/{year}_UL/muon_Z.json.gz", "v1"),
+        "muon_sf": (f"{sources['json_mirror']}/POG/MUO/{year}_UL/muon_Z.json.gz", "v1"),
 
         # L1 prefiring corrections
-        "l1_prefiring": f"{local_repo}/data/json/l1_prefiring.json.gz",
+        "l1_prefiring": f"{sources['local_repo']}/data/json/l1_prefiring.json.gz",
 
         # V+jets reweighting
-        "vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
+        "vjets_reweighting": f"{sources['local_repo']}/data/json/vjets_reweighting.json.gz",
 
         # lumi files
         "lumi": {
-            "golden": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt", "v1"),  # noqa
-            "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
+            "golden": (f"{sources['cert']}/Legacy_2017/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt", "v1"),  # noqa
+            "normtag": (f"{sources['normtag']}/normtag_PHYSICS.json", "v1"),
         },
 
         # files from https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupJSONFileforData?rev=44#Pileup_JSON_Files_For_Run_II  # noqa
         "pu": {
             "json": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/UltraLegacy/pileup_latest.txt", "v1"),  # noqa
+            "json": (f"{sources['cert']}/PileUp/UltraLegacy/pileup_latest.txt", "v1"),  # noqa
             "mc_profile": ("https://raw.githubusercontent.com/cms-sw/cmssw/435f0b04c0e318c1036a6b95eb169181bbbe8344/SimGeneral/MixingModule/python/mix_2017_25ns_UltraLegacy_PoissonOOTPU_cfi.py", "v1"),  # noqa
             "data_profile": {
-                "nominal": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-69200ub-99bins.root", "v1"),  # noqa
-                "minbias_xs_up": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-72400ub-99bins.root", "v1"),  # noqa
-                "minbias_xs_down": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-66000ub-99bins.root", "v1"),  # noqa
+                "nominal": (f"{sources['cert']}/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-69200ub-99bins.root", "v1"),  # noqa
+                "minbias_xs_up": (f"{sources['cert']}/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-72400ub-99bins.root", "v1"),  # noqa
+                "minbias_xs_down": (f"{sources['cert']}/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-66000ub-99bins.root", "v1"),  # noqa
             },
         },
     })
