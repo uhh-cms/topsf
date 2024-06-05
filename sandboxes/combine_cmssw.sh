@@ -13,6 +13,7 @@ action() {
     export CF_COMBINE_GIT_URL="${CF_COMBINE_GIT_URL:-https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git}"
     export CF_COMBINE_SCRAM_ARCH="$( [ "${os_version}" = "8" ] && echo "el8" || echo "slc7" )_amd64_gcc10"
     export CF_COMBINE_CMSSW_VERSION="CMSSW_12_6_2"
+    export CF_COMBINE_VERSION="${CF_COMBINE_VERSION:-v9.1.0}"
     export CF_COMBINE_ENV_NAME="$( basename "${this_file%.sh}" )"
     export CF_COMBINE_FLAG="1"  # increment when content changed
 
