@@ -2,22 +2,22 @@ from __future__ import print_function
 
 import itertools
 import re
-import sys
 
 from HiggsAnalysis.CombinedLimit.PhysicsModel import PhysicsModel
 
 # https://hypernews.cern.ch/HyperNews/CMS/get/higgs-combination/1653.html
 # https://gitlab.cern.ch/gouskos/boostedjetcalibration/-/blob/master/TagAndProbeExtended.py
 
+
 class TopSFCombinePhysicsModel(PhysicsModel):
 
     # old naming convention
-    RE_COMBINE_CHANNEL = "^CombBin-Main-(?P<region>\w+)-(?P<channel>\w+)-(?P<year>\w+)-(?P<pt_bin>\w+)$"
-    RE_COMBINE_PROCESS = "^(?P<process>\w+?)(__MSc_(?P<msc>\w+?))?(__(?P<year>\w+?))?(__(?P<pt_bin>\w+?))?$"
+    RE_COMBINE_CHANNEL = "^bin_(?P<channel>\w+)__(?P<year>\w+)__(?P<pt_bin>\w+)__(?P<region>\w+)$"  # noqa: W605
+    RE_COMBINE_PROCESS = "^(?P<process>\w+?)(_(?P<msc>(3q|2q|0o1q|bkg)))?$"  # noqa: W605
 
-    ## simplified naming convention (no year, pt_bin)
-    #RE_COMBINE_CHANNEL = "^(?P<process>\w+?)(__MSc_(?P<msc>\w+?))?$"
-    #RE_COMBINE_PROCESS = "^(?P<process>\w+)(__(?P<msc>\w+))?$"
+    # # simplified naming convention (no year, pt_bin)
+    # RE_COMBINE_CHANNEL = "^(?P<process>\w+?)(__MSc_(?P<msc>\w+?))?$"
+    # RE_COMBINE_PROCESS = "^(?P<process>\w+)(__(?P<msc>\w+))?$"
 
     def __init__(self):
         super().__init__()
@@ -25,12 +25,13 @@ class TopSFCombinePhysicsModel(PhysicsModel):
         self.fit_merge_scenarios = {}
 
         # default options, possibly modified by '--PO' flags
+        # FIXME set "wp_name" option and reset regions to pass and fail
         self.model_options = {
             "sf_naming_scheme": None,
             "sf_range": None,
             "pt_bins": set(),
             "years": set(),
-            "regions": {"Pass", "Fail"},
+            "regions": {"pass", "fail"},
         }
 
     # -- command-line options parsing
@@ -122,9 +123,9 @@ class TopSFCombinePhysicsModel(PhysicsModel):
             channel_dicts.items(),
         ):
             # skip unrequested combinations
-            year = channel_dict['year']
-            pt_bin = channel_dict['pt_bin']
-            region = channel_dict['region']
+            year = channel_dict["year"]
+            pt_bin = channel_dict["pt_bin"]
+            region = channel_dict["region"]
             if (
                 year not in self.years or
                 pt_bin not in self.pt_bins or
@@ -136,12 +137,12 @@ class TopSFCombinePhysicsModel(PhysicsModel):
                 process_dict = self.parse_process(process)
                 if not msc == process_dict["msc"]:
                     continue
-                expected_yields_top.setdefault(msc, {}).setdefault(year, {}).setdefault(pt_bin, {}).setdefault(region, 0)
+                expected_yields_top.setdefault(msc, {}).setdefault(year, {}).setdefault(pt_bin, {}).setdefault(region, 0)  # noqa: E501
                 expected_yields_top[msc][year][pt_bin][region] += self.DC.exp.get(channel).get(process)
 
         print(expected_yields_top)
-        ## FIXME: why is the CLI-supplied naming scheme being overridden here?
-        #self.sf_naming_scheme = "__".join(["SF", r"{msc}", r"{year}", r"{pt_bin}"])
+        # FIXME: why is the CLI-supplied naming scheme being overridden here?
+        # self.sf_naming_scheme = "__".join(["SF", r"{msc}", r"{year}", r"{pt_bin}"])
 
         for msc, fit_msc in self.fit_merge_scenarios.items():
             for year, pt_bin in itertools.product(self.years, self.pt_bins):
@@ -150,7 +151,7 @@ class TopSFCombinePhysicsModel(PhysicsModel):
                 sf_name = self.sf_naming_scheme.format(msc=msc, year=year, pt_bin=pt_bin)
                 sf_range = self.sf_range
 
-                self.modelBuilder.doVar(sf_name+sf_range)
+                self.modelBuilder.doVar(sf_name + sf_range)
                 pois.append(sf_name)
 
                 # do not create the antisf variable if not needed
@@ -160,9 +161,9 @@ class TopSFCombinePhysicsModel(PhysicsModel):
                 # scale factors for "fail" region ("anti-scale factors")
                 antisf_name = f"Anti{sf_name}"
                 yields = expected_yields_top[msc][year][pt_bin]
-                n_pass, n_fail = yields["Pass"], yields["Fail"]
+                n_pass, n_fail = yields["pass"], yields["fail"]
                 self.modelBuilder.factory_(
-                    f"expr::{antisf_name}(\"max(0.,1.+(1.-@0)*{n_pass}/{n_fail})\", {sf_name})"
+                    f"expr::{antisf_name}(\"max(0.,1.+(1.-@0)*{n_pass}/{n_fail})\", {sf_name})"  # noqa: C812
                 )
                 # TODO: maybe guard against zero division on n_fail = 0?
 
@@ -172,7 +173,7 @@ class TopSFCombinePhysicsModel(PhysicsModel):
     def getYieldScale(self, channel, process):
         """
         Return the name of a RooAbsReal with which to scale the yield of process *process* in channel *channel*,
-        or the two special values 1 and 0 (don"t scale, and set to zero).
+        or the two special values 1 and 0 (don't scale, and set to zero).
         """
         # parse the names of the given channel and process
         channel_dict = self.parse_channel(channel)
@@ -190,5 +191,6 @@ class TopSFCombinePhysicsModel(PhysicsModel):
             return sf_name.replace("SF_", "AntiSF_")
         else:
             return 1
+
 
 topsf_model = TopSFCombinePhysicsModel()
