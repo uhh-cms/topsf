@@ -70,7 +70,7 @@ def draw_efficiency(
             for key in hists
         }
 
-    # obtain signal and background pass fractions 
+    # obtain signal and background pass fractions
     pass_fraction_signal = pass_fractions.get("signal", 0.0)
     pass_fraction_background = pass_fractions.get("background", 0.0)
 
@@ -90,7 +90,8 @@ def draw_efficiency(
 
     # efficiency values for which to derive cut on discriminating variable
     pass_fraction_background_wp = np.array(
-        [0.001, 0.003, 0.01, 0.03, 0.1],
+        # [0.001, 0.003, 0.01, 0.03, 0.1],  # old WP definitions
+        [0.001, 0.005, 0.01, 0.025, 0.05],
     )
 
     # interpolations for getting
@@ -98,11 +99,11 @@ def draw_efficiency(
     interp_pf_bkg_dval = CubicSpline(
         pass_fraction_background,
         discriminator_values,
-    ) 
-    interp_pf_bkg_pf_sig  = CubicSpline(
+    )
+    interp_pf_bkg_pf_sig = CubicSpline(
         pass_fraction_background,
         pass_fraction_signal,
-    ) 
+    )
 
     discriminator_values_wp = interp_pf_bkg_dval(
         pass_fraction_background_wp,
@@ -157,7 +158,7 @@ def draw_efficiency(
     for method, cfg in plot_cfg.items():
         plot_func = getattr(ax, cfg.get("method", method))
         artists.append(
-            plot_func(cfg.x, cfg.y, **cfg.kwargs)
+            plot_func(cfg.x, cfg.y, **cfg.kwargs),
         )
 
     for x, y in zip(plot_cfg.scatter.x, plot_cfg.scatter.y):
@@ -258,7 +259,7 @@ def plot_all(
         # hard-coded line at 1
         rax.axhline(y=1.0, linestyle="dashed", color="gray")
         rax_kwargs = {
-            "ylim": (0.72, 1.28),
+            "ylim": (0.3, 1.7),
             "ylabel": "Ratio",
             "xlabel": "Variable",
             "yscale": "linear",
