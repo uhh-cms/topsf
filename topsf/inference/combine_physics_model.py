@@ -54,7 +54,7 @@ class TopSFCombinePhysicsModel(PhysicsModel):
                     try:
                         msc, mode = msc_spec.split(":", 1)
                     except ValueError:
-                        raise ValueError("invalid merge scenario specification {msc_spec}")
+                        raise ValueError(f"invalid merge scenario specification {msc_spec}")
 
                     self.fit_merge_scenarios[msc] = (mode == "TagAndProbe")
 
@@ -63,6 +63,9 @@ class TopSFCombinePhysicsModel(PhysicsModel):
 
             elif name in ("pt_bins", "years"):
                 self.model_options[name] = set(value.split(","))
+
+            else:
+                raise ValueError(f"unknown physics option '{name}'")
 
     # -- convenient access to options via properties
 
@@ -126,6 +129,7 @@ class TopSFCombinePhysicsModel(PhysicsModel):
             year = channel_dict["year"]
             pt_bin = channel_dict["pt_bin"]
             region = channel_dict["region"]
+            region = region[-4:]
             if (
                 year not in self.years or
                 pt_bin not in self.pt_bins or
@@ -140,7 +144,7 @@ class TopSFCombinePhysicsModel(PhysicsModel):
                 expected_yields_top.setdefault(msc, {}).setdefault(year, {}).setdefault(pt_bin, {}).setdefault(region, 0)  # noqa: E501
                 expected_yields_top[msc][year][pt_bin][region] += self.DC.exp.get(channel).get(process)
 
-        print(expected_yields_top)
+        print(f"expected_yields_top: {expected_yields_top}")
         # FIXME: why is the CLI-supplied naming scheme being overridden here?
         # self.sf_naming_scheme = "__".join(["SF", r"{msc}", r"{year}", r"{pt_bin}"])
 
