@@ -21,11 +21,12 @@ ak = maybe_import("awkward")
     produces={mc_weight, deterministic_seeds, jet_lepton_cleaner, jets},
 )
 def default(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
+    events = self[jet_lepton_cleaner](events, **kwargs)  # set Jet.pt to raw Pt -> run before jets (JER) calibrator
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
+
+    events = self[jets](events, **kwargs)  # call_force ?
     events = self[deterministic_seeds](events, **kwargs)
-    events = self[jet_lepton_cleaner](events, **kwargs)
-    events = self[jets](events, **kwargs)
 
     return events
 
@@ -37,7 +38,8 @@ def default(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 def no_jet_cleaning(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
-    events = self[deterministic_seeds](events, **kwargs)
+
     events = self[jets](events, **kwargs)
+    events = self[deterministic_seeds](events, **kwargs)
 
     return events
