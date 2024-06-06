@@ -209,7 +209,7 @@ def add_config(
     dataset_names = [
         # DATA
         "data_e_b",
-        "data_e_c",
+        # "data_e_c",  # non-finite values in Jet.eta array  # rm!
         "data_e_d",
         "data_e_e",
         "data_e_f",
@@ -255,11 +255,11 @@ def add_config(
         #"qcd_ht100to200_madgraph",  # rm?  # noqa
         #"qcd_ht200to300_madgraph",  # rm?  # noqa
         #"qcd_ht300to500_madgraph",  # rm?  # noqa
-        "qcd_ht500to700_madgraph",
-        "qcd_ht700to1000_madgraph",
-        "qcd_ht1000to1500_madgraph",  # rm?
-        "qcd_ht1500to2000_madgraph",
-        "qcd_ht2000_madgraph",  # rm?
+        # "qcd_ht500to700_madgraph",
+        # "qcd_ht700to1000_madgraph",
+        # "qcd_ht1000to1500_madgraph",  # rm!
+        # "qcd_ht1500to2000_madgraph",
+        # "qcd_ht2000_madgraph",  # rm!
     ]
     for dataset_name in dataset_names:
         # add the dataset
@@ -331,11 +331,117 @@ def add_config(
         "st": ["st*"],
         "tt": ["tt*"],
         "vv": ["ww_pythia", "wz_pythia", "zz_pythia"],
+        "vx": ["w_lnu*", "dy_lep*", "ww_pythia", "wz_pythia", "zz_pythia"],
+        "mj": ["qcd_ht*"],
     }
 
     # category groups for conveniently looping over certain categories
     # (used during plotting)
-    cfg.x.category_groups = {}
+    cfg.x.category_groups = {
+        "default": ["1m"],
+        "1m_wp_very_tight_pass": [
+            "1m__pt_300_400__tau32_wp_very_tight_pass",
+            "1m__pt_400_480__tau32_wp_very_tight_pass",
+            "1m__pt_480_600__tau32_wp_very_tight_pass",
+            "1m__pt_600_inf__tau32_wp_very_tight_pass",
+        ],
+        "1m_wp_very_tight_fail": [
+            "1m__pt_300_400__tau32_wp_very_tight_fail",
+            "1m__pt_400_480__tau32_wp_very_tight_fail",
+            "1m__pt_480_600__tau32_wp_very_tight_fail",
+            "1m__pt_600_inf__tau32_wp_very_tight_fail",
+        ],
+        "1m_wp_tight_pass": [
+            "1m__pt_300_400__tau32_wp_tight_pass",
+            "1m__pt_400_480__tau32_wp_tight_pass",
+            "1m__pt_480_600__tau32_wp_tight_pass",
+            "1m__pt_600_inf__tau32_wp_tight_pass",
+        ],
+        "1m_wp_tight_fail": [
+            "1m__pt_300_400__tau32_wp_tight_fail",
+            "1m__pt_400_480__tau32_wp_tight_fail",
+            "1m__pt_480_600__tau32_wp_tight_fail",
+            "1m__pt_600_inf__tau32_wp_tight_fail",
+        ],
+        "1m_wp_medium_pass": [
+            "1m__pt_300_400__tau32_wp_medium_pass",
+            "1m__pt_400_480__tau32_wp_medium_pass",
+            "1m__pt_480_600__tau32_wp_medium_pass",
+            "1m__pt_600_inf__tau32_wp_medium_pass",
+        ],
+        "1m_wp_medium_fail": [
+            "1m__pt_300_400__tau32_wp_medium_fail",
+            "1m__pt_400_480__tau32_wp_medium_fail",
+            "1m__pt_480_600__tau32_wp_medium_fail",
+            "1m__pt_600_inf__tau32_wp_medium_fail",
+        ],
+        "1m_wp_loose_pass": [
+            "1m__pt_300_400__tau32_wp_loose_pass",
+            "1m__pt_400_480__tau32_wp_loose_pass",
+            "1m__pt_480_600__tau32_wp_loose_pass",
+            "1m__pt_600_inf__tau32_wp_loose_pass",
+        ],
+        "1m_wp_loose_fail": [
+            "1m__pt_300_400__tau32_wp_loose_fail",
+            "1m__pt_400_480__tau32_wp_loose_fail",
+            "1m__pt_480_600__tau32_wp_loose_fail",
+            "1m__pt_600_inf__tau32_wp_loose_fail",
+        ],
+        "1m_wp_very_loose_pass": [
+            "1m__pt_300_400__tau32_wp_very_loose_pass",
+            "1m__pt_400_480__tau32_wp_very_loose_pass",
+            "1m__pt_480_600__tau32_wp_very_loose_pass",
+            "1m__pt_600_inf__tau32_wp_very_loose_pass",
+        ],
+        "1m_wp_very_loose_fail": [
+            "1m__pt_300_400__tau32_wp_very_loose_fail",
+            "1m__pt_400_480__tau32_wp_very_loose_fail",
+            "1m__pt_480_600__tau32_wp_very_loose_fail",
+            "1m__pt_600_inf__tau32_wp_very_loose_fail",
+        ],
+        "1m_all_pt_wp_pass_fail": [
+            "1m__pt_300_400__tau32_wp_very_tight_pass",
+            "1m__pt_400_480__tau32_wp_very_tight_pass",
+            "1m__pt_480_600__tau32_wp_very_tight_pass",
+            "1m__pt_600_inf__tau32_wp_very_tight_pass",
+            "1m__pt_300_400__tau32_wp_very_tight_fail",
+            "1m__pt_400_480__tau32_wp_very_tight_fail",
+            "1m__pt_480_600__tau32_wp_very_tight_fail",
+            "1m__pt_600_inf__tau32_wp_very_tight_fail",
+            "1m__pt_300_400__tau32_wp_tight_pass",
+            "1m__pt_400_480__tau32_wp_tight_pass",
+            "1m__pt_480_600__tau32_wp_tight_pass",
+            "1m__pt_600_inf__tau32_wp_tight_pass",
+            "1m__pt_300_400__tau32_wp_tight_fail",
+            "1m__pt_400_480__tau32_wp_tight_fail",
+            "1m__pt_480_600__tau32_wp_tight_fail",
+            "1m__pt_600_inf__tau32_wp_tight_fail",
+            "1m__pt_300_400__tau32_wp_medium_pass",
+            "1m__pt_400_480__tau32_wp_medium_pass",
+            "1m__pt_480_600__tau32_wp_medium_pass",
+            "1m__pt_600_inf__tau32_wp_medium_pass",
+            "1m__pt_300_400__tau32_wp_medium_fail",
+            "1m__pt_400_480__tau32_wp_medium_fail",
+            "1m__pt_480_600__tau32_wp_medium_fail",
+            "1m__pt_600_inf__tau32_wp_medium_fail",
+            "1m__pt_300_400__tau32_wp_loose_pass",
+            "1m__pt_400_480__tau32_wp_loose_pass",
+            "1m__pt_480_600__tau32_wp_loose_pass",
+            "1m__pt_600_inf__tau32_wp_loose_pass",
+            "1m__pt_300_400__tau32_wp_loose_fail",
+            "1m__pt_400_480__tau32_wp_loose_fail",
+            "1m__pt_480_600__tau32_wp_loose_fail",
+            "1m__pt_600_inf__tau32_wp_loose_fail",
+            "1m__pt_300_400__tau32_wp_very_loose_pass",
+            "1m__pt_400_480__tau32_wp_very_loose_pass",
+            "1m__pt_480_600__tau32_wp_very_loose_pass",
+            "1m__pt_600_inf__tau32_wp_very_loose_pass",
+            "1m__pt_300_400__tau32_wp_very_loose_fail",
+            "1m__pt_400_480__tau32_wp_very_loose_fail",
+            "1m__pt_480_600__tau32_wp_very_loose_fail",
+            "1m__pt_600_inf__tau32_wp_very_loose_fail",
+        ],
+    }
 
     # variable groups for conveniently looping over certain variables
     # (used during plotting)
@@ -938,8 +1044,8 @@ def add_config(
     if year != 2017:
         raise NotImplementedError("TODO: external files only implemented for 2017")
 
-    json_mirror = "/afs/cern.ch/user/m/mrieger/public/mirrors/jsonpog-integration-dfd90038"
-    local_repo = "/nfs/dust/cms/user/dsavoiu/Work/TopSF/topsf"  # TODO: avoid hardcoding path
+    json_mirror = "/afs/cern.ch/user/d/dsavoiu/public/mirrors/jsonpog-integration-a81953b1"
+    local_repo = "/nfs/dust/cms/user/matthiej/topsf"  # TODO: avoid hardcoding path
     cfg.x.external_files = DotDict.wrap({
         # jet energy corrections
         "jet_jerc": (f"{json_mirror}/POG/JME/{year}_UL/jet_jerc.json.gz", "v1"),  # noqa
@@ -975,6 +1081,9 @@ def add_config(
                 "minbias_xs_down": ("/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-66000ub-99bins.root", "v1"),  # noqa
             },
         },
+
+        # pileup weight file
+        "pu_sf": f"{json_mirror}/POG/LUM/2017_UL/puWeights.json.gz",
     })
 
     #
@@ -1108,6 +1217,7 @@ def add_config(
             "channel_id", "process_id", "category_ids",
             "normalization_weight",
             "cutflow.*",
+            "mc_weight",
         },
         "cf.UniteColumns": {
             "*",
@@ -1140,58 +1250,58 @@ def add_config(
             # prefiring weights (all datasets except real data)
             dataset.x.event_weights["l1_ecal_prefiring_weight"] = get_shifts("l1_ecal_prefiring")
 
-    #
-    # versions
-    #
+    # #
+    # # versions
+    # #
 
-    # named references to actual versions to use for certain sets of tasks
-    main_ver = "v8"
-    cfg.x.named_versions = DotDict.wrap({
-        "default": f"{main_ver}",
-        "calibrate": "v2",
-        "select": "v6",
-        "reduce": f"{main_ver}",
-        "merge": f"{main_ver}",
-        "produce": f"{main_ver}",
-        "hist": f"{main_ver}",
-        "plot": f"{main_ver}",
-        "datacards": f"{main_ver}",
-    })
+    # # named references to actual versions to use for certain sets of tasks
+    # main_ver = "test_v4"
+    # cfg.x.named_versions = DotDict.wrap({
+    #     "default": f"{main_ver}",
+    #     "calibrate": "test_v4",
+    #     "select": "test_v4",
+    #     "reduce": f"{main_ver}",
+    #     "merge": f"{main_ver}",
+    #     "produce": f"{main_ver}",
+    #     "hist": f"{main_ver}",
+    #     "plot": f"{main_ver}",
+    #     "datacards": f"{main_ver}",
+    # })
 
-    # versions per task family and optionally also dataset and shift
-    # None can be used as a key to define a default value
-    cfg.x.versions = {
-        None: cfg.x.named_versions["default"],
-        # CSR tasks
-        "cf.CalibrateEvents": cfg.x.named_versions["calibrate"],
-        "cf.SelectEvents": cfg.x.named_versions["select"],
-        "cf.ReduceEvents": cfg.x.named_versions["reduce"],
-        # merging tasks
-        "cf.MergeSelectionStats": cfg.x.named_versions["merge"],
-        "cf.MergeSelectionMasks": cfg.x.named_versions["merge"],
-        "cf.MergeReducedEvents": cfg.x.named_versions["merge"],
-        "cf.MergeReductionStats": cfg.x.named_versions["merge"],
-        # column production
-        "cf.ProduceColumns": cfg.x.named_versions["produce"],
-        # histogramming
-        "cf.CreateCutflowHistograms": cfg.x.named_versions["hist"],
-        "cf.CreateHistograms": cfg.x.named_versions["hist"],
-        "cf.MergeHistograms": cfg.x.named_versions["hist"],
-        "cf.MergeShiftedHistograms": cfg.x.named_versions["hist"],
-        # plotting
-        "cf.PlotVariables1D": cfg.x.named_versions["plot"],
-        "cf.PlotVariables2D": cfg.x.named_versions["plot"],
-        "cf.PlotVariablesPerProcess2D": cfg.x.named_versions["plot"],
-        "cf.PlotShiftedVariables1D": cfg.x.named_versions["plot"],
-        "cf.PlotShiftedVariablesPerProcess1D": cfg.x.named_versions["plot"],
-        #
-        "cf.PlotCutflow": cfg.x.named_versions["plot"],
-        "cf.PlotCutflowVariables1D": cfg.x.named_versions["plot"],
-        "cf.PlotCutflowVariables2D": cfg.x.named_versions["plot"],
-        "cf.PlotCutflowVariablesPerProcess2D": cfg.x.named_versions["plot"],
-        # datacards
-        "cf.CreateDatacards": cfg.x.named_versions["datacards"],
-    }
+    # # versions per task family and optionally also dataset and shift
+    # # None can be used as a key to define a default value
+    # cfg.x.versions = {
+    #     None: cfg.x.named_versions["default"],
+    #     # CSR tasks
+    #     "cf.CalibrateEvents": cfg.x.named_versions["calibrate"],
+    #     "cf.SelectEvents": cfg.x.named_versions["select"],
+    #     "cf.ReduceEvents": cfg.x.named_versions["reduce"],
+    #     # merging tasks
+    #     "cf.MergeSelectionStats": cfg.x.named_versions["merge"],
+    #     "cf.MergeSelectionMasks": cfg.x.named_versions["merge"],
+    #     "cf.MergeReducedEvents": cfg.x.named_versions["merge"],
+    #     "cf.MergeReductionStats": cfg.x.named_versions["merge"],
+    #     # column production
+    #     "cf.ProduceColumns": cfg.x.named_versions["produce"],
+    #     # histogramming
+    #     "cf.CreateCutflowHistograms": cfg.x.named_versions["hist"],
+    #     "cf.CreateHistograms": cfg.x.named_versions["hist"],
+    #     "cf.MergeHistograms": cfg.x.named_versions["hist"],
+    #     "cf.MergeShiftedHistograms": cfg.x.named_versions["hist"],
+    #     # plotting
+    #     "cf.PlotVariables1D": cfg.x.named_versions["plot"],
+    #     "cf.PlotVariables2D": cfg.x.named_versions["plot"],
+    #     "cf.PlotVariablesPerProcess2D": cfg.x.named_versions["plot"],
+    #     "cf.PlotShiftedVariables1D": cfg.x.named_versions["plot"],
+    #     "cf.PlotShiftedVariablesPerProcess1D": cfg.x.named_versions["plot"],
+    #     #
+    #     "cf.PlotCutflow": cfg.x.named_versions["plot"],
+    #     "cf.PlotCutflowVariables1D": cfg.x.named_versions["plot"],
+    #     "cf.PlotCutflowVariables2D": cfg.x.named_versions["plot"],
+    #     "cf.PlotCutflowVariablesPerProcess2D": cfg.x.named_versions["plot"],
+    #     # datacards
+    #     "cf.CreateDatacards": cfg.x.named_versions["datacards"],
+    # }
 
     #
     # finalization

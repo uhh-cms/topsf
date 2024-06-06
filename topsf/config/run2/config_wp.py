@@ -22,7 +22,6 @@ from columnflow.config_util import (
     get_shifts_from_sources,
     verify_config_processes,
 )
-from columnflow.selection import selector
 
 from topsf.config.variables import add_variables
 from topsf.config.categories_wp import add_categories
@@ -222,9 +221,9 @@ def add_config(
     # pileup
     #
 
-    # minimum bias cross section in mb (milli) for creating PU weights, values from
-    # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData?rev=45#Recommended_cross_section
-    cfg.x.minbias_xs = Number(69.2, 0.046j)
+    # # minimum bias cross section in mb (milli) for creating PU weights, values from
+    # # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData?rev=45#Recommended_cross_section
+    # cfg.x.minbias_xs = Number(69.2, 0.046j)
 
     #
     # MET filters
@@ -600,7 +599,7 @@ def add_config(
 
     sources = {
         "cert": "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV",
-        "local_repo": "/nfs/dust/cms/user/dsavoiu/Work/TopSF/topsf",  # TODO: avoid hardcoding path
+        "local_repo": "/nfs/dust/cms/user/matthiej/Work/TopSF/topsf",  # TODO: avoid hardcoding path
         "json_mirror": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/jsonpog-integration-a81953b1",
         "jet": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/cms-jet-JSON_Format-54860a23",
         "normtag": "/afs/cern.ch/user/d/dsavoiu/public/lumi/snapshot_2023-11-10_1610Z",
@@ -641,6 +640,8 @@ def add_config(
                 "minbias_xs_down": (f"{sources['cert']}/PileUp/UltraLegacy/PileupHistogram-goldenJSON-13tev-2017-66000ub-99bins.root", "v1"),  # noqa
             },
         },
+        # pileup weight file
+        "pu_sf": f"{sources['json_mirror']}/POG/LUM/2017_UL/puWeights.json.gz",
     })
 
     #
@@ -794,58 +795,58 @@ def add_config(
             # prefiring weights (all datasets except real data)
             dataset.x.event_weights["l1_ecal_prefiring_weight"] = get_shifts("l1_ecal_prefiring")
 
-    #
-    # versions
-    #
+    # #
+    # # versions
+    # #
 
-    # named references to actual versions to use for certain sets of tasks
-    main_ver = "v1"
-    cfg.x.named_versions = DotDict.wrap({
-        "default": f"{main_ver}",
-        "calibrate": f"{main_ver}",
-        "select": f"{main_ver}",
-        "reduce": f"{main_ver}",
-        "merge": f"{main_ver}",
-        "produce": f"{main_ver}",
-        "hist": f"{main_ver}",
-        "plot": f"{main_ver}",
-        "datacards": f"{main_ver}",
-    })
+    # # named references to actual versions to use for certain sets of tasks
+    # main_ver = "v1"
+    # cfg.x.named_versions = DotDict.wrap({
+    #     "default": f"{main_ver}",
+    #     "calibrate": f"{main_ver}",
+    #     "select": f"{main_ver}",
+    #     "reduce": f"{main_ver}",
+    #     "merge": f"{main_ver}",
+    #     "produce": f"{main_ver}",
+    #     "hist": f"{main_ver}",
+    #     "plot": f"{main_ver}",
+    #     "datacards": f"{main_ver}",
+    # })
 
-    # versions per task family and optionally also dataset and shift
-    # None can be used as a key to define a default value
-    cfg.x.versions = {
-        None: cfg.x.named_versions["default"],
-        # CSR tasks
-        "cf.CalibrateEvents": cfg.x.named_versions["calibrate"],
-        "cf.SelectEvents": cfg.x.named_versions["select"],
-        "cf.ReduceEvents": cfg.x.named_versions["reduce"],
-        # merging tasks
-        "cf.MergeSelectionStats": cfg.x.named_versions["merge"],
-        "cf.MergeSelectionMasks": cfg.x.named_versions["merge"],
-        "cf.MergeReducedEvents": cfg.x.named_versions["merge"],
-        "cf.MergeReductionStats": cfg.x.named_versions["merge"],
-        # column production
-        "cf.ProduceColumns": cfg.x.named_versions["produce"],
-        # histogramming
-        "cf.CreateCutflowHistograms": cfg.x.named_versions["hist"],
-        "cf.CreateHistograms": cfg.x.named_versions["hist"],
-        "cf.MergeHistograms": cfg.x.named_versions["hist"],
-        "cf.MergeShiftedHistograms": cfg.x.named_versions["hist"],
-        # plotting
-        "cf.PlotVariables1D": cfg.x.named_versions["plot"],
-        "cf.PlotVariables2D": cfg.x.named_versions["plot"],
-        "cf.PlotVariablesPerProcess2D": cfg.x.named_versions["plot"],
-        "cf.PlotShiftedVariables1D": cfg.x.named_versions["plot"],
-        "cf.PlotShiftedVariablesPerProcess1D": cfg.x.named_versions["plot"],
-        #
-        "cf.PlotCutflow": cfg.x.named_versions["plot"],
-        "cf.PlotCutflowVariables1D": cfg.x.named_versions["plot"],
-        "cf.PlotCutflowVariables2D": cfg.x.named_versions["plot"],
-        "cf.PlotCutflowVariablesPerProcess2D": cfg.x.named_versions["plot"],
-        # datacards
-        "cf.CreateDatacards": cfg.x.named_versions["datacards"],
-    }
+    # # versions per task family and optionally also dataset and shift
+    # # None can be used as a key to define a default value
+    # cfg.x.versions = {
+    #     None: cfg.x.named_versions["default"],
+    #     # CSR tasks
+    #     "cf.CalibrateEvents": cfg.x.named_versions["calibrate"],
+    #     "cf.SelectEvents": cfg.x.named_versions["select"],
+    #     "cf.ReduceEvents": cfg.x.named_versions["reduce"],
+    #     # merging tasks
+    #     "cf.MergeSelectionStats": cfg.x.named_versions["merge"],
+    #     "cf.MergeSelectionMasks": cfg.x.named_versions["merge"],
+    #     "cf.MergeReducedEvents": cfg.x.named_versions["merge"],
+    #     "cf.MergeReductionStats": cfg.x.named_versions["merge"],
+    #     # column production
+    #     "cf.ProduceColumns": cfg.x.named_versions["produce"],
+    #     # histogramming
+    #     "cf.CreateCutflowHistograms": cfg.x.named_versions["hist"],
+    #     "cf.CreateHistograms": cfg.x.named_versions["hist"],
+    #     "cf.MergeHistograms": cfg.x.named_versions["hist"],
+    #     "cf.MergeShiftedHistograms": cfg.x.named_versions["hist"],
+    #     # plotting
+    #     "cf.PlotVariables1D": cfg.x.named_versions["plot"],
+    #     "cf.PlotVariables2D": cfg.x.named_versions["plot"],
+    #     "cf.PlotVariablesPerProcess2D": cfg.x.named_versions["plot"],
+    #     "cf.PlotShiftedVariables1D": cfg.x.named_versions["plot"],
+    #     "cf.PlotShiftedVariablesPerProcess1D": cfg.x.named_versions["plot"],
+    #     #
+    #     "cf.PlotCutflow": cfg.x.named_versions["plot"],
+    #     "cf.PlotCutflowVariables1D": cfg.x.named_versions["plot"],
+    #     "cf.PlotCutflowVariables2D": cfg.x.named_versions["plot"],
+    #     "cf.PlotCutflowVariablesPerProcess2D": cfg.x.named_versions["plot"],
+    #     # datacards
+    #     "cf.CreateDatacards": cfg.x.named_versions["datacards"],
+    # }
 
     #
     # finalization
