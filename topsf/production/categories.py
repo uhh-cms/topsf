@@ -45,7 +45,7 @@ def category_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
                 break
 
         # make nullable array with the category id or none, then apply ak.singletons
-        ids = ak.singletons(ak.mask(ak.ones_like(cat_mask, dtype=np.uint32) * cat_inst.id, cat_mask))
+        ids = ak.singletons(ak.mask(ak.ones_like(cat_mask, dtype=np.int32) * cat_inst.id, cat_mask))
 
         # merge to other categories
         if category_ids is None:
@@ -54,7 +54,7 @@ def category_ids(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
             category_ids = ak.concatenate([category_ids, ids], axis=1)
 
     # combine and save
-    events = set_ak_column(events, "category_ids", category_ids, value_type=np.uint32)
+    events = set_ak_column(events, "category_ids", category_ids, value_type=np.int32)
 
     return events
 

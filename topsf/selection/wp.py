@@ -18,11 +18,9 @@ from columnflow.production.processes import process_ids
 
 from topsf.selection.util import masked_sorted_indices
 from topsf.selection.default import increment_stats
-from topsf.selection.fatjet import fatjet_selection
 
 from topsf.production.wp import wp_category_ids
 from topsf.production.gen_top import gen_parton_top
-from topsf.production.gen_v import gen_v_boson
 
 
 np = maybe_import("numpy")
@@ -164,7 +162,7 @@ def wp(
 
     # combined event selection after all steps
     event_sel = reduce(and_, results.steps.values())
-    results.main["event"] = event_sel
+    results.event = event_sel
 
     for step, sel in results.steps.items():
         n_sel = ak.sum(sel, axis=-1)
@@ -205,6 +203,8 @@ def wp_init(self: Selector):
 
 # selector for msoftdrop region around top mass
 msoftdrop_range = (105, 210)
+
+
 @selector(
     uses={
         wp,
