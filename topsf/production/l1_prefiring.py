@@ -25,7 +25,7 @@ ak = maybe_import("awkward")
     uses={
         attach_coffea_behavior,
         "Jet.pt", "Jet.eta", "Jet.phi", "Jet.mass", "Jet.rawFactor",
-        "Photon.pt", "Photon.eta", "Photon.phi", "Photon.mass",
+        "Photon.pt", "Photon.eta", "Photon.phi",
     },
     produces={
         "l1_ecal_prefiring_weight",
