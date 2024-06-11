@@ -9,8 +9,21 @@ confirm_and_run() {
     read response
     case "$response" in
         [nN][oO]|[nN])
-            echo -e "    ${RED}Any additional parameters?${NC}"
+            echo -e "    ${RED}Any additional parameters?${NC} ('-ps' -> '--print-status 2,0', '-ro' -> '--remove-output 0,a,y' predefined, others possible)"
             read -e -i "    " extra_params
+
+            # Add another case statement to handle the expansion
+            case "$extra_params" in
+                -ps)
+                    extra_params="--print-status 2,0"
+                    echo -e "    ${GREEN}Printing status...${NC}"
+                    ;;
+                -ro)
+                    extra_params="--remove-output 0,a,y"
+                    echo -e "    ${RED}Removing output...${NC}"
+                    ;;
+            esac
+            echo -e "    ${GREEN}Running...${NC}"
             eval "$cmd $extra_params"
             ;;
         *)
