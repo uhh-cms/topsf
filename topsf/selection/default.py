@@ -53,7 +53,7 @@ def increment_stats(
     *stats* in-place based on all input *events* and the final selection *mask*.
     """
     # get the event mask
-    mask = results.main.event
+    mask = results.event
 
     # ensure mask passed is boolean
     mask = ak.values_astype(mask, bool)
@@ -187,7 +187,7 @@ def default(
 
     # combined event selection after all steps
     event_sel = reduce(and_, results.steps.values())
-    results.main["event"] = event_sel
+    results.event = event_sel
 
     for step, sel in results.steps.items():
         n_sel = ak.sum(sel, axis=-1)

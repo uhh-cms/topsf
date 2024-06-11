@@ -62,8 +62,10 @@ def plot_variable_per_process(
     default_style_config = prepare_style_config(
         config_inst, category_inst, variable_inst, density, shape_norm, yscale,
     )
-    default_style_config["legend_cfg"]["fontsize"] = 16
+    default_style_config["legend_cfg"]["fontsize"] = 12
     default_style_config["annotate_cfg"]["fontsize"] = 16
+    default_style_config["annotate_cfg"]["xy"] = (0.6, 0.7)
+    default_style_config["annotate_cfg"]["xycoords"] = "axes fraction"
 
     style_config = law.util.merge_dicts(default_style_config, style_config, deep=True)
     if shape_norm:
@@ -77,7 +79,7 @@ def plot_variable_per_process(
     if not skip_legend:
         # resolve legend kwargs
         legend_kwargs = {
-            "ncol": 1,
+            "ncol": 3,
             "loc": "upper right",
         }
         legend_kwargs.update(style_config.get("legend_cfg", {}))

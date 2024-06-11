@@ -86,13 +86,14 @@ def gen_top_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Arr
     w_children_rest = w_children[:, :, 2:]
 
     # concatenate to create the structure to return
+    fields = ["pt", "eta", "phi", "mass", "pdgId"]
     t_decay = ak.concatenate(
         [
-            t[:, :, None],
-            b[:, :, None],
-            w[:, :, None],
-            w_children_firsttwo,
-            w_children_rest,
+            t[:, :, None][fields],
+            b[:, :, None][fields],
+            w[:, :, None][fields],
+            w_children_firsttwo[fields],
+            w_children_rest[fields],
         ],
         axis=2,
     )
@@ -124,13 +125,14 @@ def gen_top_decay_products(self: Producer, events: ak.Array, **kwargs) -> ak.Arr
         t_associated_w_children_rest = t_associated_w_children[:, :, 2:]
 
         # concatenate to create the structure to return
+        fields = ["pt", "eta", "phi", "mass", "pdgId"]
         t_associated_decay = ak.concatenate(
             [
-                t[:, :, None],
-                t_associated_b[:, :, None],
-                t_associated_w[:, :, None],
-                t_associated_w_children_firsttwo,
-                t_associated_w_children_rest,
+                t[:, :, None][fields],
+                t_associated_b[:, :, None][fields],
+                t_associated_w[:, :, None][fields],
+                t_associated_w_children_firsttwo[fields],
+                t_associated_w_children_rest[fields],
             ],
             axis=2,
         )
