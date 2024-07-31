@@ -2,6 +2,13 @@
 # if user types n or no then the command is executed
 # if user types anything else or nothing then the command is skipped
 # it is also possible to extend the command afte typing n or no
+
+# Define color variables
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 confirm_and_run() {
     cmd="$1"
     echo -e "${YELLOW}$cmd${NC}"
