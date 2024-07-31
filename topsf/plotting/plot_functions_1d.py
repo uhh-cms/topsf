@@ -64,7 +64,7 @@ def plot_variable_per_process(
     )
     default_style_config["legend_cfg"]["fontsize"] = 12
     default_style_config["annotate_cfg"]["fontsize"] = 16
-    default_style_config["annotate_cfg"]["xy"] = (0.6, 0.7)
+    default_style_config["annotate_cfg"]["xy"] = (0.5, 0.7)
     default_style_config["annotate_cfg"]["xycoords"] = "axes fraction"
 
     style_config = law.util.merge_dicts(default_style_config, style_config, deep=True)
