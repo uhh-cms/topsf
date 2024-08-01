@@ -43,9 +43,11 @@ def add_config(
     a base *analysis* object and a *campaign* (i.e. set of datasets).
     """
     # validation
-    assert campaign.x.year in [2022]
+    assert campaign.x.year in [2022, 2023]
     if campaign.x.year == 2022:
         assert campaign.x.EE in ["pre", "post"]
+    elif campaign.x.year == 2023:
+        assert campaign.x.BPix in ["pre", "post"]
 
     # gather campaign data
     year = campaign.x.year
@@ -53,8 +55,12 @@ def add_config(
     corr_postfix = ""
     if year == 2022:
         corr_postfix = f"{campaign.x.EE}EE"
+    elif year == 2023:
+        corr_postfix = f"{campaign.x.BPix}BPix"
 
-    if year != 2022:
+    implemented_years = [2022]
+
+    if year not in implemented_years:
         raise NotImplementedError("For now, only 2022 campaign is fully implemented")
 
     # create a config by passing the campaign
@@ -74,9 +80,9 @@ def add_config(
     # get all root processes
     procs = get_root_processes_from_campaign(campaign)
 
-    # create parent processes for w_lep, dy_lep and qcd
+    # create parent processes for w_lnu, dy and qcd
     for i_proc, (proc_name, proc_label, child_procs) in enumerate([
-        ("vx", "V+jets, VV", ["dy_lep", "w_lnu", "vv"]),
+        ("vx", "V+jets, VV", ["dy", "w_lnu", "vv"]),  # FIXME Why does dy not work anymore?
         ("mj", "Multijet", ["qcd"]),
     ]):
         proc = od.Process(
@@ -176,7 +182,7 @@ def add_config(
         "qcd": "#5E8FFC",  # blue
         "w_lnu": "#82FF28",  # green
         "st": "#3E00FB",  # dark purple
-        "dy_lep": "#FBFF36",  # yellow
+        "dy": "#FBFF36",  # yellow
         "vv": "#B900FC",  # pink
         "other": "#999999",  # grey
         # christopher's color scheme
@@ -189,7 +195,7 @@ def add_config(
         "data",
         "tt",
         "st",
-        # "dy_lep",
+        # "dy",
         # "w_lnu",
         # "vv",
         # "qcd",
@@ -215,85 +221,64 @@ def add_config(
     # datasets
     #
 
-    # add datasets we need to study  # TODO check if all ds exit in cmsdb
+    # add datasets we need to study
     dataset_names = [
         # TTbar
         "tt_sl_powheg",
-        "tt_dl_powheg",  # FIXME broken file in preEE
+        "tt_dl_powheg",
         "tt_fh_powheg",
-        # # SingleTop 2017 datasets
-        # "st_schannel_lep_amcatnlo",
-        # "st_tchannel_t_powheg",
-        # "st_tchannel_tbar_powheg",
-        # "st_twchannel_t_powheg",
-        # "st_twchannel_tbar_powheg",
         # SingleTop 2022 v12 preEE datasets
-        "st_tchannel_t_powheg",
-        "st_tchannel_tbar_powheg",
-        "st_twchannel_t_sl_powheg",  # FIXME Broken file in preEE
+        "st_tchannel_t_4f_powheg",
+        "st_tchannel_tbar_4f_powheg",
+        "st_twchannel_t_sl_powheg",
         "st_twchannel_tbar_sl_powheg",
         "st_twchannel_t_dl_powheg",
         "st_twchannel_tbar_dl_powheg",
         "st_twchannel_t_fh_powheg",
         "st_twchannel_tbar_fh_powheg",
-        # # DY 2017 datasets
-        # #"dy_lep_m50_ht70to100_madgraph",  # rm?  # noqa
-        # #"dy_lep_m50_ht100to200_madgraph",  # rm?  # noqa
-        # "dy_lep_m50_ht200to400_madgraph",
-        # "dy_lep_m50_ht400to600_madgraph",
-        # "dy_lep_m50_ht600to800_madgraph",
-        # "dy_lep_m50_ht800to1200_madgraph",
-        # "dy_lep_m50_ht1200to2500_madgraph",
-        # "dy_lep_m50_ht2500_madgraph",
-        # DY 2022 v12 preEE datasets (only inclusive in cmsdb for now)
-        "dy_lep_m50_madgraph",
-        # # WJets 2017 datasets
-        # #"w_lnu_ht70To100_madgraph",  # rm?  # noqa
-        # #"w_lnu_ht100To200_madgraph",  # rm?  # noqa
-        # "w_lnu_ht200To400_madgraph",
-        # "w_lnu_ht400To600_madgraph",
-        # "w_lnu_ht600To800_madgraph",
-        # "w_lnu_ht800To1200_madgraph",
-        # "w_lnu_ht1200To2500_madgraph",
-        # "w_lnu_ht2500_madgraph",
-        # WJets 2022 v12 preEE datasets (only inclusive in cmsdb for now)
-        "w_lnu_amcatnlo",  # FIXME Broken file in preEE
+        # DY 2022 v12 preEE datasets
+        # "dy_m4to50_ht40to70_madgraph",  # FIXME AssertionError in preEE (full stat.)
+        # "dy_m4to50_ht70to100_madgraph",  # FIXME AssertionError in preEE (full stat.)
+        "dy_m4to50_ht100to400_madgraph",
+        "dy_m4to50_ht400to800_madgraph",
+        "dy_m4to50_ht800to1500_madgraph",
+        "dy_m4to50_ht1500to2500_madgraph",
+        "dy_m4to50_ht2500toinf_madgraph",
+        # "dy_m50to120_ht40to70_madgraph",  # FIXME AssertionError in preEE (full stat.)
+        "dy_m50to120_ht70to100_madgraph",
+        "dy_m50to120_ht100to400_madgraph",
+        "dy_m50to120_ht400to800_madgraph",
+        # WJets 2022 v12 preEE datasets
+        # "w_lnu_mlnu0to120_ht40to100_madgraph",  # FIXME cramjam.DecompressionError: lzma data error
+        "w_lnu_mlnu0to120_ht100to400_madgraph",
+        "w_lnu_mlnu0to120_ht400to800_madgraph",
+        "w_lnu_mlnu0to120_ht800to1500_madgraph",
+        "w_lnu_mlnu0to120_ht1500to2500_madgraph",
+        "w_lnu_mlnu0to120_ht2500toinf_madgraph",
         # Diboson
-        # "ww_pythia",  # FIXME add xs for cms = 13.6 TeV in cmsdb
-        # "wz_pythia",  # FIXME add xs for cms = 13.6 TeV in cmsdb
-        # "zz_pythia",  # FIXME add xs for cms = 13.6 TeV in cmsdb
-        # # QCD 2017 datasets
-        # #"qcd_ht50to100_madgraph",  # rm?  # noqa
-        # #"qcd_ht100to200_madgraph",  # rm?  # noqa
-        # #"qcd_ht200to300_madgraph",  # rm?  # noqa
-        # #"qcd_ht300to500_madgraph",  # rm?  # noqa
-        # "qcd_ht500to700_madgraph",
-        # "qcd_ht700to1000_madgraph",
-        # #"qcd_ht1000to1500_madgraph",  # rm?
-        # "qcd_ht1500to2000_madgraph",
-        # #"qcd_ht2000_madgraph",  # rm?
-        # QCD 2022 v12 preEE datasets (only muon enriched in cmsdb for now)
-        # "qcd_mu_pt15to20_pythia",  # FIXME Issue with weights producer in preEE # FIXME Assertion error in postEE
-        # "qcd_mu_pt20to30_pythia",  # FIXME Broken file in preEE # FIXME Assertion error in postEE
-        # "qcd_mu_pt30to50_pythia",  # FIXME Issue with weights producer in preEE # FIXME Assertion error in postEE
-        # "qcd_mu_pt50to80_pythia",  # FIXME Issue with weights producer in preEE # FIXME Assertion error in postEE
-        # "qcd_mu_pt80to120_pythia",  # FIXME Broken file in preEE # FIXME Assertion error in postEE
-        "qcd_mu_pt120to170_pythia",  # FIXME Issue with weights producer in preEE
-        # "qcd_mu_pt170to300_pythia",  # FIXME add xs for cms = 13.6 TeV in cmsdb
-        "qcd_mu_pt300to470_pythia",
-        # "qcd_mu_pt470to600_pythia",  # FIXME add xs for cms = 13.6 TeV in cmsdb
-        "qcd_mu_pt600to800_pythia",  # FIXME Broken file in preEE
-        "qcd_mu_pt800to1000_pythia",
-        # "qcd_mu_pt1000_pythia",  # FIXME add xs for cms = 13.6 TeV in cmsdb
+        "ww_pythia",
+        "wz_pythia",
+        "zz_pythia",
+        # QCD 2022 v12 preEE datasets
+        # "qcd_ht70to100_madgraph",  # FIXME AssertionError in preEE (full stat.)
+        # "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
+        # "qcd_ht200to400_madgraph",  # FIXME AssertionError in preEE (full stat.)
+        # "qcd_ht400to600_madgraph",  # FIXME AssertionError in preEE (full stat.)
+        "qcd_ht600to800_madgraph",
+        "qcd_ht800to1000_madgraph",
+        "qcd_ht1000to1200_madgraph",
+        "qcd_ht1200to1500_madgraph",
+        "qcd_ht1500to2000_madgraph",
+        "qcd_ht2000toinf_madgraph",
     ]
     if campaign.x.EE == "pre":
         dataset_names += [
-            # "data_egamma_a",
-            # "data_egamma_b",
+            # "data_egamma_a",  # FIXME JEC setup fails
+            # "data_egamma_b",  # FIXME JEC setup fails
             "data_egamma_c",
-            # "data_egamma_d",  # FIXME Broken file
+            "data_egamma_d",
             "data_mu_c",
-            # "data_mu_d",  # FIXME Broken file
+            "data_mu_d",
         ]
     if campaign.x.EE == "post":
         dataset_names += [
@@ -327,7 +312,7 @@ def add_config(
         if dataset_name.startswith("w_lnu"):
             dataset.add_tag("is_v_jets")
             dataset.add_tag("is_w_jets")
-        if dataset_name.startswith("dy_lep"):
+        if dataset_name.startswith("dy"):
             dataset.add_tag("is_v_jets")
             dataset.add_tag("is_z_jets")
 
@@ -368,6 +353,7 @@ def add_config(
     # (used in wrapper_factory and during plotting)
     cfg.x.process_groups = {
         "all": process_names,
+        "all_subprocs": cfg.x.inference_processes,
     }
 
     # dataset groups for conveniently looping over certain datasets
@@ -375,13 +361,13 @@ def add_config(
     cfg.x.dataset_groups = {
         "all": dataset_names,
         "data": ["data_*"],
-        "dy_lep": ["dy_lep*"],
+        "dy": ["dy*"],
         "w_lnu": ["w_lnu*"],
         "qcd": ["qcd_ht*"],
         "st": ["st*"],
         "tt": ["tt*"],
         "vv": ["ww_pythia", "wz_pythia", "zz_pythia"],
-        "vx": ["w_lnu*", "dy_lep*", "ww_pythia", "wz_pythia", "zz_pythia"],
+        "vx": ["w_lnu*", "dy*", "ww_pythia", "wz_pythia", "zz_pythia"],
         "mj": ["qcd_ht*"],
     }
 
@@ -509,6 +495,13 @@ def add_config(
         ],
     }
 
+    # Exception: no weight producer configured for task. cf.MergeShiftedHistograms.
+    # As of 02.05.2024, it is required to pass a weight_producer for tasks creating histograms.
+    # You can add a 'default_weight_producer' to your config or directly add the weight_producer
+    # on command line via the '--weight_producer' parameter. To reproduce results from before this date,
+    # you can use the 'all_weights' weight_producer defined in columnflow.weight.all_weights:
+    cfg.x.default_weight_producer = "all_weights"
+
     # custom labels for selector steps
     cfg.x.selector_step_labels = {}
 
@@ -550,38 +543,7 @@ def add_config(
 
     #
     # cross sections
-    # FIXME find values for Run3!
     #
-
-    # overwrite cross sections from cmsdb to adapt to UHH2 crosssections
-    # https://github.com/UHH2/UHH2-datasets/blob/master/CrossSectionHelper.py#L1804C22-L1804C35
-    dy_xsecs = {
-        "dy_lep_m50_ht70to100": 140.1,
-        "dy_lep_m50_ht100to200": 140.2,
-        "dy_lep_m50_ht200to400": 38.399,
-        "dy_lep_m50_ht400to600": 5.21278,
-        "dy_lep_m50_ht600to800": 1.26567,
-        "dy_lep_m50_ht800to1200": 0.5684304,
-        "dy_lep_m50_ht1200to2500": 0.1331514,
-        "dy_lep_m50_ht2500": 0.00297803565,
-    }
-
-    for ds in dy_xsecs:
-        procs.n(ds).set_xsec(13, dy_xsecs[ds])
-
-    w_lnu_xsecs = {
-        "w_lnu_ht70To100": 1271,
-        "w_lnu_ht100To200": 1253,
-        "w_lnu_ht200To400": 335.9,
-        "w_lnu_ht400To600": 45.21,
-        "w_lnu_ht600To800": 10.99,
-        "w_lnu_ht800To1200": 4.936,
-        "w_lnu_ht1200To2500": 1.156,
-        "w_lnu_ht2500": 0.02623,
-    }
-
-    for ds in w_lnu_xsecs:
-        procs.n(ds).set_xsec(13, w_lnu_xsecs[ds])
 
     # cross sections for diboson samples; taken from:
     # - ww (NNLO): https://arxiv.org/abs/1408.5243
@@ -590,21 +552,25 @@ def add_config(
     diboson_xsecs_13 = {
         "ww": Number(118.7, {"scale": (0.025j, 0.022j)}),
         "wz": Number(46.74, {"scale": (0.041j, 0.033j)}),
-        #"wz": Number(28.55, {"scale": (0.041j, 0.032j)}) + Number(18.19, {"scale": (0.041j, 0.033j)})  # (W+Z) + (W-Z)  # noqa
+        # "wz": Number(28.55, {"scale": (0.041j, 0.032j)}) + Number(18.19, {"scale": (0.041j, 0.033j)}),  # (W+Z) + (W-Z)  # noqa
         "zz": Number(16.99, {"scale": (0.032j, 0.024j)}),
     }
     # TODO Use 14 TeV xs for Run 3?
     diboson_xsecs_14 = {
         "ww": Number(131.1, {"scale": (0.026j, 0.022j)}),
         "wz": Number(67.06, {"scale": (0.039j, 0.031j)}),
-        # "wz": Number(31.50, {"scale": (0.039j, 0.030j)}) + Number(20.32, {"scale": (0.039j, 0.031j)})  # (W+Z) + (W-Z)  # noqa
+        # "wz": Number(31.50, {"scale": (0.039j, 0.030j)}) + Number(20.32, {"scale": (0.039j, 0.031j)}),  # (W+Z) + (W-Z)  # noqa
         "zz": Number(18.77, {"scale": (0.032j, 0.024j)}),
     }
 
-    for ds in diboson_xsecs_13:
-        procs.n(ds).set_xsec(13, diboson_xsecs_13[ds])
+    # linear interpolation between 13 and 14 TeV
+    diboson_xsecs_13_6 = {
+        ds: diboson_xsecs_13[ds] + (13.6 - 13.0) * (diboson_xsecs_14[ds] - diboson_xsecs_13[ds]) / (14.0 - 13.0)
+        for ds in diboson_xsecs_13.keys()  # ww: 125.8 wz: 58.932 zz: 18.058  noqa
+    }
+
     for ds in diboson_xsecs_14:
-        procs.n(ds).set_xsec(14, diboson_xsecs_14[ds])
+        procs.n(ds).set_xsec(13.6, diboson_xsecs_13_6[ds])
 
     #
     # pileup
@@ -618,7 +584,7 @@ def add_config(
     # MET filters
     #
 
-    # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Run_3_recommendations
     cfg.x.met_filters = {
         "Flag.goodVertices",
         "Flag.globalSuperTightHalo2016Filter",
@@ -719,7 +685,7 @@ def add_config(
     # TODO: get jerc working for Run3
     cfg.x.jer = DotDict.wrap({
         "campaign": jerc_campaign,
-        "version": {2016: "JRV3", 2017: "JRV2", 2018: "JRV2", 2022: "JRV1"}[year],
+        "version": {2022: "JRV1"}[year],
         "jet_type": jet_type,
     })
 
@@ -770,22 +736,20 @@ def add_config(
     #
 
     # b-tag working points
-    # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL16preVFP?rev=6
-    # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL16postVFP?rev=8
-    # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17?rev=15
-    # https://twiki.cern.ch/twiki/bin/view/CMS/BtagRecommendation106XUL17?rev=17
-    # TODO: add correct 2022 + 2022preEE WPs and sources
+    # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22/
+    # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/
+    # TODO: add correct 2022 + 2022preEE WP for deepcsv if needed
     btag_key = f"2022{campaign.x.EE}EE" if year == 2022 else year
     cfg.x.btag_working_points = DotDict.wrap({
         "deepjet": {
             "loose": {
-                "2022preEE": 0.0490, "2022postEE": 0.0490,
+                "2022preEE": 0.0583, "2022postEE": 0.0614,
             }[btag_key],
             "medium": {
-                "2022preEE": 0.2783, "2022postEE": 0.2783,
+                "2022preEE": 0.3086, "2022postEE": 0.3196,
             }[btag_key],
             "tight": {
-                "2022preEE": 0.7100, "2022postEE": 0.7100,
+                "2022preEE": 0.7183, "2022postEE": 0.7300,
             }[btag_key],
         },
         "deepcsv": {
@@ -915,34 +879,32 @@ def add_config(
         },
     })
 
+    #
+    # producer configurations
+    #
+
     if cfg.x.run == 3:
         # TODO: check that everyting is setup as intended
 
         # btag weight configuration
         cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
 
+        # lepton sf taken from
+        # https://github.com/uhh-cms/hh2bbww/blob/master/hbw/config/config_run2.py#L338C1-L352C85
         # names of electron correction sets and working points
         # (used in the electron_sf producer)
-        cfg.x.electron_sf_names = ("TODO", f"{cfg.x.cpn_tag}", "TODO")
+        if cfg.x.cpn_tag == "2022postEE":
+            # TODO: we need to use different SFs for control regions
+            cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Tight")
+        elif cfg.x.cpn_tag == "2022preEE":
+            cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "Tight")
 
         # names of muon correction sets and working points
         # (used in the muon producer)
-        cfg.x.muon_sf_names = ("NUM_TightMiniIso_DEN_MediumID", f"{cfg.x.cpn_tag}")
-
-    #
-    # producer configurations
-    #
-
-    # name of the btag_sf correction set and jec uncertainties to propagate through
-    cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
-
-    # names of muon correction sets and working points
-    # (used in the muon producer)
-    cfg.x.muon_sf_names = ("NUM_TightMiniIso_DEN_MediumID", f"{year}{corr_postfix}_UL")
-
-    # names of electron correction sets and working points
-    # (used in the electron_sf producer)
-    cfg.x.electron_sf_names = ("UL-Electron-ID-SF", f"{year}{corr_postfix}", "wp80iso")
+        # TODO: we need to use different SFs for control regions
+        cfg.x.muon_sf_names = ("NUM_TightPFIso_DEN_TightID", f"{cfg.x.cpn_tag}")
+        cfg.x.muon_id_sf_names = ("NUM_TightID_DEN_TrackerMuons", f"{cfg.x.cpn_tag}")
+        cfg.x.muon_iso_sf_names = ("NUM_TightPFIso_DEN_TightID", f"{cfg.x.cpn_tag}")
 
     # top pt reweighting parameters
     # https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting#TOP_PAG_corrections_based_on_dat?rev=31
@@ -951,20 +913,8 @@ def add_config(
         "b": -0.0005,
     }
 
-    # L1 prefiring configuration
-    # FIXME: adapt for Run3, if needed
-    cfg.x.l1_prefiring = DotDict.wrap({
-        "jet": {
-            "value": "l1_prefiring_efficiency_value_jetpt_2017BtoF",
-            "error": "l1_prefiring_efficiency_error_jetpt_2017BtoF",
-        },
-        "photon": {
-            "value": "l1_prefiring_efficiency_value_photonpt_2017BtoF",
-            "error": "l1_prefiring_efficiency_error_photonpt_2017BtoF",
-        },
-    })
-
     # V+jets reweighting
+    # FIXME update to Run 3 k-factors
     cfg.x.vjets_reweighting = DotDict.wrap({
         "w": {
             "value": "wjets_kfactor_value",
@@ -1035,30 +985,21 @@ def add_config(
             })
 
         # event weights due to muon scale factors
-        cfg.add_shift(name="muon_up", id=111, type="shape")
-        cfg.add_shift(name="muon_down", id=112, type="shape")
-        add_shift_aliases(cfg, "muon", {"muon_weight": "muon_weight_{direction}"})
+        if not cfg.has_tag("skip_muon_weights"):
+            cfg.add_shift(name="muon_up", id=111, type="shape")
+            cfg.add_shift(name="muon_down", id=112, type="shape")
+            add_shift_aliases(cfg, "muon", {"muon_weight": "muon_weight_{direction}"})
 
         # event weights due to electron scale factors
-        cfg.add_shift(name="electron_up", id=121, type="shape")
-        cfg.add_shift(name="electron_down", id=122, type="shape")
-        add_shift_aliases(cfg, "electron", {"electron_weight": "electron_weight_{direction}"})
+        if not cfg.has_tag("skip_electron_weights"):
+            cfg.add_shift(name="electron_up", id=121, type="shape")
+            cfg.add_shift(name="electron_down", id=122, type="shape")
+            add_shift_aliases(cfg, "electron", {"electron_weight": "electron_weight_{direction}"})
 
         # V+jets reweighting
         cfg.add_shift(name="vjets_up", id=201, type="shape")
         cfg.add_shift(name="vjets_down", id=202, type="shape")
         add_shift_aliases(cfg, "vjets", {"vjets_weight": "vjets_weight_{direction}"})
-
-        # prefiring weights
-        cfg.add_shift(name="l1_ecal_prefiring_up", id=301, type="shape")
-        cfg.add_shift(name="l1_ecal_prefiring_down", id=302, type="shape")
-        add_shift_aliases(
-            cfg,
-            "l1_ecal_prefiring",
-            {
-                "l1_ecal_prefiring_weight": "l1_ecal_prefiring_weight_{direction}",
-            },
-        )
 
         # b-tagging shifts
         btag_uncs = [
@@ -1074,10 +1015,12 @@ def add_config(
                 cfg,
                 f"btag_{unc}",
                 {
-                    # TODO: normalized?
-                    #"normalized_btag_weight": f"normalized_btag_weight_{unc}_{{direction}}",  # noqa
-                    #"normalized_njet_btag_weight": f"normalized_njet_btag_weight_{unc}_{{direction}}",  # noqa
-                    "btag_weight": f"btag_weight_{unc}_{{direction}}",
+                    # taken from
+                    # https://github.com/uhh-cms/hh2bbww/blob/c6d4ee87a5c970660497e52aed6b7ebe71125d20/hbw/config/config_run2.py#L421
+                    "normalized_btag_weight": f"normalized_btag_weight_{unc}_" + "{direction}",
+                    "normalized_njet_btag_weight": f"normalized_njet_btag_weight_{unc}_" + "{direction}",
+                    "btag_weight": f"btag_weight_{unc}_" + "{direction}",
+                    "njet_btag_weight": f"njet_btag_weight_{unc}_" + "{direction}",
                 },
             )
 
@@ -1138,9 +1081,6 @@ def add_config(
         # muon scale factors
         "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_Z.json.gz", "v1"),
 
-        # L1 prefiring corrections
-        "l1_prefiring": (f"{local_repo}/data/json/l1_prefiring.json.gz"),
-
         # btag scale factor
         "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
 
@@ -1152,13 +1092,9 @@ def add_config(
     })
 
     # temporary fix due to missing corrections in run 3
-    # electron and met still missing
     if cfg.x.run == 3:
-        cfg.add_tag("skip_electron_weights")
-        cfg.x.external_files.pop("electron_sf")
-
-        cfg.add_tag("skip_muon_weights")
-
+        # cfg.add_tag("skip_electron_weights")
+        # cfg.add_tag("skip_muon_weights")
         cfg.x.external_files.pop("met_phi_corr")
 
     if year == 2022 and campaign.x.EE == "pre":
@@ -1295,7 +1231,7 @@ def add_config(
             # generator quantities
             "Generator.*",
 
-            # generator particles
+            # # generator particles
             # "GenPart.pt", "GenPart.eta", "GenPart.phi", "GenPart.mass",
             # "GenPart.pdgId",
             # "GenPart.*",
@@ -1354,10 +1290,9 @@ def add_config(
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
         "pu_weight": get_shifts("minbias_xs"),
-        # "muon_weight": get_shifts("muon"),  # FIXME: add muon weights when available
+        "muon_weight": get_shifts("muon"),
     })
 
-    # event weights only present in certain datasets or configs
     if not cfg.has_tag("skip_electron_weights"):
         cfg.x.event_weights["electron_weight"] = get_shifts("electron")
     for dataset in cfg.datasets:
@@ -1368,9 +1303,6 @@ def add_config(
         if dataset.has_tag("is_v_jets"):
             # V+jets QCD NLO reweighting
             dataset.x.event_weights["vjets_weight"] = get_shifts("vjets")
-        if not dataset.is_data:
-            # prefiring weights (all datasets except real data)
-            dataset.x.event_weights["l1_ecal_prefiring_weight"] = get_shifts("l1_ecal_prefiring")
 
     # #
     # # versions
