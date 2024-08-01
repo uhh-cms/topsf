@@ -189,9 +189,9 @@ class TopSFCombinePhysicsModel(PhysicsModel):
 
         msc = process_dict["msc"]
         sf_name = self.sf_naming_scheme.format(msc=msc, **channel_dict)
-        if (not self.fit_merge_scenarios.get(msc)) or channel_dict["region"] == "Pass":
+        if (not self.fit_merge_scenarios.get(msc)) or channel_dict["region"][-4:] == "pass":
             return sf_name
-        elif channel_dict["region"] == "Fail":
+        elif channel_dict["region"][-4:] == "fail":
             return sf_name.replace("SF_", "AntiSF_")
         else:
             return 1
