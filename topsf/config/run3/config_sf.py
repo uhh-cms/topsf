@@ -191,6 +191,7 @@ def add_config(
     }
 
     # add processes we are interested in
+    # remove processes we don't need from list and following dict!
     process_names = [
         "data",
         "tt",
@@ -202,6 +203,45 @@ def add_config(
         "vx",
         "mj",
     ]
+
+    cfg.x.process_rates = {
+        "tt": 1.05,
+        "st": 1.5,
+        "vx": 1.2,
+        "mj": 2.0,
+    }
+
+    cfg.x.inference_processes = [
+        f"{base_proc}_{subproc_suffix}"
+        for base_proc in ("tt", "st")
+        for subproc_suffix in ("3q", "2q", "0o1q", "bkg")
+    ] + [
+        "vx",
+        "mj",
+    ]
+
+    # setup for fit
+    # TODO make configurable from CLI (as params of inference model)
+    cfg.x.fit_setup = {
+        "channels": [
+            "1m",
+            "1e",
+        ],
+        "pt_bins": [
+            "pt_300_400",
+            # "pt_400_480",
+            # "pt_480_600",
+            # "pt_600_inf",
+        ],
+        "wp_names": [
+            "very_tight",
+            # "tight",
+            # "medium",
+            # "loose",
+            # "very_loose",
+        ],
+    }
+
     for process_name in process_names:
         # add the process
         proc = cfg.add_process(procs.get(process_name))

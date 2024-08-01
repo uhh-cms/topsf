@@ -30,14 +30,7 @@ def uhh2(self):
 
     year = self.config_inst.campaign.x.year  # noqa; not used right now
 
-    processes = [
-        f"{base_proc}_{subproc_suffix}"
-        for base_proc in ("tt", "st")
-        for subproc_suffix in ("3q", "2q", "0o1q", "bkg")
-    ] + [
-        "vx",
-        # "mj",  # no QCD datasets used for now due to error
-    ]
+    processes = self.config_inst.x.inference_processes
 
     #
     # regions/categories
@@ -49,27 +42,18 @@ def uhh2(self):
 
     # category elements to combine in fit
     years = [
-        "UL17",
+        year % 100,
     ]
-    channels = [
-        "1m",
-        "1e",
-    ]
-    pt_bins = [
-        "pt_300_400",
-        "pt_400_480",
-    ]
-    wp_names = [
-        "very_tight",
-        "tight",
-    ]
+    channels = self.config_inst.x.fit_setup["channels"]
+    pt_bins = self.config_inst.x.fit_setup["pt_bins"]
+    wp_names = self.config_inst.x.fit_setup["wp_names"]
 
     # tuples of inference categories and
     # corresponding config category names
     categories = [
         # (columnflow_name, combine_name)
         (f"{channel}__{pt_bin}__tau32_wp_{wp_name}_{region}",
-        f"bin_{channel}__{year}__{pt_bin}__tau32_wp_{wp_name}_{region}")  # TODO make year part of cf name?
+        f"bin_{channel}__{year}__{pt_bin}__tau32_wp_{wp_name}_{region}")
         for channel, year, pt_bin, wp_name, region in itertools.product(
             channels,
             years,
@@ -137,16 +121,18 @@ def uhh2(self):
             transformations=[ParameterTransformation.symmetrize],
         )
 
-    # process rates (prefit values)
-    for proc, rate in [
-        ("tt", 1.05),
-        ("st", 1.5),
-        ("vx", 1.2),
-        ("mj", 2.0),
-    ]:
+    for proc in self.config_inst.x.process_rates.keys():
+        subprocesses = [
+            subproc.name for subproc, _, _ in self.config_inst.get_process(proc).walk_processes(
+                algo="bfs",
+                include_self=True,
+            )
+        ]
         self.add_parameter(
             f"xsec_{proc}",
             type=ParameterType.rate_gauss,
+            effect=self.config_inst.x.process_rates[proc],
+            process=[inference_processes.get(subproc, subproc) for subproc in subprocesses],
         )
 
     # systematic shifts (TODO: add others)
