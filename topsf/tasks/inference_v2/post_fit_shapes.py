@@ -120,7 +120,7 @@ class PostFitShapesFromWorkspaceV2(
 
         command_to_run = "PostFitShapesFromWorkspace"
         command_to_run += f" -w {input_workspace}"
-        command_to_run += f" -o {output_file}"
+        command_to_run += f" --output {output_file}"
         command_to_run += f" -f {input_fit_result}:fit_mdf"
         command_to_run += " --sampling" if self.sampling_inst else ""
         command_to_run += " --print" if self.print_fit_inst else ""
