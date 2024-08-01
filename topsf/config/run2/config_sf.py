@@ -66,7 +66,7 @@ def add_config(
 
     # create parent processes for w_lep, dy_lep and qcd
     for i_proc, (proc_name, proc_label, child_procs) in enumerate([
-        ("vx", "V+jets, VV", ["dy_lep", "w_lnu", "vv"]),
+        ("vx", "V+jets, VV", ["dy", "w_lnu", "vv"]),
         ("mj", "Multijet", ["qcd"]),
     ]):
         proc = od.Process(
@@ -209,7 +209,7 @@ def add_config(
     dataset_names = [
         # DATA
         "data_e_b",
-        # "data_e_c",  # non-finite values in Jet.eta array  # rm!
+        "data_e_c",  # non-finite values in Jet.eta array  # rm!
         "data_e_d",
         "data_e_e",
         "data_e_f",
@@ -223,43 +223,43 @@ def add_config(
         "tt_dl_powheg",
         "tt_fh_powheg",
         # SingleTop
-        "st_schannel_lep_amcatnlo",
-        "st_tchannel_t_powheg",
-        "st_tchannel_tbar_powheg",
+        "st_schannel_lep_4f_amcatnlo",
+        "st_tchannel_t_4f_powheg",
+        "st_tchannel_tbar_4f_powheg",
         "st_twchannel_t_powheg",
         "st_twchannel_tbar_powheg",
         # DY
-        #"dy_lep_m50_ht70to100_madgraph",  # rm?  # noqa
-        #"dy_lep_m50_ht100to200_madgraph",  # rm?  # noqa
-        "dy_lep_m50_ht200to400_madgraph",
-        "dy_lep_m50_ht400to600_madgraph",
-        "dy_lep_m50_ht600to800_madgraph",
-        "dy_lep_m50_ht800to1200_madgraph",
-        "dy_lep_m50_ht1200to2500_madgraph",
-        "dy_lep_m50_ht2500_madgraph",
+        "dy_m50toinf_ht70to100_madgraph",  # rm?  # noqa
+        "dy_m50toinf_ht100to200_madgraph",  # rm?  # noqa
+        "dy_m50toinf_ht200to400_madgraph",
+        "dy_m50toinf_ht400to600_madgraph",
+        "dy_m50toinf_ht600to800_madgraph",
+        "dy_m50toinf_ht800to1200_madgraph",
+        "dy_m50toinf_ht1200to2500_madgraph",
+        "dy_m50toinf_ht2500toinf_madgraph",
         # WJets
-        #"w_lnu_ht70To100_madgraph",  # rm?  # noqa
-        #"w_lnu_ht100To200_madgraph",  # rm?  # noqa
-        "w_lnu_ht200To400_madgraph",
-        "w_lnu_ht400To600_madgraph",
-        "w_lnu_ht600To800_madgraph",
-        "w_lnu_ht800To1200_madgraph",
-        "w_lnu_ht1200To2500_madgraph",
-        "w_lnu_ht2500_madgraph",
+        "w_lnu_ht70to100_madgraph",  # rm?  # noqa
+        "w_lnu_ht100to200_madgraph",  # rm?  # noqa
+        "w_lnu_ht200to400_madgraph",
+        "w_lnu_ht400to600_madgraph",
+        "w_lnu_ht600to800_madgraph",
+        "w_lnu_ht800to1200_madgraph",
+        "w_lnu_ht1200to2500_madgraph",
+        "w_lnu_ht2500toinf_madgraph",
         # Diboson
         "ww_pythia",
         "wz_pythia",
         "zz_pythia",
         # QCD
-        #"qcd_ht50to100_madgraph",  # rm?  # noqa
-        #"qcd_ht100to200_madgraph",  # rm?  # noqa
-        #"qcd_ht200to300_madgraph",  # rm?  # noqa
-        #"qcd_ht300to500_madgraph",  # rm?  # noqa
-        # "qcd_ht500to700_madgraph",
-        # "qcd_ht700to1000_madgraph",
-        # "qcd_ht1000to1500_madgraph",  # rm!
-        # "qcd_ht1500to2000_madgraph",
-        # "qcd_ht2000_madgraph",  # rm!
+        "qcd_ht50to100_madgraph",  # rm?  # noqa
+        "qcd_ht100to200_madgraph",  # rm?  # noqa
+        "qcd_ht200to300_madgraph",  # rm?  # noqa
+        "qcd_ht300to500_madgraph",  # rm?  # noqa
+        "qcd_ht500to700_madgraph",
+        "qcd_ht700to1000_madgraph",
+        "qcd_ht1000to1500_madgraph",  # rm!
+        "qcd_ht1500to2000_madgraph",
+        "qcd_ht2000toinf_madgraph",  # rm!
     ]
     for dataset_name in dataset_names:
         # add the dataset
@@ -511,28 +511,28 @@ def add_config(
     # overwrite cross sections from cmsdb to adapt to UHH2 crosssections
     # https://github.com/UHH2/UHH2-datasets/blob/master/CrossSectionHelper.py#L1804C22-L1804C35
     dy_xsecs = {
-        "dy_lep_m50_ht70to100": 140.1,
-        "dy_lep_m50_ht100to200": 140.2,
-        "dy_lep_m50_ht200to400": 38.399,
-        "dy_lep_m50_ht400to600": 5.21278,
-        "dy_lep_m50_ht600to800": 1.26567,
-        "dy_lep_m50_ht800to1200": 0.5684304,
-        "dy_lep_m50_ht1200to2500": 0.1331514,
-        "dy_lep_m50_ht2500": 0.00297803565,
+        "dy_m50toinf_ht70to100": 140.1,
+        "dy_m50toinf_ht100to200": 140.2,
+        "dy_m50toinf_ht200to400": 38.399,
+        "dy_m50toinf_ht400to600": 5.21278,
+        "dy_m50toinf_ht600to800": 1.26567,
+        "dy_m50toinf_ht800to1200": 0.5684304,
+        "dy_m50toinf_ht1200to2500": 0.1331514,
+        "dy_m50toinf_ht2500toinf": 0.00297803565,
     }
 
     for ds in dy_xsecs:
         procs.n(ds).set_xsec(13, dy_xsecs[ds])
 
     w_lnu_xsecs = {
-        "w_lnu_ht70To100": 1271,
-        "w_lnu_ht100To200": 1253,
-        "w_lnu_ht200To400": 335.9,
-        "w_lnu_ht400To600": 45.21,
-        "w_lnu_ht600To800": 10.99,
-        "w_lnu_ht800To1200": 4.936,
-        "w_lnu_ht1200To2500": 1.156,
-        "w_lnu_ht2500": 0.02623,
+        "w_lnu_ht70to100": 1271,
+        "w_lnu_ht100to200": 1253,
+        "w_lnu_ht200to400": 335.9,
+        "w_lnu_ht400to600": 45.21,
+        "w_lnu_ht600to800": 10.99,
+        "w_lnu_ht800to1200": 4.936,
+        "w_lnu_ht1200to2500": 1.156,
+        "w_lnu_ht2500toinf": 0.02623,
     }
 
     for ds in w_lnu_xsecs:

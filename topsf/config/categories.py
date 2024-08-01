@@ -219,7 +219,7 @@ def add_categories(config: od.Config) -> None:
                 False,
             )
 
-        assert cat_idx < 10**cat_idx_ndigits - 1, "no space for category, ID reassignement necessary"
+        assert cat_idx < 10**cat_idx_ndigits - 1, "no space for category, ID reassignment necessary"
         cat = config.add_category(
             name=cat_name,
             id=int(10**cat_idx_lsd * ((cat_idx + 1) + 10 * 3)),
