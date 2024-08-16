@@ -11,7 +11,7 @@ class CreateWorkspaceV2(
 ):
     @property
     def workspace_name(self):
-        name = f"workspace__{self.mode_inst}"
+        name = f"workspace__{law.util.create_hash(self.physics_model)}"
         return name
 
     def store_parts(self) -> law.util.InsertableDict:
