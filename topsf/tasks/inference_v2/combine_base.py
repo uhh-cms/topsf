@@ -40,13 +40,6 @@ class CombineBaseTask(
         description="Show the help message of the combine tool",
     )
 
-    mode = luigi.ChoiceParameter(
-        choices=["exp", "obs"],
-        default="exp",
-        significant=False,
-        description="Mode of the combine tool",
-    )
-
     @property
     def combine_verbosity_inst(self):
         return self.combine_verbosity
@@ -54,13 +47,6 @@ class CombineBaseTask(
     @property
     def combine_help_inst(self):
         return self.combine_help
-
-    @property
-    def mode_inst(self):
-        if self.mode == "obs":
-            raise NotImplementedError("Observed mode is not implemented yet")
-        else:
-            return self.mode
 
     run_command_in_tmp = False
 
