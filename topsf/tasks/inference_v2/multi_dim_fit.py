@@ -26,11 +26,6 @@ class MultiDimFitV2(
         description="Fallback algorithm for the cminimizer",
     )
 
-    job_name = luigi.Parameter(
-        significant=True,
-        description="Name of the job",
-    )
-
     algo = luigi.Parameter(
         significant=False,
         description="Algorithm to use for the fit",
@@ -70,14 +65,16 @@ class MultiDimFitV2(
     def workflow_requires(self):
         reqs = super().workflow_requires()
         reqs["workspace"] = self.reqs.CreateWorkspace.req(self)
-        reqs["toy_file"] = self.reqs.GenToys.req(self)
+        if self.mode_inst == "exp":
+            reqs["toy_file"] = self.reqs.GenToys.req(self)
         return reqs
 
     def requires(self):
         reqs = {
             "workspace": self.reqs.CreateWorkspace.req(self),
-            "toy_file": self.reqs.GenToys.req(self),
         }
+        if self.mode_inst == "exp":
+            reqs["toy_file"] = self.reqs.GenToys.req(self)
         return reqs
 
     @property
