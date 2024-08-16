@@ -27,6 +27,13 @@ class RunCombine(
         description="Use Asimov data for the fit",
     )
 
+    mode = luigi.ChoiceParameter(
+        choices=["exp", "obs"],
+        default="exp",
+        significant=True,
+        description="Mode of the combine tool",
+    )
+
     @property
     def combine_method_inst(self):
         return self.combine_method
@@ -38,6 +45,10 @@ class RunCombine(
     @property
     def asimov_data_inst(self):
         return self.asimov_data
+
+    @property
+    def mode_inst(self):
+        return self.mode
 
     # upstream requirements
     reqs = Requirements(

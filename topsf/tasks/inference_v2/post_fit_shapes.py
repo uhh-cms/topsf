@@ -42,6 +42,13 @@ class PostFitShapesFromWorkspaceV2(
         description="Create covariance matrix",
     )
 
+    mode = luigi.ChoiceParameter(
+        choices=["exp", "obs"],
+        default="exp",
+        significant=True,
+        description="Mode of the combine tool",
+    )
+
     @property
     def postfit_inst(self):
         return self.postfit
@@ -87,16 +94,14 @@ class PostFitShapesFromWorkspaceV2(
         return reqs
 
     def output(self):
-        output_dict = {
-            "pfsfw_log": self.target("pfsfw.log"),
-        }
-        if self.mode_inst == "exp":
-            output_dict["pfsfw_exp"] = self.target("pfsfw_exp.root")
+        output_dict = {}
+        output_dict[f"pfsfw_{self.mode}"] = self.target(f"pfsfw_{self.mode}.root")
+        output_dict[f"pfsfw_{self.mode}_log"] = self.target(f"pfsfw_{self.mode}.log")
         return output_dict
 
     @property
     def pfsfw_name(self):
-        name = f"pfswf__{self.mode_inst}"
+        name = f"pfswf__{self.mode}"
         return name
 
     def store_parts(self) -> law.util.InsertableDict:
@@ -110,9 +115,9 @@ class PostFitShapesFromWorkspaceV2(
     def run(self):
 
         input_workspace = self.input()["workspace"]["workspace"].path
-        if self.mode_inst == "exp":
-            input_fit_result = self.input()["fit_result"]["fit_exp_result"].path
-            output_file = self.output()["pfsfw_exp"].path
+        input_fit_result = self.input()["fit_result"][f"fit_{self.mode}_result"].path
+
+        output_file = self.output()[f"pfsfw_{self.mode}"].path
         output_dirname = os.path.dirname(output_file) + "/"
         # touch output_dirname
         if not os.path.exists(output_dirname):
@@ -130,4 +135,4 @@ class PostFitShapesFromWorkspaceV2(
 
         p, outp = self.run_command(command_to_run, echo=True)
 
-        self.output()["pfsfw_log"].dump("\n".join(outp), formatter="text")
+        self.output()[f"pfsfw_{self.mode}_log"].dump("\n".join(outp), formatter="text")

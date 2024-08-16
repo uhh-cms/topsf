@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import law
+import luigi
 
 from columnflow.tasks.framework.base import Requirements
 from columnflow.tasks.framework.remote import RemoteWorkflow
@@ -24,6 +25,13 @@ class PlotShapesV2(
         description="File types to create",
     )
 
+    mode = luigi.ChoiceParameter(
+        choices=["exp", "obs"],
+        default="exp",
+        significant=True,
+        description="Mode of the combine tool",
+    )
+
     # upstream requirements
     reqs = Requirements(
         RemoteWorkflow.reqs,
@@ -35,16 +43,12 @@ class PlotShapesV2(
 
     def workflow_requires(self):
         reqs = super().workflow_requires()
-        if self.mode_inst == "exp":
-            reqs["pfsfw_exp"] = self.reqs.PostFitShapesFromWorkspace.req(self)
-
+        reqs[f"pfsfw_{self.mode}"] = self.reqs.PostFitShapesFromWorkspace.req(self)
         return reqs
 
     def requires(self):
-        if self.mode_inst == "exp":
-            reqs = {
-                "pfsfw_exp": self.reqs.PostFitShapesFromWorkspace.req(self),
-            }
+        reqs = {}
+        reqs[f"pfsfw_{self.mode}"] = self.reqs.PostFitShapesFromWorkspace.req(self)
         return reqs
 
     def create_branch_map(self):
@@ -80,32 +84,31 @@ class PlotShapesV2(
     def output(self):
         output_dict = {}
         b = self.branch_data
-        if self.mode_inst == "exp":
-            output_dict["shapes_exp_plot_log"] = []
-            output_dict["plots"] = []
-            if hasattr(b, "channel"):
-                output_dict["shapes_exp_plot_log"] += [
-                    self.target(name)
-                    for name in [f"shapes_exp_{b.channel}_{b.shape}_{b.pt_bin}_{b.year}_{b.region}.log"]
-                ]
-                output_dict["plots"] += [
-                    self.target(name)
-                    for name in self.get_plot_names(f"plot__shapes_{b.channel}_{b.shape}_{b.pt_bin}_{b.year}_{b.region}")  # noqa: E501
-                ]
-            elif hasattr(b, "total_shape"):
-                output_dict["shapes_exp_plot_log"] += [
-                    self.target(name)
-                    for name in [f"shapes_exp_{b.total_shape}.log"]
-                ]
-                output_dict["plots"] += [
-                    self.target(name)
-                    for name in self.get_plot_names(f"plot__shapes_{b.total_shape}")
-                ]
+        output_dict[f"shapes_{self.mode}_plot_log"] = []
+        output_dict[f"plots_{self.mode}"] = []
+        if hasattr(b, "channel"):
+            output_dict[f"shapes_{self.mode}_plot_log"] += [
+                self.target(name)
+                for name in [f"shapes_{self.mode}_{b.channel}_{b.shape}_{b.pt_bin}_{b.year}_{b.region}.log"]
+            ]
+            output_dict[f"plots_{self.mode}"] += [
+                self.target(name)
+                for name in self.get_plot_names(f"plot__{self.mode}_shapes_{b.channel}_{b.shape}_{b.pt_bin}_{b.year}_{b.region}")  # noqa: E501
+            ]
+        elif hasattr(b, "total_shape"):
+            output_dict[f"shapes_{self.mode}_plot_log"] += [
+                self.target(name)
+                for name in [f"shapes_{self.mode}_{b.total_shape}.log"]
+            ]
+            output_dict[f"plots_{self.mode}"] += [
+                self.target(name)
+                for name in self.get_plot_names(f"plot__{self.mode}_shapes_{b.total_shape}")
+            ]
         return output_dict
 
     @property
     def plot_shapes_name(self):
-        name = f"shape_plots_{self.mode_inst}"
+        name = f"plots_{self.mode}_shapes"
         return name
 
     def store_parts(self) -> law.util.InsertableDict:
@@ -123,53 +126,50 @@ class PlotShapesV2(
         import mplhep as hep
         import matplotlib.pyplot as plt
 
-        if self.mode_inst == "exp":
-            b = self.branch_data
-            input_shapes = self.input()["pfsfw_exp"]["pfsfw_exp"].path
+        b = self.branch_data
+        input_shapes = self.input()[f"pfsfw_{self.mode}"][f"pfsfw_{self.mode}"].path
 
-            if hasattr(b, "channel"):
-                key = f"{b.channel}_{b.shape}_{b.pt_bin}_{b.year}_{b.region}"
-                shape_key = (
-                    f"bin_{b.channel}__{b.year}__{b.pt_bin}__tau32_wp_{self.wp_name_inst}_{b.region}_prefit/{b.shape}",
-                    f"bin_{b.channel}__{b.year}__{b.pt_bin}__tau32_wp_{self.wp_name_inst}_{b.region}_postfit/{b.shape}",
-                )
+        if hasattr(b, "channel"):
+            key = f"{b.channel}_{b.shape}_{b.pt_bin}_{b.year}_{b.region}"
+            shape_key = (
+                f"bin_{b.channel}__{b.year}__{b.pt_bin}__tau32_wp_{self.wp_name_inst}_{b.region}_prefit/{b.shape}",
+                f"bin_{b.channel}__{b.year}__{b.pt_bin}__tau32_wp_{self.wp_name_inst}_{b.region}_postfit/{b.shape}",
+            )
 
-                # load root file
-                file = uproot.open(input_shapes)
-                prefit = file[shape_key[0]].to_hist()
-                postfit = file[shape_key[1]].to_hist()
+            # load root file
+            file = uproot.open(input_shapes)
+            prefit = file[shape_key[0]].to_hist()
+            postfit = file[shape_key[1]].to_hist()
 
-                print(f"Running plot shapes for {key}...")
+            print(f"Running plot shapes for {key}...")
+            fig, ax = plt.subplots()
+            hep.histplot(prefit, ax=ax, label="prefit", color="blue")
+            hep.histplot(postfit, ax=ax, label="postfit", color="red")
+            ax.set_title(key)
+            ax.legend()
+            self.output()[f"plots_{self.mode}"][0].dump(fig, formatter="mpl")
+            message = f"Plotted pre- and postfit shapes for {key} in {self.output()[f'plots_{self.mode}'][0].path}"
 
-                fig, ax = plt.subplots()
-                hep.histplot(prefit, ax=ax, label="prefit", color="blue")
-                hep.histplot(postfit, ax=ax, label="postfit", color="red")
-                ax.set_title(key)
-                ax.legend()
-                self.output()["plots"][0].dump(fig, formatter="mpl")
-                message = f"Plotted pre- and postfit shapes for {key} in {self.output()['plots'][0].path}"
+            self.output()[f"shapes_{self.mode}_plot_log"][0].dump(message, formatter="text")
+        elif hasattr(b, "total_shape"):
+            key = b.total_shape
+            shape_key = (
+                f"prefit/{b.total_shape}",
+                f"postfit/{b.total_shape}",
+            )
 
-                self.output()["shapes_exp_plot_log"][0].dump(message, formatter="text")
-            elif hasattr(b, "total_shape"):
-                key = b.total_shape
-                shape_key = (
-                    f"prefit/{b.total_shape}",
-                    f"postfit/{b.total_shape}",
-                )
+            # load root file
+            file = uproot.open(input_shapes)
+            prefit = file[shape_key[0]].to_hist()
+            postfit = file[shape_key[1]].to_hist()
 
-                # load root file
-                file = uproot.open(input_shapes)
-                prefit = file[shape_key[0]].to_hist()
-                postfit = file[shape_key[1]].to_hist()
+            print(f"Running plot shapes for {key}...")
+            fig, ax = plt.subplots()
+            hep.histplot(prefit, ax=ax, label="prefit", color="blue")
+            hep.histplot(postfit, ax=ax, label="postfit", color="red")
+            ax.set_title(key)
+            ax.legend()
+            self.output()[f"plots_{self.mode}"][0].dump(fig, formatter="mpl")
+            message = f"Plotted pre- and postfit shapes for {key} in {self.output()[f'plots_{self.mode}'][0].path}"
 
-                print(f"Running plot shapes for {key}...")
-
-                fig, ax = plt.subplots()
-                hep.histplot(prefit, ax=ax, label="prefit", color="blue")
-                hep.histplot(postfit, ax=ax, label="postfit", color="red")
-                ax.set_title(key)
-                ax.legend()
-                self.output()["plots"][0].dump(fig, formatter="mpl")
-                message = f"Plotted pre- and postfit shapes for {key} in {self.output()['plots'][0].path}"
-
-                self.output()["shapes_exp_plot_log"][0].dump(message, formatter="text")
+            self.output()[f"shapes_{self.mode}_plot_log"][0].dump(message, formatter="text")

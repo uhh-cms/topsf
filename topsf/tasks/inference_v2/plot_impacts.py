@@ -77,6 +77,13 @@ class PlotImpactsV2(
         description="Print summary of the impacts",
     )
 
+    mode = luigi.ChoiceParameter(
+        choices=["exp", "obs"],
+        default="exp",
+        significant=True,
+        description="Mode of the combine tool",
+    )
+
     # upstream requirements
     reqs = Requirements(
         RemoteWorkflow.reqs,
@@ -88,36 +95,32 @@ class PlotImpactsV2(
 
     def workflow_requires(self):
         reqs = super().workflow_requires()
-        if self.mode_inst == "exp":
-            reqs["impacts_exp"] = self.reqs.Impacts.req(self)
-
+        reqs[f"impacts_{self.mode}"] = self.reqs.Impacts.req(self)
         return reqs
 
     def requires(self):
-        if self.mode_inst == "exp":
-            reqs = {
-                "impacts_exp": self.reqs.Impacts.req(self),
-            }
+        reqs = {
+            f"impacts_{self.mode}": self.reqs.Impacts.req(self),
+        }
         return reqs
 
     def output(self):
         output_dict = {}
-        if self.mode_inst == "exp":
-            for i in range(0, len(self.poi)):
-                output_dict[f"plot_impacts_exp__{self.poi[i]}"] = self.target(
-                    f"impacts_exp__{self.poi[i]}.pdf",
-                )
-                output_dict[f"plot_impacts_exp__{self.poi[i]}_summary"] = self.target(
-                    f"impacts_exp__{self.poi[i]}_summary.pdf",
-                )
-                output_dict[f"impacts_exp__{self.poi[i]}_log"] = self.target(
-                    f"plot_impacts_exp__{self.poi[i]}.log",
-                )
+        for i in range(0, len(self.poi)):
+            output_dict[f"plot_impacts_{self.mode}__{self.poi[i]}"] = self.target(
+                f"impacts_{self.mode}__{self.poi[i]}.pdf",
+            )
+            output_dict[f"plot_impacts_{self.mode}__{self.poi[i]}_summary"] = self.target(
+                f"impacts_{self.mode}__{self.poi[i]}_summary.pdf",
+            )
+            output_dict[f"impacts_{self.mode}__{self.poi[i]}_log"] = self.target(
+                f"plot_impacts_{self.mode}__{self.poi[i]}.log",
+            )
         return output_dict
 
     @property
     def plot_impacts_name(self):
-        name = f"impact_plots_{self.mode_inst}__{self.plot_name}" if len(self.plot_name) > 0 else f"impact_plots_{self.mode_inst}"  # noqa: E501
+        name = f"impact_plots_{self.mode}__{self.plot_name}" if len(self.plot_name) > 0 else f"impact_plots_{self.mode}"  # noqa: E501
         return name
 
     def store_parts(self) -> law.util.InsertableDict:
@@ -131,28 +134,27 @@ class PlotImpactsV2(
     @law.decorator.log
     @law.decorator.safe_output
     def run(self):
-        if self.mode_inst == "exp":
-            input_impacts = self.input()["impacts_exp"]["impacts_exp"].path
+        input_impacts = self.input()[f"impacts_{self.mode}"][f"impacts_{self.mode}"].path
 
-            for i in range(0, len(self.poi)):
-                output_file = self.output()[f"plot_impacts_exp__{self.poi[i]}"].path
-                output_basename = os.path.basename(output_file).strip(".pdf")
-                output_dirname = os.path.dirname(output_file) + "/"
-                # touch output_dirname
-                if not os.path.exists(output_dirname):
-                    os.makedirs(output_dirname)
-                command = "plotImpacts.py"
-                command += f" -i {input_impacts}"
-                command += f" --POI {self.poi[i]}"
-                command += f" -o {output_basename}"
-                command += " --summary" if self.summary else ""
-                command += f" --cms-label '{str(self.cms_label)}'"
-                command += f" --per-page {self.per_page}"
-                command += f" --height {self.height}"
-                command += f" --left-margin {self.left_margin}"
-                command += f" --label-size {self.label_size}"
-                command += f" --sort {self.sort}"
-                command += " --relative" if self.relative else ""
-                self.publish_message(f"Plot impacts for parameter of interest: {self.poi[i]}")
-                p, output = self.run_command(command, echo=True, cwd=output_dirname)
-                self.output()[f"impacts_exp__{self.poi[i]}_log"].dump("\n".join(output), formatter="text")
+        for i in range(0, len(self.poi)):
+            output_file = self.output()[f"plot_impacts_{self.mode}__{self.poi[i]}"].path
+            output_basename = os.path.basename(output_file).strip(".pdf")
+            output_dirname = os.path.dirname(output_file) + "/"
+            # touch output_dirname
+            if not os.path.exists(output_dirname):
+                os.makedirs(output_dirname)
+            command = "plotImpacts.py"
+            command += f" -i {input_impacts}"
+            command += f" --POI {self.poi[i]}"
+            command += f" -o {output_basename}"
+            command += " --summary" if self.summary else ""
+            command += f" --cms-label '{str(self.cms_label)}'"
+            command += f" --per-page {self.per_page}"
+            command += f" --height {self.height}"
+            command += f" --left-margin {self.left_margin}"
+            command += f" --label-size {self.label_size}"
+            command += f" --sort {self.sort}"
+            command += " --relative" if self.relative else ""
+            self.publish_message(f"Plot impacts for parameter of interest: {self.poi[i]}")
+            p, output = self.run_command(command, echo=True, cwd=output_dirname)
+            self.output()[f"impacts_{self.mode}__{self.poi[i]}_log"].dump("\n".join(output), formatter="text")

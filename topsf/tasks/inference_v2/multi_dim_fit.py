@@ -113,51 +113,42 @@ class MultiDimFitV2(
     @law.decorator.log
     @law.decorator.safe_output
     def run(self):
+        # if self.mode_inst == "exp":
+        self.combine_method_inst = "MultiDimFit"
+        input_workspace = self.input()["workspace"]["workspace"].path
+        frozen_sys_workspace = self.output()[f"mdf_{self.mode_inst}_file"].path
         if self.mode_inst == "exp":
-            self.combine_method_inst = "MultiDimFit"
-            input_workspace = self.input()["workspace"]["workspace"].path
             toy_file = self.input()["toy_file"]["toy_file"].path
-            if self.mode_inst == "exp":
-                output_mdf_exp_file = self.output()[f"mdf_{self.mode_inst}_file"].path
-            output_dirname = os.path.dirname(output_mdf_exp_file) + "/"
-            print(f"output_dirname: {output_dirname}")
-            # touch output_dirname
-            if not os.path.exists(output_dirname):
-                os.makedirs(output_dirname)
+        output_mdf_file = self.output()[f"mdf_{self.mode_inst}_file"].path
+        output_dirname = os.path.dirname(output_mdf_file) + "/"
+        print(f"output_dirname: {output_dirname}")
+        # touch output_dirname
+        if not os.path.exists(output_dirname):
+            os.makedirs(output_dirname)
 
-            # perform fit: expected
-            command_expected = f"combine -M {self.combine_method_inst} --datacard {input_workspace}"
-            command_expected += f" --toysFile {toy_file}"
-            command_expected += " -t -1" if self.asimov_data else ""
-            command_expected += f" --algo {self.algo}" if len(str(self.algo)) else ""
-            command_expected += " --saveFitResult" if self.save_fit_result else ""
-            command_expected += " --saveWorkspace" if self.save_workspace else ""
-            command_expected += " --cminSingleNuisFit" if self.cminSingleNuisFit else ""
-            command_expected += f" --cminFallbackAlgo {self.cminFallbackAlgo}" if len(str(self.cminFallbackAlgo)) else ""  # noqa: E501
-            command_expected += f" -n {self.job_name}"
-            command_expected += f" -v {self.combine_verbosity}" if self.combine_verbosity > 0 else ""
-            command_expected += " -h" if self.combine_help else ""
-            self.publish_message(f"running command: {command_expected}")
-            p_exp, outp_exp = self.run_command(command_expected, echo=True, cwd=output_dirname)
+        # perform fit
+        command_1 = f"combine -M {self.combine_method_inst}"
+        command_1 += f" --toysFile {toy_file}" if self.mode_inst == "exp" else ""
+        command_1 += " -t -1" if self.asimov_data or self.mode_inst == "exp" else ""
+        command_1 += f" --algo {self.algo}" if len(str(self.algo)) else ""
+        command_1 += " --saveFitResult" if self.save_fit_result else ""
+        command_1 += " --saveWorkspace" if self.save_workspace else ""
+        command_1 += " --cminSingleNuisFit" if self.cminSingleNuisFit else ""
+        command_1 += f" --cminFallbackAlgo {self.cminFallbackAlgo}" if len(str(self.cminFallbackAlgo)) else ""  # noqa: E501
+        command_1 += f" -v {self.combine_verbosity}" if self.combine_verbosity > 0 else ""
+        command_1 += " -h" if self.combine_help else ""
+        command = f"{command_1} --datacard {input_workspace} -n _{self.mode_inst}"
+        self.publish_message(f"running command: {command}")
+        p_1, outp_1 = self.run_command(command, echo=True, cwd=output_dirname)
 
-            self.output()["mdf_exp_log"].dump("\n".join(outp_exp), formatter="text")
+        self.output()[f"mdf_{self.mode_inst}_log"].dump("\n".join(outp_1), formatter="text")
 
-            # perform fit: expected, with frozen systematics
-            new_input_workspace = self.output()[f"mdf_{self.mode_inst}_file"].path
-            command_expected_frozen = f"combine -M {self.combine_method_inst} --datacard {new_input_workspace}"
-            command_expected_frozen += f" --toysFile {toy_file}"
-            command_expected_frozen += " -t -1" if self.asimov_data else ""
-            command_expected_frozen += f" --algo {self.algo}" if len(str(self.algo)) else ""
-            command_expected_frozen += " --saveFitResult" if self.save_fit_result else ""
-            command_expected_frozen += " --saveWorkspace" if self.save_workspace else ""
-            command_expected_frozen += " --freezeParameters allConstrainedNuisance"
-            command_expected_frozen += " --snapshotName MultiDimFit"
-            command_expected_frozen += f" -n {self.job_name}_frozen"
-            command_expected_frozen += f" -v {self.combine_verbosity}" if self.combine_verbosity > 0 else ""
-            command_expected_frozen += " --cminSingleNuisFit" if self.cminSingleNuisFit else ""
-            command_expected_frozen += f" --cminFallbackAlgo {self.cminFallbackAlgo or ''}"
-            command_expected_frozen += " -h" if self.combine_help else ""
-            self.publish_message(f"running command: {command_expected_frozen}")
-            p_exp_frozen, outp_exp_frozen = self.run_command(command_expected_frozen, echo=True, cwd=output_dirname)
+        # perform fit, with frozen systematics
+        command_2 = command_1
+        command_2 += " --freezeParameters allConstrainedNuisance"
+        command_2 += " --snapshotName MultiDimFit"
+        command = f"{command_2} --datacard {frozen_sys_workspace} -n _{self.mode_inst}_frozen"
+        self.publish_message(f"running command: {command}")
+        p_2, outp_2 = self.run_command(command, echo=True, cwd=output_dirname)
 
-            self.output()["mdf_exp_frozen_log"].dump("\n".join(outp_exp_frozen), formatter="text")
+        self.output()[f"mdf_{self.mode_inst}_frozen_log"].dump("\n".join(outp_2), formatter="text")

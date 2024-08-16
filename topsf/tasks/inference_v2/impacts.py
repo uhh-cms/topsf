@@ -37,6 +37,13 @@ class ImpactsV2(
         description="Use Asimov data for the fit",
     )
 
+    mode = luigi.ChoiceParameter(
+        choices=["exp", "obs"],
+        default="exp",
+        significant=True,
+        description="Mode of the combine tool",
+    )
+
     @property
     def mass_inst(self):
         return self.mass
@@ -69,23 +76,23 @@ class ImpactsV2(
         reqs = super().workflow_requires()
 
         reqs["workspace"] = self.reqs.CreateWorkspace.req(self)
-        reqs["gen_toys"] = self.reqs.GenToys.req(self)
+        if self.mode == "exp":
+            reqs["toy_file"] = self.reqs.GenToys.req(self)
 
         return reqs
 
     def requires(self):
         reqs = {
             "workspace": self.reqs.CreateWorkspace.req(self),
-            "gen_toys": self.reqs.GenToys.req(self),
         }
+        if self.mode == "exp":
+            reqs["gen_toys"] = self.reqs.GenToys.req(self)
         return reqs
 
     def output(self):
-        output_dict = {
-            "impacts_log": self.target("impacts.log"),
-        }
-        if self.mode_inst == "exp":
-            output_dict["impacts_exp"] = self.target("impacts_exp.json")
+        output_dict = {}
+        output_dict[f"impacts_{self.mode}"] = self.target(f"impacts_{self.mode}.json")
+        output_dict[f"impacts_{self.mode}_log"] = self.target(f"impacts_{self.mode}.log")
         return output_dict
 
     @property
@@ -102,49 +109,44 @@ class ImpactsV2(
     @law.decorator.safe_output
     def run(self):
         input_workspace = self.input()["workspace"]["workspace"].path
-        input_toys = self.input()["gen_toys"]["toy_file"].path
-        if self.mode_inst == "exp":
-            output_impact_file = self.output()["impacts_exp"].path
+        if self.mode == "exp":
+            input_toys = self.input()["gen_toys"]["toy_file"].path
+        output_impact_file = self.output()[f"impacts_{self.mode}"].path
         output_dirname = os.path.dirname(output_impact_file) + "/"
         # touch output_dirname
         if not os.path.exists(output_dirname):
             os.makedirs(output_dirname)
 
+        # base command
+        command_base = "combineTool.py -M Impacts"
+        command_base += f" -m {self.mass}"
+        command_base += f" -d {input_workspace}"
+
         # do initial fit
-        command_initial = "combineTool.py -M Impacts"
-        command_initial += f" -m {self.mass}"
-        command_initial += f" -d {input_workspace}"
-        command_initial += " --doInitialFit"
-        command_initial += f" --robustFit {self.robust_fit}"
-        command_initial += " -t -1" if self.asimov_data else ""
-        command_initial += f" --toysFile {input_toys}"
-        self.publish_message("Running initial fit using command:")
-        self.publish_message(command_initial)
-        p_initial, output_initial = self.run_command(command_initial, echo=True, cwd=output_dirname)
+        command_1 = command_base
+        command_1 += f" --robustFit {self.robust_fit}"
+        command_1 += " -t -1" if self.mode == "exp" else ""
+        command_1 += f" --toysFile {input_toys}" if self.mode == "exp" else ""
+        command_1 += " --doInitialFit"
+        self.publish_message(f"running command: {command_1}")
+        p_initial, out_initial = self.run_command(command_1, echo=True, cwd=output_dirname)
 
-        # calculate impacts for all nuisance
-        command_impacts = "combineTool.py -M Impacts"
-        command_impacts += f" -m {self.mass}"
-        command_impacts += f" -d {input_workspace}"
-        command_impacts += " --doFits"
-        command_impacts += f" --robustFit {self.robust_fit}"
-        command_impacts += " -t -1" if self.asimov_data else ""
-        command_impacts += f" --toysFile {input_toys}"
-        command_impacts += f" --parallel {self.combine_parallel}"
-        self.publish_message("Running impacts using command:")
-        self.publish_message(command_impacts)
-        p_impacts, output_impacts = self.run_command(command_impacts, echo=True, cwd=output_dirname)
+        # do impacts
+        command_2 = command_base
+        command_2 += f" --robustFit {self.robust_fit}"
+        command_2 += " -t -1" if self.mode == "exp" else ""
+        command_2 += f" --toysFile {input_toys}" if self.mode == "exp" else ""
+        command_2 += " --doFits"
+        command_2 += f" --parallel {self.combine_parallel}"
+        self.publish_message(f"running command: {command_2}")
+        p_impacts, out_impacts = self.run_command(command_2, echo=True, cwd=output_dirname)
 
-        # collecting ouput, converting to .json format
-        self.output()["impacts_exp"].touch()
-        command_collect = "combineTool.py -M Impacts"
-        command_collect += f" -m {self.mass}"
-        command_collect += f" -d {input_workspace}"
-        command_collect += f" -o {output_impact_file}"
-        self.publish_message("Collecting impacts using command:")
-        self.publish_message(command_collect)
-        p_collect, output_collect = self.run_command(command_collect, echo=True, cwd=output_dirname)
+        # collect impacts
+        command_3 = command_base
+        command_3 += f" -o {output_impact_file}"
+        self.publish_message(f"running command: {command_3}")
+        p_collect, out_collect = self.run_command(command_3, echo=True, cwd=output_dirname)
 
         # store all outputs in log file
-        output = output_initial + output_impacts + output_collect
-        self.output()["impacts_log"].dump("\n".join(output), formatter="text")
+        output = out_initial + out_impacts + out_collect
+        self.output()[f"impacts_{self.mode}_log"].dump("\n".join(output), formatter="text")
