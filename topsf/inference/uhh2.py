@@ -30,18 +30,72 @@ def uhh2(self):
 
     year = self.config_inst.campaign.x.year  # noqa; not used right now
 
-    #
-    # processes
-    #
-
     processes = [
         f"{base_proc}_{subproc_suffix}"
         for base_proc in ("tt", "st")
         for subproc_suffix in ("3q", "2q", "0o1q", "bkg")
     ] + [
         "vx",
-        "mj",
+        # "mj",  # no QCD datasets used for now due to error
     ]
+
+    #
+    # regions/categories
+    #
+
+    #
+    # categories
+    #
+
+    # category elements to combine in fit
+    years = [
+        "UL17",
+    ]
+    channels = [
+        "1m",
+        "1e",
+    ]
+    pt_bins = [
+        "pt_300_400",
+        "pt_400_480",
+    ]
+    wp_names = [
+        "very_tight",
+        "tight",
+    ]
+
+    # tuples of inference categories and
+    # corresponding config category names
+    categories = [
+        # (columnflow_name, combine_name)
+        (f"{channel}__{pt_bin}__tau32_wp_{wp_name}_{region}",
+        f"bin_{channel}__{year}__{pt_bin}__tau32_wp_{wp_name}_{region}")  # TODO make year part of cf name?
+        for channel, year, pt_bin, wp_name, region in itertools.product(
+            channels,
+            years,
+            pt_bins,
+            wp_names,
+            ("pass", "fail"),
+        )
+    ]
+
+    # add categories to inference model
+    for config_cat, inference_cat in categories:
+        self.add_category(
+            inference_cat,
+            config_category=config_cat,
+            config_variable="probejet_msoftdrop_widebins",
+            mc_stats=True,
+            config_data_datasets=get_process_datasets(self.config_inst, "data"),
+            # fake data from sum of MC processes
+            data_from_processes=processes,
+            # empty bins should stay empty!!
+            empty_bin_value=0.0,
+        )
+
+    #
+    # processes
+    #
 
     # different naming convention in combine for some processes
     inference_processes = {}
@@ -67,43 +121,6 @@ def uhh2(self):
             config_process=proc,
             is_signal=is_signal,
             config_mc_datasets=datasets,
-        )
-
-
-    #
-    # regions/categories
-    #
-
-    # category elements to combine in fit
-    channels = ["1e"]
-    pt_bins = ["pt_300_400"]
-    wp_names = ["tau32_wp_very_tight"]
-
-    # tuples of inference categories and
-    # corresponding config category names
-    categories = [
-        # (columnflow_name, combine_name)
-        (f"{channel}__{pt_bin}__{wp_name}_{region}", f"bin_{channel}__{pt_bin}__{wp_name}_{region}")
-        for channel, pt_bin, wp_name, region in itertools.product(
-            channels,
-            pt_bins,
-            wp_names,
-            ("pass", "fail"),
-        )
-    ]
-
-    # add categories to inference model
-    for inference_cat, config_cat in categories:
-        self.add_category(
-            inference_cat,
-            config_category=config_cat,
-            config_variable="probejet_msoftdrop_widebins",
-            mc_stats=True,
-            config_data_datasets=get_process_datasets(self.config_inst, "data"),
-            # fake data from sum of MC processes
-            data_from_processes=processes,
-            # empty bins should stay empty!!
-            empty_bin_value=0.0,
         )
 
     #

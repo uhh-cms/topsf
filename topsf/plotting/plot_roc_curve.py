@@ -49,7 +49,7 @@ def plot_roc_curve(
     if "signal" not in hists or "background" not in hists:
         hists_keys_str = ", ".join(hists)
         print(
-            f"WARNING: `hists` should contain the keys 'signal' and 'background', got: {hists_keys_str}"
+            f"WARNING: `hists` should contain the keys 'signal' and 'background', got: {hists_keys_str}",
         )
 
     # plot config with a single entry for drawing the ROC curve
@@ -67,30 +67,32 @@ def plot_roc_curve(
     default_style_config = {
         "ax_cfg": {
             "xlim": (0.0, 1),
-            #"ylim": (0.0, 1),
+            # "ylim": (0.0, 1),
             "ylim": (1e-4, 1),
-            #"xlim": (0.5, 1),
-            #"ylim": (0.5, 1),
-            #"xlim": (0.8, 1),
-            #"ylim": (0.8, 1),
+            # "xlim": (0.5, 1),
+            # "ylim": (0.5, 1),
+            # "xlim": (0.8, 1),
+            # "ylim": (0.8, 1),
             "xlabel": "Signal efficiency ($\\varepsilon$)",
             "ylabel": "1 $-$ background rejection",
             "xscale": "linear",
-            #"yscale": "linear",
-            #"xscale": "log",
+            # "yscale": "linear",
+            # "xscale": "log",
             "yscale": "log",
         },
         "legend_cfg": {},
         "annotate_cfg": {
             "text": "\n".join(
                 [category_inst.label] +
-                (binning_variable_labels or [])
+                (binning_variable_labels or []),
             ),
         },
         "cms_label_cfg": {
-            # "lumi": config_inst.x.luminosity.get("nominal") / 1000,  # pb -> fb
+            "lumi": config_inst.x.luminosity.get("nominal") / 1000,  # pb -> fb
+            "com": config_inst.campaign.ecm,
         },
     }
+
     style_config = law.util.merge_dicts(default_style_config, style_config, deep=True)
 
     return plot_all(
@@ -132,12 +134,12 @@ def plot_efficiency(
     ):
         hists_keys_str = ", ".join(hists)
         print(
-            f"WARNING: `hists` should contain the keys 'signal' and 'background', got: {hists_keys_str}"
+            f"WARNING: `hists` should contain the keys 'signal' and 'background', got: {hists_keys_str}",
         )
     elif plot_mode not in hists:
         hists_keys_str = ", ".join(hists)
         print(
-            f"WARNING: `hists` should contain the key '{plot_mode}', got: {hists_keys_str}"
+            f"WARNING: `hists` should contain the key '{plot_mode}', got: {hists_keys_str}",
         )
 
     # plot config with a single entry for drawing the ROC curve
@@ -171,12 +173,13 @@ def plot_efficiency(
         "legend_cfg": {},
         "annotate_cfg": {
             "text": "\n".join(
-                #[category_inst.label] +
-                (binning_variable_labels or [])
+                # [category_inst.label] +
+                (binning_variable_labels or []),
             ),
         },
         "cms_label_cfg": {
-            # "lumi": config_inst.x.luminosity.get("nominal") / 1000,  # pb -> fb
+            "lumi": config_inst.x.luminosity.get("nominal") / 1000,  # pb -> fb
+            "com": config_inst.campaign.ecm,
         },
     }
     style_config = law.util.merge_dicts(default_style_config, style_config, deep=True)
