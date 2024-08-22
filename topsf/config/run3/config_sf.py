@@ -70,8 +70,7 @@ def add_config(
     # add some important tags to the config
     cfg.x.cpn_tag = f"{year}{corr_postfix}"
 
-    if year in (2022, 2023):
-        cfg.x.run = 3
+    cfg.x.run = 3
 
     #
     # configure processes
@@ -336,7 +335,7 @@ def add_config(
 
         # update JECera information
         if dataset.is_data and (dataset_name.endswith("c") or dataset_name.endswith("d")):
-            dataset.x.era = "CD"
+            dataset.x.jec_era = "CD"
 
         # mark the presence of a top quark
         if any(dataset_name.startswith(s) for s in ("tt", "st")):
@@ -651,9 +650,8 @@ def add_config(
     if year == 2022 and campaign.x.EE == "post":
         jerc_postfix = "EE"
 
-    if cfg.x.run == 3:
-        jerc_campaign = f"Summer{year2}{jerc_postfix}_22Sep2023"
-        jet_type = "AK4PFPuppi"
+    jerc_campaign = f"Summer{year2}{jerc_postfix}_22Sep2023"
+    jet_type = "AK4PFPuppi"
 
     cfg.x.jec = DotDict.wrap({
         "campaign": jerc_campaign,
