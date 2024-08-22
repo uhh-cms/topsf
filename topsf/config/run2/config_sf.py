@@ -556,9 +556,10 @@ def add_config(
     # pileup
     #
 
-    # minimum bias cross section in mb (milli) for creating PU weights, values from
-    # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData?rev=45#Recommended_cross_section
-    cfg.x.minbias_xs = Number(69.2, 0.046j)
+    # # minimum bias cross section in mb (milli) for creating PU weights, values from
+    # # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData?rev=45#Recommended_cross_section
+    # not used after moving to correctionlib based PU weights
+    # cfg.x.minbias_xs = Number(69.2, 0.046j)
 
     #
     # MET filters
