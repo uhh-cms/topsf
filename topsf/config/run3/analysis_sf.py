@@ -24,7 +24,7 @@ thisdir = os.path.dirname(os.path.abspath(__file__))
 
 analysis_sf = ana = od.Analysis(
     name="analysis_run3_sf",
-    id=1_03_00_00,  # 1: SF 03: Run3 00: year 0: full stat 0: pre/post EE
+    id=1_03_00_00,  # 1: SF 03: Run3 00: year 0: full stat 0: campaign
 )
 
 # analysis-global versions
