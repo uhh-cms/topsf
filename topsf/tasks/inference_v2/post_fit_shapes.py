@@ -49,26 +49,6 @@ class PostFitShapesFromWorkspaceV2(
         description="Mode of the combine tool",
     )
 
-    @property
-    def postfit_inst(self):
-        return self.postfit
-
-    @property
-    def sampling_inst(self):
-        return self.sampling
-
-    @property
-    def print_fit_inst(self):
-        return self.print_fit
-
-    @property
-    def total_shapes_inst(self):
-        return self.total_shapes
-
-    @property
-    def covariance_inst(self):
-        return self.covariance
-
     # upstream requirements
     reqs = Requirements(
         RemoteWorkflow.reqs,
@@ -127,11 +107,11 @@ class PostFitShapesFromWorkspaceV2(
         command_to_run += f" -w {input_workspace}"
         command_to_run += f" --output {output_file}"
         command_to_run += f" -f {input_fit_result}:fit_mdf"
-        command_to_run += " --sampling" if self.sampling_inst else ""
-        command_to_run += " --print" if self.print_fit_inst else ""
-        command_to_run += " --total-shapes" if self.total_shapes_inst else ""
-        command_to_run += " --covariance" if self.covariance_inst else ""
-        command_to_run += " --postfit" if self.postfit_inst else ""
+        command_to_run += " --sampling" if self.sampling else ""
+        command_to_run += " --print" if self.print_fit else ""
+        command_to_run += " --total-shapes" if self.total_shapes else ""
+        command_to_run += " --covariance" if self.covariance else ""
+        command_to_run += " --postfit" if self.postfit else ""
 
         p, outp = self.run_command(command_to_run, echo=True)
 

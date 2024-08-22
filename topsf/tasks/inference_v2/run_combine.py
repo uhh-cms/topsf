@@ -34,22 +34,6 @@ class RunCombine(
         description="Mode of the combine tool",
     )
 
-    @property
-    def combine_method_inst(self):
-        return self.combine_method
-
-    @combine_method_inst.setter
-    def combine_method_inst(self, value):
-        self.combine_method = value
-
-    @property
-    def asimov_data_inst(self):
-        return self.asimov_data
-
-    @property
-    def mode_inst(self):
-        return self.mode
-
     # upstream requirements
     reqs = Requirements(
         RemoteWorkflow.reqs,

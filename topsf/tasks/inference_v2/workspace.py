@@ -37,20 +37,20 @@ class CreateWorkspaceV2(
         if not os.path.exists(output_dirname):
             os.makedirs(output_dirname)
 
-        years = ",".join(self.years_inst)
-        pt_bins = ",".join(self.pt_bins_inst)
+        years = ",".join(self.years)
+        pt_bins = ",".join(self.pt_bins)
 
         command_to_run = "text2workspace.py"
         command_to_run += f" {input_datacards}"
         command_to_run += f" -o {output_workspace}"
-        command_to_run += f" -P {self.physics_model_inst}"
+        command_to_run += f" -P {self.physics_model}"
         command_to_run += " --PO sf_naming_scheme=SF__{msc}__{year}__{pt_bin}"
-        command_to_run += f" --PO sf_range={self.sf_range_inst}"
-        command_to_run += f" --PO merge_scenarios={self.fit_modes_inst}"
+        command_to_run += f" --PO sf_range={self.sf_range}"
+        command_to_run += f" --PO merge_scenarios={self.fit_modes}"
         command_to_run += f" --PO years={years}"
         command_to_run += f" --PO pt_bins={pt_bins}"
-        command_to_run += f" -v {self.combine_verbosity_inst}"
-        command_to_run += " -h" if self.combine_help_inst else ""
+        command_to_run += f" -v {self.combine_verbosity}"
+        command_to_run += " -h" if self.combine_help else ""
 
         p, outp = self.run_command(command_to_run, echo=True)
 

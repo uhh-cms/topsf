@@ -40,14 +40,6 @@ class CombineBaseTask(
         description="Show the help message of the combine tool",
     )
 
-    @property
-    def combine_verbosity_inst(self):
-        return self.combine_verbosity
-
-    @property
-    def combine_help_inst(self):
-        return self.combine_help
-
     run_command_in_tmp = False
 
     # upstream requirements

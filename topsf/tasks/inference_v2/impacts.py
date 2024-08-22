@@ -44,26 +44,6 @@ class ImpactsV2(
         description="Mode of the combine tool",
     )
 
-    @property
-    def mass_inst(self):
-        return self.mass
-
-    @property
-    def do_initial_fit_inst(self):
-        return self.do_initial_fit
-
-    @property
-    def robust_fit_inst(self):
-        return self.robust_fit
-
-    @property
-    def do_fits_inst(self):
-        return self.do_fits
-
-    @property
-    def combine_parallel_inst(self):
-        return self.combine_parallel
-
     # upstream requirements
     reqs = Requirements(
         RemoteWorkflow.reqs,

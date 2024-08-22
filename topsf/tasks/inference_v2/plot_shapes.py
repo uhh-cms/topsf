@@ -58,8 +58,8 @@ class PlotShapesV2(
             DotDict({"channel": channel, "shape": shape, "pt_bin": pt_bin, "year": year, "region": region})
             for channel in ["1e", "1m"]
             for shape in shapes_list
-            for pt_bin in self.pt_bins_inst
-            for year in self.years_inst
+            for pt_bin in self.pt_bins
+            for year in self.years
             for region in ["pass", "fail"]
         ]
         map += map_per_bin
@@ -132,8 +132,8 @@ class PlotShapesV2(
         if hasattr(b, "channel"):
             key = f"{b.channel}_{b.shape}_{b.pt_bin}_{b.year}_{b.region}"
             shape_key = (
-                f"bin_{b.channel}__{b.year}__{b.pt_bin}__tau32_wp_{self.wp_name_inst}_{b.region}_prefit/{b.shape}",
-                f"bin_{b.channel}__{b.year}__{b.pt_bin}__tau32_wp_{self.wp_name_inst}_{b.region}_postfit/{b.shape}",
+                f"bin_{b.channel}__{b.year}__{b.pt_bin}__tau32_wp_{self.wp_name}_{b.region}_prefit/{b.shape}",
+                f"bin_{b.channel}__{b.year}__{b.pt_bin}__tau32_wp_{self.wp_name}_{b.region}_postfit/{b.shape}",
             )
 
             # load root file

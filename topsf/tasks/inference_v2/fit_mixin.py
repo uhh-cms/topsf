@@ -42,30 +42,6 @@ class FitMixin(
     )
 
     @property
-    def physics_model_inst(self):
-        return self.physics_model
-
-    @property
-    def wp_name_inst(self):
-        return self.wp_name
-
-    @property
-    def fit_modes_inst(self):
-        return self.fit_modes
-
-    @property
-    def years_inst(self):
-        return self.years
-
-    @property
-    def pt_bins_inst(self):
-        return self.pt_bins
-
-    @property
-    def sf_range_inst(self):
-        return self.sf_range
-
-    @property
     def fit_name(self):
         basename = "fit"
 

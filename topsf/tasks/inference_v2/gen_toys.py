@@ -39,7 +39,7 @@ class GenToysV2(
 
     @property
     def gen_toys_name(self):
-        name = f"gen_{self.gen_name}__{self.mode_inst}"
+        name = f"gen_{self.gen_name}"
         return name
 
     def store_parts(self) -> law.util.InsertableDict:
@@ -57,11 +57,11 @@ class GenToysV2(
     @law.decorator.log
     @law.decorator.safe_output
     def run(self):
-        self.combine_method_inst = "GenerateOnly"
+        self.combine_method = "GenerateOnly"
         workspace = self.input()["workspace"]["workspace"].path
         output_toy_file = self.output()["toy_file"].path
         output_dirname = os.path.dirname(output_toy_file) + "/"
-        print(self.combine_method_inst)
+        print(self.combine_method)
         # touch output_dirname
         if not os.path.exists(output_dirname):
             os.makedirs(output_dirname)
@@ -70,8 +70,8 @@ class GenToysV2(
         new_set_parameters = ",".join(self.set_parameters)
         new_freeze_gen_parameters = ",".join(self.freeze_gen_parameters)
 
-        command_to_run = f"combine -M {self.combine_method_inst}"
-        command_to_run += " -t -1" if self.asimov_data_inst else f" -t {self.n_toys}"
+        command_to_run = f"combine -M {self.combine_method}"
+        command_to_run += " -t -1" if self.asimov_data else f" -t {self.n_toys}"
         command_to_run += f" --setParameters {new_set_parameters}"
         command_to_run += f" --freezeParameters {new_freeze_gen_parameters}"
         command_to_run += " --saveToys" if self.save_toys else ""
