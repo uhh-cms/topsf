@@ -64,7 +64,7 @@ def add_config(
     # get all root processes
     procs = get_root_processes_from_campaign(campaign)
 
-    # create parent processes for w_lep, dy_lep and qcd
+    # create parent processes for w_lep, dy and qcd
     for i_proc, (proc_name, proc_label, child_procs) in enumerate([
         ("vx", "V+jets, VV", ["dy", "w_lnu", "vv"]),
         ("mj", "Multijet", ["qcd"]),
@@ -166,7 +166,7 @@ def add_config(
         "qcd": "#5E8FFC",  # blue
         "w_lnu": "#82FF28",  # green
         "st": "#3E00FB",  # dark purple
-        "dy_lep": "#FBFF36",  # yellow
+        "dy": "#FBFF36",  # yellow
         "vv": "#B900FC",  # pink
         "other": "#999999",  # grey
         # christopher's color scheme
@@ -179,7 +179,7 @@ def add_config(
         "data",
         "tt",
         "st",
-        # "dy_lep",
+        # "dy",
         # "w_lnu",
         # "vv",
         # "qcd",
@@ -279,7 +279,7 @@ def add_config(
         if dataset_name.startswith("w_lnu"):
             dataset.add_tag("is_v_jets")
             dataset.add_tag("is_w_jets")
-        if dataset_name.startswith("dy_lep"):
+        if dataset_name.startswith("dy"):
             dataset.add_tag("is_v_jets")
             dataset.add_tag("is_z_jets")
 
@@ -325,13 +325,13 @@ def add_config(
     cfg.x.dataset_groups = {
         "all": dataset_names,
         "data": ["data_*"],
-        "dy_lep": ["dy_lep*"],
+        "dy": ["dy*"],
         "w_lnu": ["w_lnu*"],
         "qcd": ["qcd_ht*"],
         "st": ["st*"],
         "tt": ["tt*"],
         "vv": ["ww_pythia", "wz_pythia", "zz_pythia"],
-        "vx": ["w_lnu*", "dy_lep*", "ww_pythia", "wz_pythia", "zz_pythia"],
+        "vx": ["w_lnu*", "dy*", "ww_pythia", "wz_pythia", "zz_pythia"],
         "mj": ["qcd_ht*"],
     }
 
