@@ -28,13 +28,13 @@ class InferenceBaseTask(
 ):
     sandbox = dev_sandbox(law.config.get("analysis", "combine_sandbox"))
 
-    combine_verbosity = luigi.IntParameter(
+    verbosity = luigi.IntParameter(
         default=2,
         significant=False,
         description="Verbosity of the combine tool",
     )
 
-    combine_help = luigi.BoolParameter(
+    print_help = luigi.BoolParameter(
         default=False,
         significant=False,
         description="Show the help message of the combine tool",

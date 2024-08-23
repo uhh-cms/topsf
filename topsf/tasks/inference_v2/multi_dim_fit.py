@@ -135,8 +135,8 @@ class MultiDimFitV2(
         command_1 += " --saveWorkspace" if self.save_workspace else ""
         command_1 += " --cminSingleNuisFit" if self.cminSingleNuisFit else ""
         command_1 += f" --cminFallbackAlgo {self.cminFallbackAlgo}" if len(str(self.cminFallbackAlgo)) else ""  # noqa: E501
-        command_1 += f" -v {self.combine_verbosity}" if self.combine_verbosity > 0 else ""
-        command_1 += " -h" if self.combine_help else ""
+        command_1 += f" -v {self.verbosity}" if self.verbosity > 0 else ""
+        command_1 += " -h" if self.print_help else ""
         command = f"{command_1} --datacard {input_workspace} -n _{self.mode}"
         self.publish_message(f"running command: {command}")
         p_1, outp_1 = self.run_command(command, echo=True, cwd=output_dirname)

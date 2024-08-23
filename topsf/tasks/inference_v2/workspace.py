@@ -49,8 +49,8 @@ class CreateWorkspaceV2(
         command_to_run += f" --PO merge_scenarios={self.fit_modes}"
         command_to_run += f" --PO years={years}"
         command_to_run += f" --PO pt_bins={pt_bins}"
-        command_to_run += f" -v {self.combine_verbosity}"
-        command_to_run += " -h" if self.combine_help else ""
+        command_to_run += f" -v {self.verbosity}"
+        command_to_run += " -h" if self.print_help else ""
 
         p, outp = self.run_command(command_to_run, echo=True)
 
