@@ -64,9 +64,9 @@ class MultiDimFitV2(
 
     def workflow_requires(self):
         reqs = super().workflow_requires()
-        reqs["workspace"] = self.reqs.CreateWorkspace.req(self)
+        reqs["workspace"] = self.requires_from_branch()
         if self.mode == "exp":
-            reqs["toy_file"] = self.reqs.GenToys.req(self)
+            reqs["toy_file"] = self.requires_from_branch()
         return reqs
 
     def requires(self):

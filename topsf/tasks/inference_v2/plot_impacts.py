@@ -95,7 +95,7 @@ class PlotImpactsV2(
 
     def workflow_requires(self):
         reqs = super().workflow_requires()
-        reqs[f"impacts_{self.mode}"] = self.reqs.Impacts.req(self)
+        reqs[f"impacts_{self.mode}"] = self.requires_from_branch()
         return reqs
 
     def requires(self):

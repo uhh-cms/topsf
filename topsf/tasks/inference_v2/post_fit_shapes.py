@@ -61,8 +61,8 @@ class PostFitShapesFromWorkspaceV2(
     def workflow_requires(self):
         reqs = super().workflow_requires()
 
-        reqs["workspace"] = self.reqs.CreateWorkspace.req(self)
-        reqs["fit_result"] = self.reqs.MultiDimFit.req(self)
+        reqs["workspace"] = self.requires_from_branch()
+        reqs["fit_result"] = self.requires_from_branch()
 
         return reqs
 
