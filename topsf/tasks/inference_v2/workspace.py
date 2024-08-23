@@ -3,11 +3,11 @@
 import law
 import os
 
-from topsf.tasks.inference_v2.combine_base import CombineBaseTask
+from topsf.tasks.inference_v2.combine_base import InferenceBaseTask
 
 
 class CreateWorkspaceV2(
-    CombineBaseTask,
+    InferenceBaseTask,
 ):
     @property
     def workspace_name(self):

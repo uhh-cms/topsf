@@ -4,11 +4,11 @@ import luigi
 import law
 import os
 
-from topsf.tasks.inference_v2.run_combine import RunCombine
+from topsf.tasks.inference_v2.run_combine import CombineBaseTask
 
 
 class GenToysV2(
-    RunCombine,
+    CombineBaseTask,
 ):
     n_toys = luigi.IntParameter(
         default=-1,

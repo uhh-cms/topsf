@@ -9,12 +9,12 @@ from columnflow.tasks.framework.remote import RemoteWorkflow
 from topsf.tasks.inference import CreateDatacards
 
 from topsf.tasks.inference_v2.workspace import CreateWorkspaceV2
-from topsf.tasks.inference_v2.run_combine import RunCombine
+from topsf.tasks.inference_v2.run_combine import CombineBaseTask
 from topsf.tasks.inference_v2.gen_toys import GenToysV2
 
 
 class MultiDimFitV2(
-    RunCombine,
+    CombineBaseTask,
 ):
     cminSingleNuisFit = luigi.BoolParameter(  # FIXME Why does this parameter missing not cause an error?
         significant=False,

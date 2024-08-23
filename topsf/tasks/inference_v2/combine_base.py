@@ -15,7 +15,7 @@ from columnflow.util import dev_sandbox
 from topsf.tasks.inference_v2.fit_mixin import FitMixin
 
 
-class CombineBaseTask(
+class InferenceBaseTask(
     FitMixin,
     CreateDatacards,
     InferenceModelMixin,
