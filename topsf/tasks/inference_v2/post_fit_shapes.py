@@ -8,7 +8,7 @@ from columnflow.tasks.framework.base import Requirements
 from columnflow.tasks.framework.remote import RemoteWorkflow
 from topsf.tasks.inference import CreateDatacards
 
-from topsf.tasks.inference_v2.combine_base import InferenceBaseTask
+from topsf.tasks.inference_v2.inference_base import InferenceBaseTask
 from topsf.tasks.inference_v2.workspace import CreateWorkspaceV2
 from topsf.tasks.inference_v2.gen_toys import GenToysV2
 from topsf.tasks.inference_v2.multi_dim_fit import MultiDimFitV2

@@ -4,7 +4,7 @@ import luigi
 import law
 import os
 
-from topsf.tasks.inference_v2.run_combine import CombineBaseTask
+from topsf.tasks.inference_v2.combine_base import CombineBaseTask
 
 
 class GenToysV2(

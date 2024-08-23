@@ -9,7 +9,7 @@ from columnflow.tasks.framework.remote import RemoteWorkflow
 from topsf.tasks.inference import CreateDatacards
 
 from topsf.tasks.inference_v2.workspace import CreateWorkspaceV2
-from topsf.tasks.inference_v2.run_combine import CombineBaseTask
+from topsf.tasks.inference_v2.combine_base import CombineBaseTask
 from topsf.tasks.inference_v2.gen_toys import GenToysV2
 
 

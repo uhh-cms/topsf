@@ -3,7 +3,7 @@
 import law
 import os
 
-from topsf.tasks.inference_v2.combine_base import InferenceBaseTask
+from topsf.tasks.inference_v2.inference_base import InferenceBaseTask
 
 
 class CreateWorkspaceV2(
