@@ -44,7 +44,7 @@ class CreateDatacards(
 
     per_category = luigi.BoolParameter(
         default=False,
-        significant=False,
+        significant=True,
         description="when True, create a separate datacard for each category",
     )
 
