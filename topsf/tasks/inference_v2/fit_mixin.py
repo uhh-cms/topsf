@@ -4,6 +4,7 @@ import luigi
 import law
 
 from columnflow.tasks.framework.base import ConfigTask
+from columnflow.tasks.framework.parameters import SettingsParameter
 
 
 class FitMixin(
@@ -21,9 +22,9 @@ class FitMixin(
         description="Working point to perform fit for.",
     )
 
-    fit_modes = luigi.Parameter(
+    fit_modes = SettingsParameter(
         significant=True,
-        description="Fit mode for the fit (3q:TagAndProbe,2q:ThetaLike,0o1q:ThetaLike).",
+        description="Fit modes for each subprocess type (3q=TagAndProbe,2q=ThetaLike,0o1q=ThetaLike).",
     )
 
     years = law.CSVParameter(
@@ -49,23 +50,20 @@ class FitMixin(
 
         wp_name = f"{self.wp_name}"
 
-        # add msc and mode information to the name of the following form:
-        # 3q:TagAndProbe,2q:ThetaLike,0o1q:ThetaLike -> 3qTP_2qTL_0o1qTL
-        fit_modes = self.fit_modes.split(",")
-        # ['3q:TagAndProbe', '2q:ThetaLike', '0o1q:ThetaLike']
-        msc_name = ""
-        for msc in fit_modes:
-            merge_scenario = msc.split(":")[0]
-            fit_mode = msc.split(":")[1]
-            if fit_mode == "TagAndProbe":
-                fit_mode = "TP"
-            elif fit_mode == "ThetaLike":
-                fit_mode = "TL"
-            else:
-                raise ValueError(f"Unknown fit mode {fit_mode}")
-            msc_name += f"{merge_scenario}{fit_mode}_"
-        msc_name = msc_name[:-1]
-
+        msc_name_elems = []
+        for subproc in ("3q", "2q", "0o1q"):
+            fit_mode = self.fit_modes.get(subproc, "TagAndProbe")
+            fit_mode_short = {
+                "TagAndProbe": "TP",
+                "ThetaLike": "TL",
+            }.get(fit_mode, None)
+            if fit_mode_short is None:
+                fit_modes_available = ",".join(fit_mode_short)
+                raise ValueError(
+                    f"unknown fit mode {fit_mode}; expected one of: {fit_modes_available}"
+                )
+            msc_name_elems.append(f"{subproc}{fit_mode_short}")
+        msc_name = "_".join(msc_name_elems)
         if len(self.years) < 4:
             years_name = "__".join(self.years)
         else:

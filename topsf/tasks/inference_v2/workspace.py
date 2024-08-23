@@ -38,6 +38,10 @@ class CreateWorkspaceV2(
 
         years = ",".join(self.years)
         pt_bins = ",".join(self.pt_bins)
+        fit_modes = ""
+        for key, value in self.fit_modes.items():
+            fit_modes += f"{key}:{value},"
+        fit_modes = fit_modes[:-1]
 
         command_to_run = "text2workspace.py"
         command_to_run += f" {input_datacards}"
@@ -45,7 +49,7 @@ class CreateWorkspaceV2(
         command_to_run += f" -P {self.physics_model}"
         command_to_run += " --PO sf_naming_scheme=SF__{msc}__{year}__{pt_bin}"
         command_to_run += f" --PO sf_range={self.sf_range}"
-        command_to_run += f" --PO merge_scenarios={self.fit_modes}"
+        command_to_run += f" --PO merge_scenarios={fit_modes}"
         command_to_run += f" --PO years={years}"
         command_to_run += f" --PO pt_bins={pt_bins}"
         command_to_run += f" -v {self.verbosity}"
