@@ -57,4 +57,4 @@ class CreateWorkspaceV2(
 
         p, outp = self.run_command(command_to_run, echo=True)
 
-        self.output()["t2w_log"].dump("\n".join(outp), formatter="text")
+        self.output()["t2w_log"].dump(outp, formatter="text")

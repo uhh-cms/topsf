@@ -128,4 +128,4 @@ class ImpactsV2(
 
         # store all outputs in log file
         output = out_initial + out_impacts + out_collect
-        self.output()[f"impacts_{self.mode}_log"].dump("\n".join(output), formatter="text")
+        self.output()[f"impacts_{self.mode}_log"].dump(output, formatter="text")

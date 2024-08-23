@@ -114,4 +114,4 @@ class PostFitShapesFromWorkspaceV2(
 
         p, outp = self.run_command(command_to_run, echo=True)
 
-        self.output()[f"pfsfw_{self.mode}_log"].dump("\n".join(outp), formatter="text")
+        self.output()[f"pfsfw_{self.mode}_log"].dump(outp, formatter="text")

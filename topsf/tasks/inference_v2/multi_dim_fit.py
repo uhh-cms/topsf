@@ -139,7 +139,7 @@ class MultiDimFitV2(
         self.publish_message(f"running command: {command}")
         p_1, outp_1 = self.run_command(command, echo=True, cwd=output_dirname)
 
-        self.output()[f"mdf_{self.mode}_log"].dump("\n".join(outp_1), formatter="text")
+        self.output()[f"mdf_{self.mode}_log"].dump(outp_1, formatter="text")
 
         # perform fit, with frozen systematics
         command_2 = command_1
@@ -149,4 +149,4 @@ class MultiDimFitV2(
         self.publish_message(f"running command: {command}")
         p_2, outp_2 = self.run_command(command, echo=True, cwd=output_dirname)
 
-        self.output()[f"mdf_{self.mode}_frozen_log"].dump("\n".join(outp_2), formatter="text")
+        self.output()[f"mdf_{self.mode}_frozen_log"].dump(outp_2, formatter="text")

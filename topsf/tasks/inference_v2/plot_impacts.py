@@ -156,4 +156,4 @@ class PlotImpactsV2(
             command += " --relative" if self.relative else ""
             self.publish_message(f"Plot impacts for parameter of interest: {self.poi[i]}")
             p, output = self.run_command(command, echo=True, cwd=output_dirname)
-            self.output()[f"impacts_{self.mode}__{self.poi[i]}_log"].dump("\n".join(output), formatter="text")
+            self.output()[f"impacts_{self.mode}__{self.poi[i]}_log"].dump(output, formatter="text")

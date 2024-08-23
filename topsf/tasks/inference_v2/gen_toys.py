@@ -79,4 +79,4 @@ class GenToysV2(
 
         p, outp = self.run_command(command_to_run, echo=True, cwd=output_dirname)
 
-        self.output()["gen_toys_log"].dump("\n".join(outp), formatter="text")
+        self.output()["gen_toys_log"].dump(outp, formatter="text")

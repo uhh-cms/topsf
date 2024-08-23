@@ -5,9 +5,6 @@ import law
 import os
 
 from columnflow.tasks.framework.base import Requirements, CommandTask
-from columnflow.tasks.framework.mixins import (
-    CalibratorsMixin, SelectorStepsMixin, ProducersMixin, InferenceModelMixin,
-)
 from columnflow.tasks.framework.remote import RemoteWorkflow
 from topsf.tasks.inference import CreateDatacards
 from columnflow.util import dev_sandbox
@@ -18,12 +15,6 @@ from topsf.tasks.inference_v2.fit_mixin import FitMixin
 class InferenceBaseTask(
     FitMixin,
     CreateDatacards,
-    InferenceModelMixin,
-    ProducersMixin,
-    SelectorStepsMixin,
-    CalibratorsMixin,
-    law.LocalWorkflow,
-    RemoteWorkflow,
     CommandTask,
 ):
     sandbox = dev_sandbox(law.config.get("analysis", "combine_sandbox"))
@@ -74,18 +65,24 @@ class InferenceBaseTask(
 
         # call it
         output = []
-        with self.publish_step("running '{}' ...".format(law.util.colored(cmd, "cyan"))):
+        run_message = f"running '{cmd}' ..."
+        output.append(run_message)
+        output.append("cwd: {}".format(kwargs.get("cwd", os.getcwd())))
+        output.append("")
+        with self.publish_step(law.util.colored(run_message, "cyan")):
             p, lines = law.util.readable_popen(cmd, shell=True, executable="/bin/bash", **kwargs)
             for line in lines:
                 if echo:
                     print(line)
                 output.append(line)
 
+        output_str = "\n".join(output)
+
         # raise an exception when the call failed and optional is not True
         if p.returncode != 0 and not optional:
             raise Exception(f"command failed with exit code {p.returncode}: {cmd}")
 
-        return p, output
+        return p, output_str
 
     def create_branch_map(self):
         cats = list(self.inference_model_inst.categories)  # categories defined in inference model
