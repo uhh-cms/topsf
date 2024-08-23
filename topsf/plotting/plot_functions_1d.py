@@ -143,7 +143,7 @@ def plot_variable_per_process(
                     (x_pos, y_pos),
                     RECT_WIDTH,
                     RECT_HEIGHT,
-                    transform=transforms.blended_transform_factory(ax.transAxes, ax.transAxes),
+                    transform=ax.transAxes,
                     facecolor=color, hatch=hatch,
                 )
                 ax.add_patch(rect)
