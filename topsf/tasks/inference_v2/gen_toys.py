@@ -63,8 +63,7 @@ class GenToysV2(
         output_dirname = os.path.dirname(output_toy_file) + "/"
         print(self.combine_method)
         # touch output_dirname
-        if not os.path.exists(output_dirname):
-            os.makedirs(output_dirname)
+        os.makedirs(output_dirname, exist_ok=True)
 
         # turn inputs into strings understandable by combine
         new_set_parameters = ",".join(self.set_parameters)

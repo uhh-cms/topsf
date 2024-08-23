@@ -34,8 +34,7 @@ class CreateWorkspaceV2(
         output_workspace = self.output()["workspace"].path
         output_dirname = os.path.dirname(output_workspace)
         # touch the output_dirname
-        if not os.path.exists(output_dirname):
-            os.makedirs(output_dirname)
+        os.makedirs(output_dirname, exist_ok=True)
 
         years = ",".join(self.years)
         pt_bins = ",".join(self.pt_bins)

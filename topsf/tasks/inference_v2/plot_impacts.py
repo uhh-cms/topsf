@@ -141,8 +141,7 @@ class PlotImpactsV2(
             output_basename = os.path.basename(output_file).strip(".pdf")
             output_dirname = os.path.dirname(output_file) + "/"
             # touch output_dirname
-            if not os.path.exists(output_dirname):
-                os.makedirs(output_dirname)
+            os.makedirs(output_dirname, exist_ok=True)
             command = "plotImpacts.py"
             command += f" -i {input_impacts}"
             command += f" --POI {self.poi[i]}"

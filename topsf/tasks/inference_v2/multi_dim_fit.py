@@ -123,8 +123,7 @@ class MultiDimFitV2(
         output_dirname = os.path.dirname(output_mdf_file) + "/"
         print(f"output_dirname: {output_dirname}")
         # touch output_dirname
-        if not os.path.exists(output_dirname):
-            os.makedirs(output_dirname)
+        os.makedirs(output_dirname, exist_ok=True)
 
         # perform fit
         command_1 = f"combine -M {self.combine_method}"

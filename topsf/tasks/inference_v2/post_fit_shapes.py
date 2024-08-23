@@ -100,8 +100,7 @@ class PostFitShapesFromWorkspaceV2(
         output_file = self.output()[f"pfsfw_{self.mode}"].path
         output_dirname = os.path.dirname(output_file) + "/"
         # touch output_dirname
-        if not os.path.exists(output_dirname):
-            os.makedirs(output_dirname)
+        os.makedirs(output_dirname, exist_ok=True)
 
         command_to_run = "PostFitShapesFromWorkspace"
         command_to_run += f" -w {input_workspace}"
