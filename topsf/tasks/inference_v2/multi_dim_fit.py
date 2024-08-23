@@ -84,7 +84,7 @@ class MultiDimFitV2(
 
     def store_parts(self) -> law.util.InsertableDict:
         parts = super().store_parts()
-        parts.insert_after("fit_v2", "gen_toys", self.mdf_name)
+        parts.insert_after("fit_v2", "mdf_name", self.mdf_name)
         return parts
 
     def output(self):
@@ -116,10 +116,9 @@ class MultiDimFitV2(
         # if self.mode == "exp":
         self.combine_method = "MultiDimFit"
         input_workspace = self.input()["workspace"]["workspace"].path
-        frozen_sys_workspace = self.output()[f"mdf_{self.mode}_file"].path
         if self.mode == "exp":
             toy_file = self.input()["toy_file"]["toy_file"].path
-        output_mdf_file = self.output()[f"mdf_{self.mode}_file"].path
+        output_mdf_file = self.output()[f"mdf_{self.mode}_file"].path  # to be used as input for the frozen fit
         output_dirname = os.path.dirname(output_mdf_file) + "/"
         print(f"output_dirname: {output_dirname}")
         # touch output_dirname
@@ -146,7 +145,7 @@ class MultiDimFitV2(
         command_2 = command_1
         command_2 += " --freezeParameters allConstrainedNuisance"
         command_2 += " --snapshotName MultiDimFit"
-        command = f"{command_2} --datacard {frozen_sys_workspace} -n _{self.mode}_frozen"
+        command = f"{command_2} --datacard {output_mdf_file} -n _{self.mode}_frozen"
         self.publish_message(f"running command: {command}")
         p_2, outp_2 = self.run_command(command, echo=True, cwd=output_dirname)
 

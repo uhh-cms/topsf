@@ -39,7 +39,7 @@ class GenToysV2(
 
     @property
     def gen_toys_name(self):
-        name = f"gen_{self.gen_name}"
+        name = f"toys_{self.gen_name}"
         return name
 
     def store_parts(self) -> law.util.InsertableDict:
