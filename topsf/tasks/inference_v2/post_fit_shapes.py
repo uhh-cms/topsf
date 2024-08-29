@@ -12,10 +12,14 @@ from topsf.tasks.inference_v2.inference_base import InferenceBaseTask
 from topsf.tasks.inference_v2.workspace import CreateWorkspaceV2
 from topsf.tasks.inference_v2.gen_toys import GenToysV2
 from topsf.tasks.inference_v2.multi_dim_fit import MultiDimFitV2
+from topsf.tasks.inference_v2.mixins import ToysMixin, MultiDimFitMixin, ModeMixin
 
 
 class PostFitShapesFromWorkspaceV2(
     InferenceBaseTask,
+    ToysMixin,
+    MultiDimFitMixin,
+    ModeMixin,
 ):
     postfit = luigi.BoolParameter(
         significant=False,
@@ -40,13 +44,6 @@ class PostFitShapesFromWorkspaceV2(
     covariance = luigi.BoolParameter(
         significant=False,
         description="Create covariance matrix",
-    )
-
-    mode = luigi.ChoiceParameter(
-        choices=["exp", "obs"],
-        default="exp",
-        significant=True,
-        description="Mode of the combine tool",
     )
 
     # upstream requirements

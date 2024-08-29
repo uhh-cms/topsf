@@ -7,15 +7,14 @@ import os
 from columnflow.tasks.framework.base import Requirements
 from columnflow.tasks.framework.remote import RemoteWorkflow
 
-from topsf.tasks.inference import CreateDatacards
 from topsf.tasks.inference_v2.inference_base import InferenceBaseTask
-from topsf.tasks.inference_v2.workspace import CreateWorkspaceV2
-from topsf.tasks.inference_v2.gen_toys import GenToysV2
-from topsf.tasks.inference_v2.impacts import ImpactsV2
+from topsf.tasks.inference_v2.impacts import ImpactsExpV2, ImpactsObsV2
+from topsf.tasks.inference_v2.mixins import ModeMixin, ToysMixin
 
 
-class PlotImpactsV2(
+class PlotImpactsBaseV2(
     InferenceBaseTask,
+    ModeMixin,
 ):
     per_page = luigi.IntParameter(
         default=30,
@@ -77,22 +76,6 @@ class PlotImpactsV2(
         description="Print summary of the impacts",
     )
 
-    mode = luigi.ChoiceParameter(
-        choices=["exp", "obs"],
-        default="exp",
-        significant=True,
-        description="Mode of the combine tool",
-    )
-
-    # upstream requirements
-    reqs = Requirements(
-        RemoteWorkflow.reqs,
-        CreateDatacards=CreateDatacards,
-        CreateWorkspace=CreateWorkspaceV2,
-        GenToys=GenToysV2,
-        Impacts=ImpactsV2,
-    )
-
     def workflow_requires(self):
         reqs = super().workflow_requires()
         reqs[f"impacts_{self.mode}"] = self.requires_from_branch()
@@ -108,19 +91,20 @@ class PlotImpactsV2(
         output_dict = {}
         for i in range(0, len(self.poi)):
             output_dict[f"plot_impacts_{self.mode}__{self.poi[i]}"] = self.target(
-                f"impacts_{self.mode}__{self.poi[i]}.pdf",
-            )
-            output_dict[f"plot_impacts_{self.mode}__{self.poi[i]}_summary"] = self.target(
-                f"impacts_{self.mode}__{self.poi[i]}_summary.pdf",
+                f"plot_impacts_{self.mode}__{self.poi[i]}.pdf",
             )
             output_dict[f"impacts_{self.mode}__{self.poi[i]}_log"] = self.target(
                 f"plot_impacts_{self.mode}__{self.poi[i]}.log",
             )
+            if self.summary:
+                output_dict[f"impacts_{self.mode}__{self.poi[i]}_summary"] = self.target(
+                    f"plot_impacts_{self.mode}__{self.poi[i]}_summary.pdf",
+                )
         return output_dict
 
     @property
     def plot_impacts_name(self):
-        name = f"impact_plots_{self.mode}__{self.plot_name}" if len(self.plot_name) > 0 else f"impact_plots_{self.mode}"  # noqa: E501
+        name = f"plots__{self.mode}__{self.plot_name}" if len(self.plot_name) > 0 else f"plots__{self.mode}"  # noqa: E501
         return name
 
     def store_parts(self) -> law.util.InsertableDict:
@@ -157,3 +141,26 @@ class PlotImpactsV2(
             self.publish_message(f"Plot impacts for parameter of interest: {self.poi[i]}")
             p, output = self.run_command(command, echo=True, cwd=output_dirname)
             self.output()[f"impacts_{self.mode}__{self.poi[i]}_log"].dump(output, formatter="text")
+
+
+class PlotImpactsExpV2(
+    PlotImpactsBaseV2,
+    ToysMixin,
+):
+
+    # upstream requirements
+    reqs = Requirements(
+        RemoteWorkflow.reqs,
+        Impacts=ImpactsExpV2,
+    )
+
+
+class PlotImpactsObsV2(
+    PlotImpactsBaseV2,
+):
+
+    # upstream requirements
+    reqs = Requirements(
+        RemoteWorkflow.reqs,
+        Impacts=ImpactsObsV2,
+    )

@@ -1,7 +1,6 @@
 # coding: utf-8
 
 import law
-import luigi
 
 from columnflow.tasks.framework.base import Requirements
 from columnflow.tasks.framework.remote import RemoteWorkflow
@@ -12,10 +11,12 @@ from topsf.tasks.inference_v2.inference_base import InferenceBaseTask
 from topsf.tasks.inference_v2.workspace import CreateWorkspaceV2
 from topsf.tasks.inference_v2.gen_toys import GenToysV2
 from topsf.tasks.inference_v2.post_fit_shapes import PostFitShapesFromWorkspaceV2
+from topsf.tasks.inference_v2.mixins import ModeMixin
 
 
 class PlotShapesV2(
     InferenceBaseTask,
+    ModeMixin,
 ):
     sandbox = dev_sandbox(law.config.get("analysis", "default_columnar_sandbox"))
 
@@ -23,13 +24,6 @@ class PlotShapesV2(
         default="pdf",
         significant=False,
         description="File types to create",
-    )
-
-    mode = luigi.ChoiceParameter(
-        choices=["exp", "obs"],
-        default="exp",
-        significant=True,
-        description="Mode of the combine tool",
     )
 
     # upstream requirements

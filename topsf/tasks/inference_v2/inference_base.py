@@ -8,13 +8,24 @@ from columnflow.tasks.framework.base import Requirements, CommandTask
 from columnflow.tasks.framework.remote import RemoteWorkflow
 from topsf.tasks.inference import CreateDatacards
 from columnflow.util import dev_sandbox
+from columnflow.tasks.framework.mixins import (
+    CalibratorsMixin, SelectorStepsMixin, ProducersMixin, MLModelsMixin, InferenceModelMixin,
+)
 
-from topsf.tasks.inference_v2.fit_mixin import FitMixin
+from topsf.tasks.inference_v2.mixins import FitMixin
+from topsf.tasks.base import TopSFTask
 
 
 class InferenceBaseTask(
     FitMixin,
-    CreateDatacards,
+    TopSFTask,
+    InferenceModelMixin,
+    MLModelsMixin,
+    ProducersMixin,
+    SelectorStepsMixin,
+    CalibratorsMixin,
+    law.LocalWorkflow,
+    RemoteWorkflow,
     CommandTask,
 ):
     sandbox = dev_sandbox(law.config.get("analysis", "combine_sandbox"))

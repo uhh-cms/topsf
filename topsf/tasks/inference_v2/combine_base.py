@@ -24,14 +24,7 @@ class CombineBaseTask(
     asimov_data = luigi.BoolParameter(
         default=True,
         significant=False,
-        description="Use Asimov data for the fit",
-    )
-
-    mode = luigi.ChoiceParameter(
-        choices=["exp", "obs"],
-        default="exp",
-        significant=True,
-        description="Mode of the combine tool",
+        description="Use Asimov data",
     )
 
     # upstream requirements

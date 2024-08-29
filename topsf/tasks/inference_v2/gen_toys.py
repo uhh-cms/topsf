@@ -1,41 +1,22 @@
 # coding: utf-8
 
-import luigi
 import law
 import os
 
 from topsf.tasks.inference_v2.combine_base import CombineBaseTask
+from topsf.tasks.inference_v2.mixins import ToysMixin
 
 
 class GenToysV2(
     CombineBaseTask,
+    ToysMixin,
 ):
-    n_toys = luigi.IntParameter(
-        default=-1,
-        significant=False,
-        description="Number of toys to generate",
-    )
-
-    set_parameters = law.CSVParameter(
-        significant=False,
-        description="Set parameters for the toys",
-    )
-
-    freeze_gen_parameters = law.CSVParameter(
-        significant=False,
-        description="Freeze parameters for the generation",
-    )
-
-    save_toys = luigi.BoolParameter(
-        default=True,
-        significant=False,
-        description="Save the generated toys",
-    )
-
-    gen_name = luigi.Parameter(
-        significant=True,
-        description="Name of the generated toys",
-    )
+    def output(self):
+        output_dict = {
+            "toy_file": self.target(f"higgsCombine{self.gen_name}.GenerateOnly.mH120.123456.root"),
+            "gen_toys_log": self.target("gen_toys.log"),
+        }
+        return output_dict
 
     @property
     def gen_toys_name(self):
@@ -46,13 +27,6 @@ class GenToysV2(
         parts = super().store_parts()
         parts.insert_after("fit_v2", "gen_toys", self.gen_toys_name)
         return parts
-
-    def output(self):
-        output_dict = {
-            "toy_file": self.target(f"higgsCombine{self.gen_name}.GenerateOnly.mH120.123456.root"),
-            "gen_toys_log": self.target("gen_toys.log"),
-        }
-        return output_dict
 
     @law.decorator.log
     @law.decorator.safe_output
@@ -66,7 +40,7 @@ class GenToysV2(
         os.makedirs(output_dirname, exist_ok=True)
 
         # turn inputs into strings understandable by combine
-        new_set_parameters = ",".join(self.set_parameters)
+        new_set_parameters = ",".join(self.set_gen_parameters)
         new_freeze_gen_parameters = ",".join(self.freeze_gen_parameters)
 
         command_to_run = f"combine -M {self.combine_method}"

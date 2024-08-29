@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import luigi
 import law
 import os
 
@@ -11,48 +10,15 @@ from topsf.tasks.inference import CreateDatacards
 from topsf.tasks.inference_v2.workspace import CreateWorkspaceV2
 from topsf.tasks.inference_v2.combine_base import CombineBaseTask
 from topsf.tasks.inference_v2.gen_toys import GenToysV2
+from topsf.tasks.inference_v2.mixins import ToysMixin, MultiDimFitMixin, ModeMixin
 
 
 class MultiDimFitV2(
     CombineBaseTask,
+    ToysMixin,
+    MultiDimFitMixin,
+    ModeMixin,
 ):
-    cminSingleNuisFit = luigi.BoolParameter(  # FIXME Why does this parameter missing not cause an error?
-        significant=False,
-        description="Run a single nuisance fit for each channel",
-    )
-
-    cminFallbackAlgo = luigi.Parameter(
-        significant=False,
-        description="Fallback algorithm for the cminimizer",
-    )
-
-    algo = luigi.Parameter(
-        significant=False,
-        description="Algorithm to use for the fit",
-    )
-
-    save_fit_result = luigi.BoolParameter(
-        default=True,
-        significant=False,
-        description="Save the fit results",
-    )
-
-    save_workspace = luigi.BoolParameter(
-        default=True,
-        significant=False,
-        description="Save the workspace",
-    )
-
-    snapshot_name = luigi.Parameter(
-        default="",
-        significant=False,
-        description="Name of the snapshot",
-    )
-
-    freeze_fit_parameters = law.CSVParameter(
-        significant=False,
-        description="Freeze parameters for the fit",
-    )
 
     # upstream requirements
     reqs = Requirements(
@@ -77,16 +43,6 @@ class MultiDimFitV2(
             reqs["toy_file"] = self.reqs.GenToys.req(self)
         return reqs
 
-    @property
-    def mdf_name(self):
-        name = f"mdf__{self.mode}"
-        return name
-
-    def store_parts(self) -> law.util.InsertableDict:
-        parts = super().store_parts()
-        parts.insert_after("fit_v2", "mdf_name", self.mdf_name)
-        return parts
-
     def output(self):
         output_dict = {
             f"mdf_{self.mode}_file": self.target(
@@ -109,6 +65,16 @@ class MultiDimFitV2(
             ),
         }
         return output_dict
+
+    @property
+    def mdf_name(self):
+        name = f"mdf__{self.mode}"
+        return name
+
+    def store_parts(self) -> law.util.InsertableDict:
+        parts = super().store_parts()
+        parts.insert_after("fit_v2", "mdf_name", self.mdf_name)
+        return parts
 
     @law.decorator.log
     @law.decorator.safe_output

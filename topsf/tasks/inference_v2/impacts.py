@@ -1,6 +1,5 @@
 # coding: utf-8
 
-import luigi
 import law
 import os
 
@@ -11,64 +10,14 @@ from topsf.tasks.inference import CreateDatacards
 from topsf.tasks.inference_v2.inference_base import InferenceBaseTask
 from topsf.tasks.inference_v2.workspace import CreateWorkspaceV2
 from topsf.tasks.inference_v2.gen_toys import GenToysV2
+from topsf.tasks.inference_v2.mixins import ModeMixin, ImpactsMixin, ToysMixin
 
 
-class ImpactsV2(
+class ImpactsBaseV2(
     InferenceBaseTask,
+    ModeMixin,
+    ImpactsMixin,
 ):
-    mass = luigi.IntParameter(
-        significant=True,
-        description="Mass point",
-    )
-
-    robust_fit = luigi.IntParameter(
-        significant=False,
-        description="Run a robust fit",
-    )
-
-    combine_parallel = luigi.IntParameter(
-        significant=False,
-        description="Run the fits in parallel",
-    )
-
-    asimov_data = luigi.BoolParameter(
-        default=True,
-        significant=False,
-        description="Use Asimov data for the fit",
-    )
-
-    mode = luigi.ChoiceParameter(
-        choices=["exp", "obs"],
-        default="exp",
-        significant=True,
-        description="Mode of the combine tool",
-    )
-
-    # upstream requirements
-    reqs = Requirements(
-        RemoteWorkflow.reqs,
-        CreateDatacards=CreateDatacards,
-        CreateWorkspace=CreateWorkspaceV2,
-        GenToys=GenToysV2,
-    )
-
-    def workflow_requires(self):
-        reqs = super().workflow_requires()
-
-        reqs["workspace"] = self.requires_from_branch()
-        if self.mode == "exp":
-            reqs["toy_file"] = self.requires_from_branch()
-
-        return reqs
-
-    def requires(self):
-        reqs = {
-            "workspace": self.reqs.CreateWorkspace.req(self),
-        }
-        if self.mode == "exp":
-            reqs["gen_toys"] = self.reqs.GenToys.req(self)
-        return reqs
-
     def output(self):
         output_dict = {}
         output_dict[f"impacts_{self.mode}"] = self.target(f"impacts_{self.mode}.json")
@@ -129,3 +78,57 @@ class ImpactsV2(
         # store all outputs in log file
         output = out_initial + out_impacts + out_collect
         self.output()[f"impacts_{self.mode}_log"].dump(output, formatter="text")
+
+
+class ImpactsExpV2(
+    ImpactsBaseV2,
+    ToysMixin,
+):
+
+    # upstream requirements
+    reqs = Requirements(
+        RemoteWorkflow.reqs,
+        CreateDatacards=CreateDatacards,
+        CreateWorkspace=CreateWorkspaceV2,
+        GenToys=GenToysV2,
+    )
+
+    def workflow_requires(self):
+        reqs = super().workflow_requires()
+
+        reqs["workspace"] = self.requires_from_branch()
+        reqs["toy_file"] = self.requires_from_branch()
+
+        return reqs
+
+    def requires(self):
+        reqs = {
+            "workspace": self.reqs.CreateWorkspace.req(self),
+            "gen_toys": self.reqs.GenToys.req(self),
+        }
+        return reqs
+
+
+class ImpactsObsV2(
+    ImpactsBaseV2,
+):
+
+    # upstream requirements
+    reqs = Requirements(
+        RemoteWorkflow.reqs,
+        CreateDatacards=CreateDatacards,
+        CreateWorkspace=CreateWorkspaceV2,
+    )
+
+    def workflow_requires(self):
+        reqs = super().workflow_requires()
+
+        reqs["workspace"] = self.requires_from_branch()
+
+        return reqs
+
+    def requires(self):
+        reqs = {
+            "workspace": self.reqs.CreateWorkspace.req(self),
+        }
+        return reqs
