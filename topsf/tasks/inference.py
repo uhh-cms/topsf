@@ -166,7 +166,8 @@ class CreateDatacards(
 
     def store_parts(self) -> law.util.InsertableDict:
         parts = super().store_parts()
-        parts.insert_before("version", "inf_model", f"inf__{self.inference_model}__wp__{self.wp_name}")
+        parts.insert_before("version", "inf_model", f"inf__{self.inference_model}")
+        parts.insert_after("inf_model", "wp_name", f"wp__{self.wp_name}")
         return parts
 
     @law.decorator.log
