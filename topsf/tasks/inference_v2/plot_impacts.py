@@ -122,7 +122,7 @@ class PlotImpactsBaseV2(
 
         for i in range(0, len(self.poi)):
             output_file = self.output()[f"plot_impacts_{self.mode}__{self.poi[i]}"].path
-            output_basename = os.path.basename(output_file).strip(".pdf")
+            output_basename = os.path.basename(output_file).replace(".pdf", "")
             output_dirname = os.path.dirname(output_file) + "/"
             # touch output_dirname
             os.makedirs(output_dirname, exist_ok=True)
