@@ -252,6 +252,22 @@ setup_combine() {
                         return "3002"
                     }
 
+                    # clone the combine harvester repo
+                    cd ${CMSSW_BASE}/src
+                    git clone https://github.com/cms-analysis/CombineHarvester.git CombineHarvester || {
+                        >&2 echo "failed to clone CombineHarvester git repository from URL ${CF_COMBINE_HARVESTER_GIT_URL}"
+                        clear_pending
+                        return "3003"
+                    }
+
+                    # check out the specified combine harvester version
+                    cd CombineHarvester
+                    git checkout "${CF_COMBINE_HARVESTER_VERSION}" || {
+                        >&2 echo "failed to check out revision ${CF_COMBINE_HARVESTER_VERSION} from git repository"
+                        clear_pending
+                        return "3004"
+                    }
+
                     # compile
                     cd ${CMSSW_BASE}
                     scram b -j4

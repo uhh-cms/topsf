@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 import luigi
 import law
+import re
 
 from columnflow.tasks.framework.base import Requirements, AnalysisTask, wrapper_factory
 from columnflow.tasks.framework.mixins import (
@@ -47,6 +48,11 @@ class CreateDatacards(
         description="when True, create a separate datacard for each category",
     )
 
+    wp_name = luigi.Parameter(
+        significant=True,
+        description="working point to use for the fit",
+    )
+
     # upstream requirements
     reqs = Requirements(
         RemoteWorkflow.reqs,
@@ -56,17 +62,28 @@ class CreateDatacards(
 
     def create_branch_map(self):
         cats = list(self.inference_model_inst.categories)
+
+        # Regular expression pattern to match the exact wp_name
+        pattern = f"^(?P<channel>\w+)__(?P<pt_bin>\w+)__tau32_wp_(?P<wp_name>({self.wp_name}))_(?P<region>(pass|fail))?$"  # noqa: E501, W605
+
+        # Filter categories to include only those with the specified wp in user input
+        filtered_cats = []
+        for cat in cats:
+            config_category = cat.config_category
+            if re.match(pattern, config_category):
+                filtered_cats.append(cat)
+
         if self.per_category:
             return [
                 {
                     "categories": [cat],
                 }
-                for cat in cats
+                for cat in filtered_cats
             ]
         else:
             return [
                 {
-                    "categories": cats,
+                    "categories": filtered_cats,
                 },
             ]
 
@@ -146,6 +163,12 @@ class CreateDatacards(
             "card": self.target(basename("datacard", "txt")),
             "shapes": self.target(basename("shapes", "root")),
         }
+
+    def store_parts(self) -> law.util.InsertableDict:
+        parts = super().store_parts()
+        parts.insert_before("version", "inf_model", f"inf__{self.inference_model}")
+        parts.insert_after("inf_model", "wp_name", f"wp__{self.wp_name}")
+        return parts
 
     @law.decorator.log
     @law.decorator.safe_output

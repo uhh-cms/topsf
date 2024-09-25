@@ -3,6 +3,7 @@
 Custom base tasks.
 """
 
+import luigi
 import law
 from collections import OrderedDict
 
@@ -22,9 +23,14 @@ class PlotVariables1D(
         add_default_to_description=True,
     )
 
+    pretty_legend = luigi.BoolParameter(
+        default=False,
+        description="Use pretty legend",
+    )
+
     @law.decorator.log
     @view_output_plots
-    def run_EXAMPLE(self):
+    def run(self):
         import hist
 
         # get the shifts to extract and plot
@@ -47,7 +53,9 @@ class PlotVariables1D(
         # histogram data per process
         hists = {}
 
-        with self.publish_step(f"plotting {self.branch_data.variable} in {category_inst.name}"):
+        message = f"plotting {self.branch_data.variable} in {category_inst.name}"
+        message += " with pretty legend" if self.pretty_legend else ""
+        with self.publish_step(message):
             for dataset, inp in self.input().items():
                 dataset_inst = self.config_inst.get_dataset(dataset)
                 h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")
@@ -110,6 +118,7 @@ class PlotVariables1D(
                 config_inst=self.config_inst,
                 category_inst=category_inst.copy_shallow(),
                 variable_insts=[var_inst.copy_shallow() for var_inst in variable_insts],
+                pretty_legend=self.pretty_legend,
                 **self.get_plot_parameters(),
             )
 

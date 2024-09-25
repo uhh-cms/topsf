@@ -248,6 +248,20 @@ def add_variables(config: od.Config) -> None:
         unit="GeV",
     )
     config.add_variable(
+        name="probejet_tau3",
+        expression="ProbeJet.tau3",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 1),
+        x_title=r"Probe jet $\tau_{3}$",
+    )
+    config.add_variable(
+        name="probejet_tau2",
+        expression="ProbeJet.tau2",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 1),
+        x_title=r"Probe jet $\tau_{2}$",
+    )
+    config.add_variable(
         name="probejet_tau32",
         expression=lambda events: events.ProbeJet.tau3 / events.ProbeJet.tau2,
         null_value=EMPTY_FLOAT,
