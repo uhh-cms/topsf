@@ -11,6 +11,7 @@ NC='\033[0m' # No Color
 
 confirm_and_run() {
     cmd="$1"
+    echo "________________________________________________________"
     echo -e "${YELLOW}$cmd${NC}"
     echo -e -n "    ${RED}Skip?${NC} (y/n): "
     read response
@@ -37,4 +38,12 @@ confirm_and_run() {
             echo -e "    ${GREEN}Skipped!${NC}"
             ;;
     esac
+}
+
+no_confirm() {
+    cmd="$1"
+    echo "________________________________________________________"
+    echo -e "${YELLOW}$cmd${NC}"
+    echo -e "    ${GREEN}Running...${NC}"
+    eval "$cmd"
 }
