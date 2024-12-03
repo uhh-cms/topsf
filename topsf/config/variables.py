@@ -248,6 +248,55 @@ def add_variables(config: od.Config) -> None:
         unit="GeV",
     )
     config.add_variable(
+        name="probejet_msoftdrop_widebins_zero",
+        expression="ProbeJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=[
+            0, 15, 30,
+            50, 70, 85,
+            105, 120, 140,
+            155, 170, 185,
+            200, 210, 220,
+            230, 250, 275,
+            300, 350, 400,
+            450, 500,
+        ],
+        x_title=r"Probe jet $m_{SD}$",
+        unit="GeV",
+    )
+    config.add_variable(
+        name="probejet_msoftdrop_widebins_neg",
+        expression="ProbeJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=[
+            -30, -15,
+            0, 15, 30,
+            50, 70, 85,
+            105, 120, 140,
+            155, 170, 185,
+            200, 210, 220,
+            230, 250, 275,
+            300, 350, 400,
+            450, 500,
+        ],
+        x_title=r"Probe jet $m_{SD}$",
+        unit="GeV",
+    )    
+    config.add_variable(
+        name="probejet_msoftdrop_inf",
+        expression="ProbeJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=[
+            50, 70, 85,
+            105, 120, 140,
+            155, 170, 185,
+            200,
+            500,
+        ],
+        x_title=r"Probe jet $m_{SD}$",
+        unit="GeV",
+    )
+    config.add_variable(
         name="probejet_tau3",
         expression="ProbeJet.tau3",
         null_value=EMPTY_FLOAT,

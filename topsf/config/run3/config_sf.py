@@ -228,19 +228,32 @@ def add_config(
         ],
         "pt_bins": [
             "pt_300_400",
-            # "pt_400_480",
-            # "pt_480_600",
-            # "pt_600_inf",
+            "pt_400_480",
+            "pt_480_600",
+            "pt_600_inf",
         ],
         "wp_names": [
             "very_tight",
-            # "tight",
-            # "medium",
-            # "loose",
-            # "very_loose",
+            "tight",
+            "medium",
+            "loose",
+            "very_loose",
         ],
+        "fit_vars": [
+            # "probejet_msoftdrop_inf",   # use inference mSD with merged bins
+            "probejet_msoftdrop_widebins",
+        ],
+        "shape_unc": [
+            # "FSR",
+            # "ISR",
+            # "electron",
+            # "muon",
+            # "minbias_xs",
+            # # "top_pt",
+            # "jec_Total",
+        ]
     }
-
+    
     for process_name in process_names:
         # add the process
         proc = cfg.add_process(procs.get(process_name))
@@ -276,19 +289,15 @@ def add_config(
         "st_twchannel_t_fh_powheg",
         "st_twchannel_tbar_fh_powheg",
         # DY 2022 v12 preEE datasets
-        # "dy_m4to50_ht40to70_madgraph",  # FIXME AssertionError in preEE (full stat.)
-        # "dy_m4to50_ht70to100_madgraph",  # FIXME AssertionError in preEE (full stat.)
         "dy_m4to50_ht100to400_madgraph",
         "dy_m4to50_ht400to800_madgraph",
         "dy_m4to50_ht800to1500_madgraph",
         "dy_m4to50_ht1500to2500_madgraph",
         "dy_m4to50_ht2500toinf_madgraph",
-        # "dy_m50to120_ht40to70_madgraph",  # FIXME AssertionError in preEE (full stat.)
         "dy_m50to120_ht70to100_madgraph",
         "dy_m50to120_ht100to400_madgraph",
-        "dy_m50to120_ht400to800_madgraph",
+        # "dy_m50to120_ht400to800_madgraph",
         # WJets 2022 v12 preEE datasets
-        # "w_lnu_mlnu0to120_ht40to100_madgraph",  # FIXME cramjam.DecompressionError: lzma data error
         "w_lnu_mlnu0to120_ht100to400_madgraph",
         "w_lnu_mlnu0to120_ht400to800_madgraph",
         "w_lnu_mlnu0to120_ht800to1500_madgraph",
@@ -299,10 +308,6 @@ def add_config(
         "wz_pythia",
         "zz_pythia",
         # QCD 2022 v12 preEE datasets
-        # "qcd_ht70to100_madgraph",  # FIXME AssertionError in preEE (full stat.)
-        # "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
-        # "qcd_ht200to400_madgraph",  # FIXME AssertionError in preEE (full stat.)
-        # "qcd_ht400to600_madgraph",  # FIXME AssertionError in preEE (full stat.)
         "qcd_ht600to800_madgraph",
         "qcd_ht800to1000_madgraph",
         "qcd_ht1000to1200_madgraph",
@@ -312,8 +317,6 @@ def add_config(
     ]
     if campaign.x.EE == "pre":
         dataset_names += [
-            # "data_egamma_a",  # FIXME JEC setup fails
-            # "data_egamma_b",  # FIXME JEC setup fails
             "data_egamma_c",
             "data_egamma_d",
             "data_mu_c",
@@ -327,6 +330,14 @@ def add_config(
             "data_mu_e",
             "data_mu_f",
             "data_mu_g",
+            # "dy_m4to50_ht40to70_madgraph",  # FIXME AssertionError in preEE (full stat.)
+            "dy_m4to50_ht70to100_madgraph",  # FIXME AssertionError in preEE (full stat.)
+            "dy_m50to120_ht40to70_madgraph",  # FIXME AssertionError in preEE (full stat.)
+            "w_lnu_mlnu0to120_ht40to100_madgraph",  # FIXME cramjam.DecompressionError: lzma data error
+            # "qcd_ht70to100_madgraph",  # FIXME AssertionError in preEE/postEE (full stat.)
+            # "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
+            # "qcd_ht200to400_madgraph",  # FIXME AssertionError in preEE/postEE (full stat.)
+            "qcd_ht400to600_madgraph",  # FIXME AssertionError in preEE (full stat.)
         ]
 
     for dataset_name in dataset_names:
@@ -881,7 +892,7 @@ def add_config(
             "min_pt": 300,
             "max_abseta": 2.5,
             "msoftdrop_range": (105, 210),
-            # probe jet pt bins )used by category builder)
+            # probe jet pt bins (used by category builder)
             "pt_bins": [300, 400, 480, 600, None],
             # parameters for b-tagged subjets
             "subjet_column": "SubJet",

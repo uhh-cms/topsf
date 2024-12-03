@@ -177,6 +177,7 @@ def add_config(
     }
 
     # add processes we are interested in
+    # remove processes we don't need from list and following dict!
     process_names = [
         "data",
         "tt",
@@ -188,6 +189,58 @@ def add_config(
         "vx",
         "mj",
     ]
+
+    cfg.x.process_rates = {
+        "tt": 1.05,
+        "st": 1.5,
+        "vx": 1.2,
+        "mj": 2.0,
+    }
+
+    cfg.x.inference_processes = [
+        f"{base_proc}_{subproc_suffix}"
+        for base_proc in ("tt", "st")
+        for subproc_suffix in ("3q", "2q", "0o1q", "bkg")
+    ] + [
+        "vx",
+        "mj",
+    ]
+
+    # setup for fit
+    # TODO make configurable from CLI (as params of inference model)
+    cfg.x.fit_setup = {
+        "channels": [
+            "1m",
+            "1e",
+        ],
+        "pt_bins": [
+            "pt_300_400",
+            "pt_400_480",
+            "pt_480_600",
+            "pt_600_inf",
+        ],
+        "wp_names": [
+            "very_tight",
+            "tight",
+            "medium",
+            "loose",
+            "very_loose",
+        ],
+        "fit_vars": [
+            # "probejet_msoftdrop_inf",   # use inference mSD with merged bins
+            "probejet_msoftdrop_widebins",
+        ],
+        "shape_unc": [
+            # "FSR",
+            # "ISR",
+            # "electron",
+            # "muon",
+            # "minbias_xs",
+            # # "top_pt",
+            # "jec_Total",
+        ]
+    }
+
     for process_name in process_names:
         # add the process
         proc = cfg.add_process(procs.get(process_name))
@@ -211,7 +264,7 @@ def add_config(
     dataset_names = [
         # DATA
         "data_e_b",
-        "data_e_c",  # non-finite values in Jet.eta array  # rm!
+        "data_e_c",
         "data_e_d",
         "data_e_e",
         "data_e_f",
@@ -231,8 +284,8 @@ def add_config(
         "st_twchannel_t_powheg",
         "st_twchannel_tbar_powheg",
         # DY
-        "dy_m50toinf_ht70to100_madgraph",  # rm?  # noqa
-        "dy_m50toinf_ht100to200_madgraph",  # rm?  # noqa
+        # "dy_m50toinf_ht70to100_madgraph",
+        "dy_m50toinf_ht100to200_madgraph",
         "dy_m50toinf_ht200to400_madgraph",
         "dy_m50toinf_ht400to600_madgraph",
         "dy_m50toinf_ht600to800_madgraph",
@@ -240,8 +293,8 @@ def add_config(
         "dy_m50toinf_ht1200to2500_madgraph",
         "dy_m50toinf_ht2500toinf_madgraph",
         # WJets
-        "w_lnu_ht70to100_madgraph",  # rm?  # noqa
-        "w_lnu_ht100to200_madgraph",  # rm?  # noqa
+        "w_lnu_ht70to100_madgraph",
+        "w_lnu_ht100to200_madgraph",
         "w_lnu_ht200to400_madgraph",
         "w_lnu_ht400to600_madgraph",
         "w_lnu_ht600to800_madgraph",
@@ -253,15 +306,15 @@ def add_config(
         "wz_pythia",
         "zz_pythia",
         # QCD
-        "qcd_ht50to100_madgraph",  # rm?  # noqa
-        "qcd_ht100to200_madgraph",  # rm?  # noqa
-        "qcd_ht200to300_madgraph",  # rm?  # noqa
-        "qcd_ht300to500_madgraph",  # rm?  # noqa
+        # "qcd_ht50to100_madgraph",
+        # "qcd_ht100to200_madgraph",
+        # "qcd_ht200to300_madgraph",
+        # "qcd_ht300to500_madgraph",
         "qcd_ht500to700_madgraph",
         "qcd_ht700to1000_madgraph",
-        "qcd_ht1000to1500_madgraph",  # rm!
+        "qcd_ht1000to1500_madgraph",
         "qcd_ht1500to2000_madgraph",
-        "qcd_ht2000toinf_madgraph",  # rm!
+        "qcd_ht2000toinf_madgraph",
     ]
     for dataset_name in dataset_names:
         # add the dataset
@@ -460,6 +513,13 @@ def add_config(
             "LeptonTrigger", "Lepton", "AddLeptonVeto", "MET", "BJet", "METFilters",
         ],
     }
+
+    # Exception: no weight producer configured for task. cf.MergeShiftedHistograms.
+    # As of 02.05.2024, it is required to pass a weight_producer for tasks creating histograms.
+    # You can add a 'default_weight_producer' to your config or directly add the weight_producer
+    # on command line via the '--weight_producer' parameter. To reproduce results from before this date,
+    # you can use the 'all_weights' weight_producer defined in columnflow.weight.all_weights:
+    cfg.x.default_weight_producer = "all_weights"
 
     # custom labels for selector steps
     cfg.x.selector_step_labels = {}

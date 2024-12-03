@@ -47,6 +47,7 @@ def uhh2(self):
     channels = self.config_inst.x.fit_setup["channels"]
     pt_bins = self.config_inst.x.fit_setup["pt_bins"]
     wp_names = self.config_inst.x.fit_setup["wp_names"]
+    fit_vars = self.config_inst.x.fit_setup["fit_vars"][0]  # TODO: do we need to support multiple vars?
 
     # tuples of inference categories and
     # corresponding config category names
@@ -68,8 +69,8 @@ def uhh2(self):
         self.add_category(
             inference_cat,
             config_category=config_cat,
-            config_variable="probejet_msoftdrop_widebins",
-            mc_stats=True,
+            config_variable=fit_vars,
+            mc_stats="0 1 1",
             config_data_datasets=get_process_datasets(self.config_inst, "data"),
             # fake data from sum of MC processes
             data_from_processes=processes,
@@ -136,28 +137,29 @@ def uhh2(self):
         )
 
     # systematic shifts (TODO: add others)
-    uncertainty_shifts = [
-        # "pdf",
-        # "mcscale",
-        # "prefiring",
-        # "minbias_xs",  # pileup
+    uncertainty_shifts = self.config_inst.x.fit_setup["shape_unc"]
+    # uncertainty_shifts = [
+    #     # "pdf",
+    #     # "mcscale",
+    #     # "prefiring",
+    #     # "minbias_xs",  # pileup
 
-        # "muon",  # TODO: split?
-        # "mu_id",
-        # "mu_iso",
-        # "mu_reco",
-        # "mu_trigger",
+    #     # "muon",  # TODO: split?
+    #     # "mu_id",
+    #     # "mu_iso",
+    #     # "mu_reco",
+    #     # "mu_trigger",
 
-        # b-tagging
-        # "btag_cferr1",
-        # "btag_cferr2",
-        # "btag_hf",
-        # "btag_hfstats1_2017",
-        # "btag_hfstats2_2017",
-        # "btag_lf",
-        # "btag_lfstats1_2017",
-        # "btag_lfstats2_2017",
-    ]
+    #     # b-tagging
+    #     # "btag_cferr1",
+    #     # "btag_cferr2",
+    #     # "btag_hf",
+    #     # "btag_hfstats1_2017",
+    #     # "btag_hfstats2_2017",
+    #     # "btag_lf",
+    #     # "btag_lfstats1_2017",
+    #     # "btag_lfstats2_2017",
+    # ]
 
     # different naming convention for some parameters
     inference_pars = {

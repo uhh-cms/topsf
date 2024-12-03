@@ -41,6 +41,7 @@ ana.x.bash_sandboxes = [
 # (used in cf.HTCondorWorkflow)
 ana.x.cmssw_sandboxes = [
     # "$CF_BASE/sandboxes/cmssw_default.sh",
+    "$TOPSF_BASE/sandboxes/combine_cmssw.sh",
 ]
 
 # clear the list when cmssw bundling is disabled
@@ -82,12 +83,12 @@ config_2022_preEE = add_config(
     config_id=1_03_22_11,  # 1: SF 03: Run3 22: year 1: full stat 1: pre EE
 )
 
-# config_2022_postEE = add_config(
-#     analysis_sf,
-#     campaign_run3_2022_postEE_nano_v12.copy(),
-#     config_name="run3_sf_2022_postEE_nano_v12",
-#     config_id=1_03_22_12,  # 1: SF 03: Run3 22: year 1: full stat 2: post EE
-# )
+config_2022_postEE = add_config(
+    analysis_sf,
+    campaign_run3_2022_postEE_nano_v12.copy(),
+    config_name="run3_sf_2022_postEE_nano_v12",
+    config_id=1_03_22_12,  # 1: SF 03: Run3 22: year 1: full stat 2: post EE
+)
 
 # config_2023_preBPix = add_config(
 #     analysis_sf,
@@ -112,13 +113,13 @@ config_2022_preEE_limited = add_config(
     limit_dataset_files=1,
 )
 
-# config_2022_postEE_limited = add_config(
-#     analysis_sf,
-#     campaign_run3_2022_postEE_nano_v12.copy(),
-#     config_name="run3_sf_2022_postEE_nano_v12_limited",
-#     config_id=1_03_22_22,  # 1: SF 03: Run3 22: year 2: limited stat 2: post EE
-#     limit_dataset_files=1,
-# )
+config_2022_postEE_limited = add_config(
+    analysis_sf,
+    campaign_run3_2022_postEE_nano_v12.copy(),
+    config_name="run3_sf_2022_postEE_nano_v12_limited",
+    config_id=1_03_22_22,  # 1: SF 03: Run3 22: year 2: limited stat 2: post EE
+    limit_dataset_files=1,
+)
 
 # config_2023_preBPix_limited = add_config(
 #     analysis_sf,

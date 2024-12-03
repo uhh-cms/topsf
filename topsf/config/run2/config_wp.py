@@ -102,7 +102,7 @@ def add_config(
         "qcd_ht700to1000_madgraph",
         "qcd_ht1000to1500_madgraph",
         "qcd_ht1500to2000_madgraph",
-        "qcd_ht2000_madgraph",
+        "qcd_ht2000toinf_madgraph",
     ]
     for dataset_name in dataset_names:
         # add the dataset
@@ -173,6 +173,13 @@ def add_config(
             "FatJet", "METFilters",
         ],
     }
+
+    # Exception: no weight producer configured for task. cf.MergeShiftedHistograms.
+    # As of 02.05.2024, it is required to pass a weight_producer for tasks creating histograms.
+    # You can add a 'default_weight_producer' to your config or directly add the weight_producer
+    # on command line via the '--weight_producer' parameter. To reproduce results from before this date,
+    # you can use the 'all_weights' weight_producer defined in columnflow.weight.all_weights:
+    cfg.x.default_weight_producer = "all_weights"
 
     # custom labels for selector steps
     cfg.x.selector_step_labels = {}
