@@ -225,7 +225,7 @@ def default_init(self: Selector):
     dataset_inst = getattr(self, "dataset_inst", None)
     if dataset_inst is not None and dataset_inst.is_data:
         self.uses |= {json_filter}
-    
+
     # Add shift dependencies
     self.shifts |= {
         shift_inst.name

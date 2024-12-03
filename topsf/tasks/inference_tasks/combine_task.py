@@ -8,14 +8,14 @@
     if [ ! -f "${out_dir}/${toy_file}" ]; then
         combine -M GenerateOnly \
             -t -1 \
-            --setParameters SF__NotMerged__${year}__${pt_bin}=1.,SF__FullyMerged__${year}__${pt_bin}=1.,SF__SemiMerged__${year}__${pt_bin}=1. \
-            --freezeParameters SF__NotMerged__${year}__${pt_bin},SF__FullyMerged__${year}__${pt_bin},SF__SemiMerged__${year}__${pt_bin} \
+            --setParameters SF__NotMerged__${year}__${pt_bin}=1.,SF__FullyMerged__${year}__${pt_bin}=1.,SF__SemiMerged__${year}__${pt_bin}=1. \  # noqa
+            --freezeParameters SF__NotMerged__${year}__${pt_bin},SF__FullyMerged__${year}__${pt_bin},SF__SemiMerged__${year}__${pt_bin} \  # noqa
             --saveToys \
             -n _toy \
             "${out_dir}/Workspace.root" || return $?
     fi
     echo "Done."
-    
+
     # performing maximum-likelihood fit (MultiDimFit): expected
     echo "________________________________________________________"
     echo "Performing maximum-likelihood fit (MultiDimFit): expected"
@@ -34,7 +34,7 @@
             --saveWorkspace  || return $?
     fi
     echo "Done."
-    
+
     # perform maximum-likelihood fit (MultiDimFit): expected, with frozen systematics
     echo "________________________________________________________"
     echo "Performing maximum-likelihood fit (MultiDimFit): expected, with frozen systematics"

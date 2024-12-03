@@ -251,9 +251,9 @@ def add_config(
             # "minbias_xs",
             # # "top_pt",
             # "jec_Total",
-        ]
+        ],
     }
-    
+
     for process_name in process_names:
         # add the process
         proc = cfg.add_process(procs.get(process_name))

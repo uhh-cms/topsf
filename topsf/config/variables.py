@@ -281,7 +281,7 @@ def add_variables(config: od.Config) -> None:
         ],
         x_title=r"Probe jet $m_{SD}$",
         unit="GeV",
-    )    
+    )
     config.add_variable(
         name="probejet_msoftdrop_inf",
         expression="ProbeJet.msoftdrop",

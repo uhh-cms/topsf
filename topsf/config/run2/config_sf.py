@@ -238,7 +238,7 @@ def add_config(
             # "minbias_xs",
             # # "top_pt",
             # "jec_Total",
-        ]
+        ],
     }
 
     for process_name in process_names:

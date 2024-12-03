@@ -6,10 +6,9 @@ for WP derivation.
 
 import luigi
 import law
-import order as od
 
 from columnflow.util import dict_add_strict, maybe_import
-from columnflow.tasks.framework.base import ConfigTask, Requirements
+from columnflow.tasks.framework.base import Requirements
 from columnflow.tasks.framework.plotting import PlotBase
 from columnflow.tasks.framework.mixins import VariablesMixin
 from columnflow.tasks.framework.parameters import MultiSettingsParameter
@@ -93,7 +92,7 @@ class EfficiencyVariablesMixin(VariablesMixin):
             cls.join_multi_variable(
                 list(params["binning_variables"]) +
                 [params["efficiency_variable"]],
-            )
+            ),
         )
         params["_eff_vars_resolved"] = True
 
@@ -191,7 +190,7 @@ class PlotEfficiencyBase(
         # signal processes
         hists = {}
 
-        with self.publish_step(f"plotting ROC curve for variable {self.branch_data.variable} in category {category_inst.name}"):
+        with self.publish_step(f"plotting ROC curve for variable {self.branch_data.variable} in category {category_inst.name}"):  # noqa
             for dataset, inp in self.input().items():
                 dataset_inst = self.config_inst.get_dataset(dataset)
 
@@ -305,7 +304,7 @@ class PlotEfficiencyBase(
 
 
 class PlotEfficiency(
-    PlotEfficiencyBase
+    PlotEfficiencyBase,
 ):
     """
     Calculate and plot the efficiency resulting from a cut on a discriminating variable.
@@ -325,7 +324,7 @@ class PlotEfficiency(
 
 
 class PlotROCCurve(
-    PlotEfficiencyBase
+    PlotEfficiencyBase,
 ):
     """
     Calculate and plot the ROC curve (background rejection vs. signal efficiency) resulting
@@ -350,7 +349,7 @@ class PlotROCCurve(
 
 
 class PlotROCCurveByVariable(
-    PlotEfficiencyBase
+    PlotEfficiencyBase,
 ):
     """
     Calculate and plot the ROC curve (background rejection vs. signal efficiency) resulting
