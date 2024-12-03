@@ -86,6 +86,13 @@ def jet_selection_init(self: Selector) -> None:
             f"{column}.{self.cfg.btag_column}",
         }
 
+    # Add shift dependencies
+    self.shifts |= {
+        shift_inst.name
+        for shift_inst in self.config_inst.shifts
+        if shift_inst.has_tag(("jec", "jer"))
+    }
+
 
 @selector(
     uses={

@@ -711,11 +711,11 @@ def add_config(
             # "TimeRunB",
             # "TimeRunC",
             # "TimeRunD",
-            "CorrelationGroupMPFInSitu",
-            "CorrelationGroupIntercalibration",
-            "CorrelationGroupbJES",
-            "CorrelationGroupFlavor",
-            "CorrelationGroupUncorrelated",
+            # "CorrelationGroupMPFInSitu",
+            # "CorrelationGroupIntercalibration",
+            # "CorrelationGroupbJES",
+            # "CorrelationGroupFlavor",
+            # "CorrelationGroupUncorrelated",
         ],
     })
 
@@ -1066,8 +1066,8 @@ def add_config(
         # jet energy scale (JEC) uncertainty variations
         for jec_source in cfg.x.jec.uncertainty_sources:
             idx = all_jec_sources.index(jec_source)
-            cfg.add_shift(name=f"jec_{jec_source}_up", id=5000 + 2 * idx, type="shape")
-            cfg.add_shift(name=f"jec_{jec_source}_down", id=5001 + 2 * idx, type="shape")
+            cfg.add_shift(name=f"jec_{jec_source}_up", id=5000 + 2 * idx, type="shape", tags={"jec"})
+            cfg.add_shift(name=f"jec_{jec_source}_down", id=5001 + 2 * idx, type="shape", tags={"jec"})
             add_shift_aliases(
                 cfg,
                 f"jec_{jec_source}",
