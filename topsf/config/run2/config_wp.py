@@ -57,6 +57,8 @@ def add_config(
     # (if id and name are not set they will be taken from the campaign)
     cfg = analysis.add_config(campaign, name=config_name, id=config_id)
 
+    cfg.x.run = 2
+
     #
     # configure processes
     #
@@ -587,6 +589,14 @@ def add_config(
             },
         )
 
+        # PSWeight variations
+        cfg.add_shift(name="ISR_up", id=7001, type="shape")  # PS weight [0] ISR=2 FSR=1
+        cfg.add_shift(name="ISR_down", id=7002, type="shape")  # PS weight [2] ISR=0.5 FSR=1
+        add_shift_aliases(cfg, "ISR", {"ISR": "ISR_{direction}"})
+        cfg.add_shift(name="FSR_up", id=7003, type="shape")  # PS weight [1] ISR=1 FSR=2
+        cfg.add_shift(name="FSR_down", id=7004, type="shape")  # PS weight [3] ISR=1 FSR=0.5
+        add_shift_aliases(cfg, "FSR", {"FSR": "FSR_{direction}"})
+
     # add the shifts
     add_shifts(cfg)
 
@@ -600,7 +610,7 @@ def add_config(
 
     sources = {
         "cert": "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV",
-        "local_repo": "/nfs/dust/cms/user/matthiej/Work/TopSF/topsf",  # TODO: avoid hardcoding path
+        "local_repo": "/nfs/dust/cms/user/matthiej/topsf",  # TODO: avoid hardcoding path
         "json_mirror": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/jsonpog-integration-a81953b1",
         "jet": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/cms-jet-JSON_Format-54860a23",
         "normtag": "/afs/cern.ch/user/d/dsavoiu/public/lumi/snapshot_2023-11-10_1610Z",
@@ -666,6 +676,7 @@ def add_config(
             "genWeight",
             "LHEWeight.*",
             "LHEPdfWeight", "LHEScaleWeight",
+            "PSWeight",
 
             # muons
             "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
@@ -781,6 +792,8 @@ def add_config(
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
         "electron_weight": get_shifts("electron"),
+        "ISR": get_shifts("ISR"),
+        "FSR": get_shifts("FSR"),
     })
 
     # event weights only present in certain datasets
@@ -792,7 +805,7 @@ def add_config(
         if dataset.has_tag("is_v_jets"):
             # V+jets QCD NLO reweighting
             dataset.x.event_weights["vjets_weight"] = get_shifts("vjets")
-        if not dataset.is_data:
+        if not dataset.is_data and year == 2017:
             # prefiring weights (all datasets except real data)
             dataset.x.event_weights["l1_ecal_prefiring_weight"] = get_shifts("l1_ecal_prefiring")
 

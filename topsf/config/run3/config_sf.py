@@ -1091,6 +1091,14 @@ def add_config(
             },
         )
 
+        # PSWeight variations
+        cfg.add_shift(name="ISR_up", id=7001, type="shape")  # PS weight [0] ISR=2 FSR=1
+        cfg.add_shift(name="ISR_down", id=7002, type="shape")  # PS weight [2] ISR=0.5 FSR=1
+        add_shift_aliases(cfg, "ISR", {"ISR": "ISR_{direction}"})
+        cfg.add_shift(name="FSR_up", id=7003, type="shape")  # PS weight [1] ISR=1 FSR=2
+        cfg.add_shift(name="FSR_down", id=7004, type="shape")  # PS weight [3] ISR=1 FSR=0.5
+        add_shift_aliases(cfg, "FSR", {"FSR": "FSR_{direction}"})
+
     # add the shifts
     add_shifts(cfg)
 
@@ -1203,6 +1211,7 @@ def add_config(
             "genWeight",
             "LHEWeight.*",
             "LHEPdfWeight", "LHEScaleWeight",
+            "PSWeight",
 
             # muons
             "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
@@ -1330,6 +1339,8 @@ def add_config(
         "normalization_weight": [],
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
+        "ISR": get_shifts("ISR"),
+        "FSR": get_shifts("FSR"),
     })
 
     if not cfg.has_tag("skip_electron_weights"):

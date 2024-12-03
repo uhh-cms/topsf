@@ -57,6 +57,8 @@ def add_config(
     # (if id and name are not set they will be taken from the campaign)
     cfg = analysis.add_config(campaign, name=config_name, id=config_id)
 
+    cfg.x.run = 2
+
     #
     # configure processes
     #
@@ -1033,6 +1035,13 @@ def add_config(
                 "MET.pt": "MET.pt_{name}",
             },
         )
+        # PSWeight variations
+        cfg.add_shift(name="ISR_up", id=7001, type="shape")  # PS weight [0] ISR=2 FSR=1
+        cfg.add_shift(name="ISR_down", id=7002, type="shape")  # PS weight [2] ISR=0.5 FSR=1
+        add_shift_aliases(cfg, "ISR", {"ISR": "ISR_{direction}"})
+        cfg.add_shift(name="FSR_up", id=7003, type="shape")  # PS weight [1] ISR=1 FSR=2
+        cfg.add_shift(name="FSR_down", id=7004, type="shape")  # PS weight [3] ISR=1 FSR=0.5
+        add_shift_aliases(cfg, "FSR", {"FSR": "FSR_{direction}"})
 
     # add the shifts
     add_shifts(cfg)
@@ -1108,6 +1117,7 @@ def add_config(
             "genWeight",
             "LHEWeight.*",
             "LHEPdfWeight", "LHEScaleWeight",
+            "PSWeight",
 
             # muons
             "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
@@ -1236,6 +1246,8 @@ def add_config(
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
         "electron_weight": get_shifts("electron"),
+        "ISR": get_shifts("ISR"),
+        "FSR": get_shifts("FSR"),
     })
 
     # event weights only present in certain datasets
