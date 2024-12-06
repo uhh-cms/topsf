@@ -9,6 +9,7 @@ import os
 import law
 from columnflow.util import memoize
 
+import getpass
 
 logger = law.logger.get_logger(__name__)
 
