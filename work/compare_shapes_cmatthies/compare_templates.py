@@ -35,7 +35,6 @@ def hist_rdiff_values_errors(h1, h2, sum_errors=False):
     return vals, errs
 
 
-
 def plot_comparison(hists, labels, output_filename, annotate_cfgs=None, style_cfgs=None, ratio=True):
 
     assert len(hists) == len(labels) == 2
@@ -56,7 +55,7 @@ def plot_comparison(hists, labels, output_filename, annotate_cfgs=None, style_cf
         # do plotting using mplhep
         mplhep.histplot(
             vals,
-            #bins=h.axes[0].edges(),
+            # bins=h.axes[0].edges(),
             bins=h.axes[0].edges,
             histtype="step",
             label=label,
@@ -67,9 +66,9 @@ def plot_comparison(hists, labels, output_filename, annotate_cfgs=None, style_cf
             **style_cfg,
         )
         ax.bar(
-            label=f"{label} stat. unc.",
-            #x=h.axes[0].centers(),
-            #width=h.axes[0].edges()[1:] - h.axes[0].edges()[:-1],
+            label=f"{label} - stat. unc.",
+            # x=h.axes[0].centers(),
+            # width=h.axes[0].edges()[1:] - h.axes[0].edges()[:-1],
             x=h.axes[0].centers,
             width=h.axes[0].edges[1:] - h.axes[0].edges[:-1],
             bottom=vals - yerr,
@@ -83,7 +82,6 @@ def plot_comparison(hists, labels, output_filename, annotate_cfgs=None, style_cf
             **style_cfg,
         )
 
-
     for i, (h, label, hatch) in enumerate(
         zip(hists, labels, ["///", "\\\\\\"])
     ):
@@ -94,27 +92,32 @@ def plot_comparison(hists, labels, output_filename, annotate_cfgs=None, style_cf
         linewidth = style_cfg.pop("linewidth", None)
 
         vals = h.values()
+        # if "CF" in label:
+        #     # multiply vals by 5 to correct for missing lumi
+        #     vals *= 5
         yerr = np.sqrt(h.variances())
         draw_hist(ax, h, vals, yerr, color, linestyle, linewidth, style_cfg)
 
         if ratio:
-            #rvals, ryerr = hist_ratio_values_errors(h, hists[0], sum_errors=False)
+            # rvals, ryerr = hist_ratio_values_errors(h, hists[0], sum_errors=False)
             rvals, ryerr = hist_rdiff_values_errors(h, hists[0], sum_errors=False)
             draw_hist(rax, h, rvals, ryerr, color, linestyle, linewidth, style_cfg)
 
     # set labels
-    mplhep.cms.label(ax=ax, fontsize=22, llabel="Work in progress")
+    mplhep.cms.label(ax=ax, fontsize=22, llabel="Simulation Private Work", loc=0, com="13")
     ax.set_ylabel("Event yield")
     if not ratio:
         ax.set_xlabel("$m_{SD}$ / GeV")
     ax.set_yscale("log")
 
-    #rax.set_ylabel(f"Rel. diff. {labels[0]}")
+    # rax.set_ylabel(f"Rel. diff. {labels[0]}")
     if ratio:
-        rax.set_ylabel(f"$\Delta$y / y")
+        rax.set_ylabel("$\Delta$y / y")
         rax.set_xlabel("$m_{SD}$ / GeV")
-        rax.set_yscale("symlog")
+        # rax.set_yscale("symlog")
         rax.set_ylim((-3, 3))
+        rax.grid(axis="y")
+        rax.axhline(0, color="black", linestyle="--")
 
     # draw legend
     ax.legend(ncol=1, loc="upper right")
@@ -123,13 +126,17 @@ def plot_comparison(hists, labels, output_filename, annotate_cfgs=None, style_cf
         ax.annotate(**ann)
 
     # save plot
-    plt.savefig(output_filename)
+    plt.savefig(f"{output_filename}.pdf")
+    plt.savefig(f"{output_filename}.png")
 
 
 paths = {
-    "uhh2": "ref_templates.root",
+    "uhh2": "/nfs/dust/cms/user/matthiej/topsf/work/compare_shapes_cmatthies/ref_templates_very_loose.root",
     "cf": [
-        f"/nfs/dust/cms/user/dsavoiu/Work/TopSF/topsf/data/topsf_store/analysis_run2_sf/topsf.CreateDatacards/run2_sf_2017_nano_v9/calib__default/sel__default/prod__default/inf__default/v8/shapes__cat_4_15f1906d85__var_probejet_msoftdrop_widebins.root",
+        "/nfs/dust/cms/user/matthiej/topsf/data/topsf_store/analysis_run2_sf/topsf.CreateDatacards/run2_sf_2017_nano_v9/calib__default/sel__default/prod__weights__features/inf__uhh2/wp__very_loose/240328_v1/shapes__cat_16_3df8351d8a__var_probejet_msoftdrop_widebins.root",  # noqa
+        # "/nfs/dust/cms/user/matthiej/topsf/data/topsf_store/analysis_run2_sf/topsf.CreateDatacards/run2_sf_2017_nano_v9/calib__default/sel__default/prod__weights__features/inf__uhh2/wp__very_tight/240328_v1/shapes__cat_16_6ad4815f64__var_probejet_msoftdrop_widebins.root",  # noqa
+        # "/nfs/dust/cms/user/matthiej/topsf/data/topsf_store/analysis_run3_sf/topsf.CreateDatacards/run3_sf_2022_preEE_nano_v12/calib__default/sel__default/prod__weights__features/inf__uhh2/wp__very_tight/241011_v9/shapes__cat_16_6ad4815f64__var_probejet_msoftdrop_widebins.root",  # noqa
+        # "/nfs/dust/cms/user/matthiej/topsf/data/topsf_store/analysis_run3_sf/topsf.CreateDatacards/run3_sf_2022_preEE_nano_v12/calib__default/sel__default/prod__weights__features/inf__uhh2/wp__very_loose/240730_v5/shapes__cat_16_3df8351d8a__var_probejet_msoftdrop_widebins.root",  # noqa
     ],
 }
 
@@ -168,7 +175,7 @@ for p in ("tt", "st"):
         f"{p}_{m}" for m in ("3q", "2q", "0o1q", "bkg")
     ]
 
-#processes = [
+# processes = [
 #    ("tt_3q", ["tt_3q"], [f"TTbar__MSc_FullyMerged{suffix}"]),
 #    ("tt_2q", ["tt_2q"], [f"TTbar__MSc_SemiMerged{suffix}"]),
 #    ("tt_0o1q", ["tt_0o1q"], [f"TTbar__MSc_NotMerged{suffix}"]),
@@ -181,7 +188,7 @@ for p in ("tt", "st"):
 #    ("vx", ["vx"], ["VJetsAndVV"]),
 #    ("tt", ["tt_3q"], [f"TTbar__MSc_FullyMerged{suffix}"]),
 #    ("st", ["sti"], [f"ST__MSc_FullyMerged{suffix}"]),
-#]
+# ]
 
 files = {}
 hists = {}
@@ -189,8 +196,8 @@ if __name__ == "__main__":
     files["uhh2"] = uproot.open(paths["uhh2"])
     files["cf"] = [uproot.open(p) for p in paths["cf"]]
 
-    if not os.path.exists("plots"):
-        os.makedirs("plots")
+    if not os.path.exists("plots/run2__very_loose"):
+        os.makedirs("plots/run2__very_loose")
 
     # -- fill individual hists
 
@@ -206,7 +213,7 @@ if __name__ == "__main__":
             pf_uhh2 = uhh2_map["pass_fail"][pf]
             hists_ch_pf = hists_ch[pf] = {}
 
-            cat_name = f"{ch}__pt_300_400__tau32_wp_very_tight_{pf}"
+            cat_name = f"{ch}__17__pt_300_400__tau32_wp_very_loose_{pf}"
 
             # process
             for proc in processes:
@@ -214,12 +221,12 @@ if __name__ == "__main__":
                 hists_ch_pf_proc = hists_ch_pf[proc] = {}
 
                 # get UHH2 hist
-                hists_ch_pf_proc["uhh2"] = files["uhh2"][f"CombBin-Main-{pf_uhh2}-{ch_uhh2}-UL17-pt_300to400/{proc_uhh2}"]
+                hists_ch_pf_proc["uhh2"] = files["uhh2"][f"CombBin-Main-{pf_uhh2}-{ch_uhh2}-UL17-pt_300to400/{proc_uhh2}"]  # noqa
 
                 # get CF hist
                 for f in files["cf"]:
                     try:
-                        hists_ch_pf_proc["cf"] = f[f"cat_{cat_name}/{proc}"]
+                        hists_ch_pf_proc["cf"] = f[f"bin_{cat_name}/{proc}"]
                     except uproot.KeyInFileError:
                         continue
                     else:
@@ -258,7 +265,7 @@ if __name__ == "__main__":
             if pf == "all":
                 cat_name = f"{ch}__pt_300_400"
             else:
-                cat_name = f"{ch}__pt_300_400__tau32_wp_very_tight_{pf}"
+                cat_name = f"{ch}__pt_300_400__tau32_wp_very_loose_{pf}"
 
             # category and process instances (for label)
             cat_inst = config_2017.get_category(cat_name)
@@ -271,8 +278,8 @@ if __name__ == "__main__":
                         hists[ch][pf][proc]["uhh2"],
                         hists[ch][pf][proc]["cf"],
                     ],
-                    labels=["UHH2", "CF"],
-                    output_filename=f"plots/{ch}__{pf}__{proc}.png",
+                    labels=["UHH2 (UL17)", "CF (UL17)"],
+                    output_filename=f"plots/run2__very_loose/{ch}__{pf}__{proc}",
                     annotate_cfgs=[
                         dict(
                             text=cat_inst.label,
@@ -309,6 +316,4 @@ if __name__ == "__main__":
                     ],
                 )
 
-    #values = {k: hists[k].values() for k in hists}
-
-
+    # values = {k: hists[k].values() for k in hists}
