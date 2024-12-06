@@ -279,7 +279,7 @@ def add_config(
         "tt_sl_powheg",
         "tt_dl_powheg",
         "tt_fh_powheg",
-        # SingleTop 2022 v12 preEE datasets
+        # SingleTop 2022 v12 datasets
         "st_tchannel_t_4f_powheg",
         "st_tchannel_tbar_4f_powheg",
         "st_twchannel_t_sl_powheg",
@@ -288,16 +288,19 @@ def add_config(
         "st_twchannel_tbar_dl_powheg",
         "st_twchannel_t_fh_powheg",
         "st_twchannel_tbar_fh_powheg",
-        # DY 2022 v12 preEE datasets
+        # DY 2022 v12 datasets
+        "dy_m4to50_ht40to70_madgraph",
+        "dy_m4to50_ht70to100_madgraph",
         "dy_m4to50_ht100to400_madgraph",
         "dy_m4to50_ht400to800_madgraph",
         "dy_m4to50_ht800to1500_madgraph",
         "dy_m4to50_ht1500to2500_madgraph",
         "dy_m4to50_ht2500toinf_madgraph",
+        "dy_m50to120_ht40to70_madgraph",
         "dy_m50to120_ht70to100_madgraph",
         "dy_m50to120_ht100to400_madgraph",
-        # "dy_m50to120_ht400to800_madgraph",
-        # WJets 2022 v12 preEE datasets
+        "dy_m50to120_ht400to800_madgraph",
+        # WJets 2022 v12 datasets
         "w_lnu_mlnu0to120_ht100to400_madgraph",
         "w_lnu_mlnu0to120_ht400to800_madgraph",
         "w_lnu_mlnu0to120_ht800to1500_madgraph",
@@ -307,7 +310,11 @@ def add_config(
         "ww_pythia",
         "wz_pythia",
         "zz_pythia",
-        # QCD 2022 v12 preEE datasets
+        # QCD 2022 v12 datasets
+        "qcd_ht70to100_madgraph",  # FIXME AssertionError in preEE/postEE (full stat.)
+        "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
+        "qcd_ht200to400_madgraph",  # FIXME AssertionError in preEE/postEE (full stat.)
+        "qcd_ht400to600_madgraph",
         "qcd_ht600to800_madgraph",
         "qcd_ht800to1000_madgraph",
         "qcd_ht1000to1200_madgraph",
@@ -330,14 +337,6 @@ def add_config(
             "data_mu_e",
             "data_mu_f",
             "data_mu_g",
-            # "dy_m4to50_ht40to70_madgraph",  # FIXME AssertionError in preEE (full stat.)
-            "dy_m4to50_ht70to100_madgraph",  # FIXME AssertionError in preEE (full stat.)
-            "dy_m50to120_ht40to70_madgraph",  # FIXME AssertionError in preEE (full stat.)
-            "w_lnu_mlnu0to120_ht40to100_madgraph",  # FIXME cramjam.DecompressionError: lzma data error
-            # "qcd_ht70to100_madgraph",  # FIXME AssertionError in preEE/postEE (full stat.)
-            # "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
-            # "qcd_ht200to400_madgraph",  # FIXME AssertionError in preEE/postEE (full stat.)
-            "qcd_ht400to600_madgraph",  # FIXME AssertionError in preEE (full stat.)
         ]
 
     for dataset_name in dataset_names:
@@ -346,7 +345,7 @@ def add_config(
 
         # update JECera information
         if dataset.is_data and (dataset_name.endswith("c") or dataset_name.endswith("d")):
-            dataset.x.jec_era = "CD"
+            dataset.x.jec_era = "RunCD"
 
         # mark the presence of a top quark
         if any(dataset_name.startswith(s) for s in ("tt", "st")):

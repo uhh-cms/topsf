@@ -109,7 +109,7 @@ def add_config(
     dataset_names = [
         # ttbar (fully hadronic decays only)
         "tt_fh_powheg",
-        # QCD 2022 v12 preEE datasets
+        # QCD 2022 v12 datasets
         "qcd_ht70to100_madgraph",
         # "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
         "qcd_ht200to400_madgraph",

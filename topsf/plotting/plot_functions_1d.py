@@ -107,7 +107,6 @@ def plot_variable_per_process(
         pretty_legend = kwargs.pop("pretty_legend")
         if pretty_legend:
             import matplotlib.patches as patches
-            import matplotlib.transforms as transforms
 
             """
             Define the custom legend entries and their positions:
@@ -210,7 +209,7 @@ def plot_variable_per_process(
                         label,
                     )
                 # if the color cannot be retrieved, we need to handle the special cases
-                except AttributeError:
+                except (AttributeError, IndexError):
                     if "MC stat. unc." in label:
                         add_rectangle(
                             ax,
