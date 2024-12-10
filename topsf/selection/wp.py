@@ -12,6 +12,7 @@ from columnflow.util import maybe_import
 
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
+from columnflow.selection.cms.jets import jet_veto_map
 
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.processes import process_ids
@@ -124,6 +125,7 @@ def wp_fatjet_selection_init(self: Selector) -> None:
         process_ids,
         met_filters,
         wp_fatjet_selection,
+        jet_veto_map,
         increment_stats,
     },
     produces={
@@ -131,6 +133,7 @@ def wp_fatjet_selection_init(self: Selector) -> None:
         process_ids,
         met_filters,
         wp_fatjet_selection,
+        jet_veto_map,
         increment_stats,
     },
     exposed=True,
@@ -159,6 +162,10 @@ def wp(
         **kwargs,
     )
     results += wp_fatjet_results
+
+    # apply jet veto map
+    events, jet_veto_results = self[jet_veto_map](events, **kwargs)
+    results += jet_veto_results
 
     # combined event selection after all steps
     event_sel = reduce(and_, results.steps.values())
