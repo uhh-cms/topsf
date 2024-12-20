@@ -14,6 +14,7 @@ from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
 from columnflow.selection.cms.jets import jet_veto_map
 
+from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.processes import process_ids
 
@@ -121,6 +122,7 @@ def wp_fatjet_selection_init(self: Selector) -> None:
 @selector(
     uses={
         attach_coffea_behavior,
+        mc_weight,
         wp_category_ids,
         process_ids,
         met_filters,
@@ -130,6 +132,7 @@ def wp_fatjet_selection_init(self: Selector) -> None:
     },
     produces={
         wp_category_ids,
+        mc_weight,
         process_ids,
         met_filters,
         wp_fatjet_selection,
