@@ -136,3 +136,20 @@ config_2022_postEE_limited = add_config(
 #     config_id=1_03_23_22,  # 1: SF 03: Run3 23: year 2: limited stat 2: post BPix
 #     limit_dataset_files=1,
 # )
+
+# config with limited number of files
+config_2022_preEE_medium_limited = add_config(
+    analysis_sf,
+    campaign_run3_2022_preEE_nano_v12.copy(),
+    config_name="run3_sf_2022_preEE_nano_v12_medium_limited",
+    config_id=1_03_22_31,
+    limit_dataset_files=10,
+)
+
+config_2022_postEE_medium_limited = add_config(
+    analysis_sf,
+    campaign_run3_2022_postEE_nano_v12.copy(),
+    config_name="run3_sf_2022_postEE_nano_v12_medium_limited",
+    config_id=1_03_22_32,
+    limit_dataset_files=10,
+)
