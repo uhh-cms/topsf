@@ -260,28 +260,74 @@ def add_config(
     # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC?rev=201
     jerc_postfix = "APV" if year == 2016 and campaign.x.vfp == "post" else ""
     cfg.x.jec = DotDict.wrap({
-        "campaign": f"Summer19UL{year2}{jerc_postfix}",
-        "version": {2016: "V7", 2017: "V5", 2018: "V5"}[year],
-        "jet_type": "AK4PFchs",
-        #"levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],  # noqa
-        "levels": ["L1L2L3Res"],
-        "levels_for_type1_met": ["L1FastJet"],
-        "data_eras": sorted(filter(None, {
-            d.x("jec_era", None)
-            for d in cfg.datasets
-            if d.is_data
-        })),
-        "uncertainty_sources": [
-            "Total",
-        ],
+        "Jet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": {2016: "V7", 2017: "V5", 2018: "V5"}[year],
+            "jet_type": "AK4PFchs",
+            #"levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],  # noqa
+            "levels": ["L1L2L3Res"],
+            "levels_for_type1_met": ["L1FastJet"],
+            "data_eras": sorted(filter(None, {
+                d.x("jec_era", None)
+                for d in cfg.datasets
+                if d.is_data
+            })),
+            "uncertainty_sources": [
+                "Total",
+            ],
+        },
+        "FatJet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": {2016: "V7", 2017: "V5", 2018: "V5"}[year],
+            "jet_type": "AK8PFchs",
+            #"levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],  # noqa
+            "levels": ["L1L2L3Res"],
+            "levels_for_type1_met": ["L1FastJet"],
+            "data_eras": sorted(filter(None, {
+                d.x("jec_era", None)
+                for d in cfg.datasets
+                if d.is_data
+            })),
+            "uncertainty_sources": [
+                "Total",
+            ],
+        },
+        "SubJet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": {2016: "V7", 2017: "V5", 2018: "V5"}[year],
+            "jet_type": "AK4PFchs",
+            #"levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],  # noqa
+            "levels": ["L1L2L3Res"],
+            "levels_for_type1_met": ["L1FastJet"],
+            "data_eras": sorted(filter(None, {
+                d.x("jec_era", None)
+                for d in cfg.datasets
+                if d.is_data
+            })),
+            "uncertainty_sources": [
+                "Total",
+            ],
+        },
     })
 
     # jet energy resolution (JER)
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
     cfg.x.jer = DotDict.wrap({
-        "campaign": f"Summer19UL{year2}{jerc_postfix}",
-        "version": "JR" + {2016: "V3", 2017: "V2", 2018: "V2"}[year],
-        "jet_type": "AK4PFchs",
+        "Jet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": "JR" + {2016: "V3", 2017: "V2", 2018: "V2"}[year],
+            "jet_type": "AK4PFchs",
+        },
+        "FatJet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": "JR" + {2016: "V3", 2017: "V2", 2018: "V2"}[year],
+            "jet_type": "AK4PFchs",
+        },
+        "SubJet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": "JR" + {2016: "V3", 2017: "V2", 2018: "V2"}[year],
+            "jet_type": "AK4PFchs",
+        },
     })
 
     # JEC uncertainty sources propagated to btag scale factors
@@ -569,7 +615,7 @@ def add_config(
             )
 
         # jet energy scale (JEC) uncertainty variations
-        for jec_source in cfg.x.jec.uncertainty_sources:
+        for jec_source in cfg.x.jec.Jet.uncertainty_sources:
             idx = all_jec_sources.index(jec_source)
             cfg.add_shift(name=f"jec_{jec_source}_up", id=5000 + 2 * idx, type="shape")
             cfg.add_shift(name=f"jec_{jec_source}_down", id=5001 + 2 * idx, type="shape")
@@ -617,7 +663,7 @@ def add_config(
 
     sources = {
         "cert": "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV",
-        "local_repo": "/nfs/dust/cms/user/matthiej/topsf",  # TODO: avoid hardcoding path
+        "local_repo": "/data/dust/user/matthiej/topsf",  # TODO: avoid hardcoding path
         "json_mirror": "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-49ddc547",
         "jet": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/cms-jet-JSON_Format-54860a23",
         "normtag": "/afs/cern.ch/user/d/dsavoiu/public/lumi/snapshot_2023-11-10_1610Z",
