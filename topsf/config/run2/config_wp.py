@@ -802,8 +802,8 @@ def add_config(
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
         "electron_weight": get_shifts("electron"),
-        "ISR": get_shifts("ISR"),
-        "FSR": get_shifts("FSR"),
+        # "ISR": get_shifts("ISR"),
+        # "FSR": get_shifts("FSR"),
     })
 
     # event weights only present in certain datasets
@@ -818,6 +818,10 @@ def add_config(
         if not dataset.is_data and year == 2017:
             # prefiring weights (all datasets except real data)
             dataset.x.event_weights["l1_ecal_prefiring_weight"] = get_shifts("l1_ecal_prefiring")
+        # add PSWeight variations for all datasets but qcd
+        if not dataset.has_tag("is_qcd"):
+            dataset.x.event_weights["ISR"] = get_shifts("ISR")
+            dataset.x.event_weights["FSR"] = get_shifts("FSR")
 
     # #
     # # versions

@@ -244,13 +244,15 @@ def add_config(
             "probejet_msoftdrop_widebins",
         ],
         "shape_unc": [
-            # "FSR",
-            # "ISR",
-            # "electron",
-            # "muon",
-            # "minbias_xs",
-            # # "top_pt",
-            # "jec_Total",
+            "FSR",
+            "ISR",
+            "electron",
+            "muon",
+            "minbias_xs",
+            # "top_pt",
+            "jec_Total",
+            "mur",
+            "muf",
         ],
     }
 
@@ -1352,8 +1354,8 @@ def add_config(
         "normalization_weight": [],
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
-        "ISR": get_shifts("ISR"),
-        "FSR": get_shifts("FSR"),
+        # "ISR": get_shifts("ISR"),
+        # "FSR": get_shifts("FSR"),
     })
 
     if not cfg.has_tag("skip_electron_weights"):
@@ -1366,6 +1368,13 @@ def add_config(
         if dataset.has_tag("is_v_jets"):
             # V+jets QCD NLO reweighting
             dataset.x.event_weights["vjets_weight"] = get_shifts("vjets")
+        # add PSWeight variations for all datasets but qcd
+        if not dataset.has_tag("is_qcd"):
+            dataset.x.event_weights["ISR"] = get_shifts("ISR")
+            dataset.x.event_weights["FSR"] = get_shifts("FSR")
+        if dataset.has_tag("has_top"):
+            dataset.x.event_weights["mur_weight"] = get_shifts("mur")
+            dataset.x.event_weights["muf_weight"] = get_shifts("muf")
 
     # #
     # # versions
