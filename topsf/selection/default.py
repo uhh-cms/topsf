@@ -14,6 +14,7 @@ from columnflow.columnar_util import optional_column as optional
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
 from columnflow.selection.cms.json_filter import json_filter
+from columnflow.selection.cms.jets import jet_veto_map
 
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.util import attach_coffea_behavior
@@ -109,6 +110,7 @@ def increment_stats(
         lepton_selection,
         met_selection,
         w_lep_selection,
+        jet_veto_map,
         jet_selection,
         bjet_lepton_selection,
         jet_lepton_2d_selection,
@@ -125,6 +127,7 @@ def increment_stats(
         lepton_selection,
         met_selection,
         w_lep_selection,
+        jet_veto_map,
         jet_selection,
         bjet_lepton_selection,
         jet_lepton_2d_selection,
@@ -184,6 +187,10 @@ def default(
     # w_lep selection
     events, w_lep_results = self[w_lep_selection](events, **kwargs)
     results += w_lep_results
+
+    # apply jet veto map
+    events, jet_veto_results = self[jet_veto_map](events, **kwargs)
+    results += jet_veto_results
 
     # combined event selection after all steps
     event_sel = reduce(and_, results.steps.values())

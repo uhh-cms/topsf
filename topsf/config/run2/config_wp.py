@@ -618,13 +618,16 @@ def add_config(
     sources = {
         "cert": "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV",
         "local_repo": "/nfs/dust/cms/user/matthiej/topsf",  # TODO: avoid hardcoding path
-        "json_mirror": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/jsonpog-integration-a81953b1",
+        "json_mirror": "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-49ddc547",
         "jet": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/cms-jet-JSON_Format-54860a23",
         "normtag": "/afs/cern.ch/user/d/dsavoiu/public/lumi/snapshot_2023-11-10_1610Z",
     }
     cfg.x.external_files = DotDict.wrap({
         # jet energy corrections
         "jet_jerc": (f"{sources['json_mirror']}/POG/JME/{year}_UL/jet_jerc.json.gz", "v1"),  # noqa
+
+        # jet veto map
+        "jet_veto_map": (f"{sources['json_mirror']}/POG/JME/{year}_UL/jetvetomaps.json.gz", "v1"),  # noqa
 
         # btag scale factors
         "btag_sf_corr": (f"{sources['json_mirror']}/POG/BTV/{year}_UL/btagging.json.gz", "v1"),  # noqa
