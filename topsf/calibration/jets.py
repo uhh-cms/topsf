@@ -8,6 +8,7 @@ from columnflow.calibration import Calibrator, calibrator
 from columnflow.util import maybe_import
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.columnar_util import set_ak_column
+from columnflow.calibration.cms.jets import jer, jec, get_jerc_file_default
 
 from topsf.production.util import lv_xyzt, lv_mass
 
@@ -158,3 +159,9 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
         events = set_ak_column(events, f"Jet.{var}", value)
 
     return events
+
+
+get_jerc_file_default.map_jet_name_file_key["SubJet"] = "jet_jerc"
+jer_subjets = jer.derive("jer_subjets", cls_dict={"jet_name": "SubJet", "gen_jet_name": "SubGenJetAK8"})
+jec_subjets = jec.derive("jec_subjets", cls_dict={"jet_name": "SubJet", "gen_jet_name": "SubGenJetAK8"})
+jec_subjets_nominal = jec_subjets.derive("jec_subjets", cls_dict={"uncertainty_sources": []})
