@@ -39,9 +39,6 @@ def cutflow_features(
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
 
-    # compute category IDs
-    events = self[category_ids](events, **kwargs)
-
     # apply object selections
     selected_jet = events.Jet[object_masks["Jet"]["Jet"]]
 

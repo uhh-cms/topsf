@@ -88,7 +88,7 @@ def plot_roc_curve(
             ),
         },
         "cms_label_cfg": {
-            "lumi": config_inst.x.luminosity.get("nominal") / 1000,  # pb -> fb
+            "lumi": f'{config_inst.x.luminosity.get("nominal") / 1000:.1f}',  # pb -> fb
             "com": config_inst.campaign.ecm,
         },
     }
@@ -178,7 +178,7 @@ def plot_efficiency(
             ),
         },
         "cms_label_cfg": {
-            "lumi": config_inst.x.luminosity.get("nominal") / 1000,  # pb -> fb
+            "lumi": f'{config_inst.x.luminosity.get("nominal") / 1000:.1f}',  # pb -> fb
             "com": config_inst.campaign.ecm,
         },
     }
