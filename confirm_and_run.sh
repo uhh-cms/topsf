@@ -1,7 +1,7 @@
-# Function to prompt user for confirmation if command is supposed to be skipped
-# if user types n or no then the command is executed
-# if user types anything else or nothing then the command is skipped
-# it is also possible to extend the command afte typing n or no
+# Function to prompt the user for confirmation before skipping a command.
+# If the user types 'n' or 'no', the command is executed.
+# If the user types anything else or nothing, the command is skipped.
+# The user can also extend the command after typing 'n' or 'no'.
 
 # Define color variables
 GREEN='\033[0;32m'

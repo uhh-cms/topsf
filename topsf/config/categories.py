@@ -118,6 +118,13 @@ def add_categories(config: od.Config) -> None:
         label=r"1$\mu$",
     )
 
+    config.add_category(
+        name="lepton",
+        id=3,
+        selection="sel_lepton",
+        label=r"combined lepton channels (1$\mu$ + 1e)",
+    )
+
     #
     # group 2: probe jet pt bins
     #
