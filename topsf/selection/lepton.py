@@ -45,18 +45,27 @@ def channel_selection(
     rel_iso = self.cfg.get("rel_iso", None)
     if rel_iso is not None:
         max_rel_iso = self.cfg.max_rel_iso
-        lepton_mask = lepton_mask | (lepton[rel_iso] < max_rel_iso)
+        lepton_mask = lepton_mask & (lepton[rel_iso] < max_rel_iso)
 
     # lepton indices
     lepton_indices = masked_sorted_indices(lepton_mask, lepton.pt)
+
+    # id mask
+    if isinstance(self.cfg.id_addveto.value, bool):
+        id_mask = (lepton[self.cfg.id_addveto.column] == self.cfg.id_addveto.value)
+    elif isinstance(self.cfg.id_addveto.value, int):
+        id_mask = (lepton[self.cfg.id_addveto.column] >= self.cfg.id_addveto.value)
+    else:
+        raise ValueError("Invalid type for id_addveto.value: must be bool or int")
 
     # veto events if additional loose leptons present
     lepton_mask_veto = (
         (abs(lepton.eta) < self.cfg.max_abseta) &
         (lepton.pt > self.cfg.min_pt_addveto) &
-        (lepton[self.cfg.id_addveto.column] == self.cfg.id_addveto.value)
+        id_mask &
+        ~lepton_mask
     )
-    add_lepton_veto = (ak.sum(lepton_mask_veto, axis=-1) <= 1)
+    add_lepton_indices = masked_sorted_indices(lepton_mask_veto, lepton.pt)
 
     # check missing triggers
     missing_triggers = {
@@ -74,17 +83,19 @@ def channel_selection(
 
     # write out leptons to temporary column
     events = set_ak_column(events, f"{self.cfg.column}Selected", lepton[lepton_indices])
+    events = set_ak_column(events, f"{self.cfg.column}Veto", lepton[add_lepton_indices])
 
     # return selection result
     return events, SelectionResult(
         steps={
             "Lepton": (ak.num(lepton_indices) == 1),
             "LeptonTrigger": ak.fill_none(trigger_mask, False),
-            "AddLeptonVeto": add_lepton_veto,
+            # "AddLeptonVeto": (ak.sum(lepton_mask_veto, axis=-1) == 0),
         },
         objects={
             self.cfg.column: {
                 self.cfg.column: lepton_indices,
+                f"Veto{self.cfg.column}": add_lepton_indices,
             },
         },
     )
@@ -253,6 +264,27 @@ def lepton_selection(
         ), False)
         for step, selection in merged_steps.items()
     }
+    # # veto mixed e+mu events
+    # same_veto = merged_steps["AddLeptonVeto"]
+    # mixed_veto = (
+    #     (
+    #         ak.num(merged_objects["Muon"]["VetoMuon"], axis=-1) +
+    #         ak.num(merged_objects["Electron"]["VetoElectron"], axis=-1)
+    #     ) == 0
+    # )
+    # merged_steps["AddLeptonVeto"] = same_veto & mixed_veto
+    # di-lepton veto
+    merged_steps["AddleptonVeto"] = (
+        (
+            (
+                ak.num(merged_objects["Muon"]["Muon"], axis=-1) +
+                ak.num(merged_objects["Muon"]["VetoMuon"], axis=-1) +
+                ak.num(merged_objects["Electron"]["Electron"], axis=-1) +
+                ak.num(merged_objects["Electron"]["VetoElectron"], axis=-1)
+            ) <= 1
+        )
+    )
+
     merged_aux = {
         var: ak.firsts(
             vals[channel_indexes],
