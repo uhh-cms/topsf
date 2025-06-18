@@ -223,7 +223,7 @@ def add_config(
     # TODO make configurable from CLI (as params of inference model)
     cfg.x.fit_setup = {
         "channels": [
-            # "1m",
+            "1m",
             "1e",
         ],
         "pt_bins": [
