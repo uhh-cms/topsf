@@ -14,6 +14,7 @@ from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
 from columnflow.selection.cms.jets import jet_veto_map
 
+from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.processes import process_ids
 
@@ -121,6 +122,7 @@ def wp_fatjet_selection_init(self: Selector) -> None:
 @selector(
     uses={
         attach_coffea_behavior,
+        mc_weight,
         wp_category_ids,
         process_ids,
         met_filters,
@@ -130,6 +132,7 @@ def wp_fatjet_selection_init(self: Selector) -> None:
     },
     produces={
         wp_category_ids,
+        mc_weight,
         process_ids,
         met_filters,
         wp_fatjet_selection,
@@ -196,6 +199,96 @@ def wp(
 
 @wp.init
 def wp_init(self: Selector):
+    dataset_inst = getattr(self, "dataset_inst", None)
+    if dataset_inst is not None and dataset_inst.is_data:
+        raise RuntimeError("selector 'wp' should not be run on data")
+
+    # if ttbar, produce parton-level top quarks
+    # (relevant for jet selection)
+    dataset_inst = getattr(self, "dataset_inst", None)
+    if dataset_inst and dataset_inst.has_tag("is_ttbar"):
+        self.uses.add(gen_parton_top)
+        self.produces.add(gen_parton_top)
+
+
+@selector(
+    uses={
+        attach_coffea_behavior,
+        mc_weight,
+        wp_category_ids,
+        process_ids,
+        met_filters,
+        wp_fatjet_selection,
+        increment_stats,
+    },
+    produces={
+        wp_category_ids,
+        mc_weight,
+        process_ids,
+        met_filters,
+        wp_fatjet_selection,
+        increment_stats,
+    },
+    exposed=True,
+)
+def wp_wo_jvm(
+    self: Selector,
+    events: ak.Array,
+    stats: defaultdict,
+    msoftdrop_range=None,
+    **kwargs,
+) -> tuple[ak.Array, SelectionResult]:
+    # ensure coffea behavior
+    events = self[attach_coffea_behavior](events, **kwargs)
+
+    # prepare the selection results that are updated at every step
+    results = SelectionResult()
+
+    # MET filters
+    events, met_filters_results = self[met_filters](events, **kwargs)
+    results += met_filters_results
+
+    # fatjet selection
+    events, wp_fatjet_results = self[wp_fatjet_selection](
+        events,
+        msoftdrop_range=msoftdrop_range,
+        **kwargs,
+    )
+    results += wp_fatjet_results
+
+    # # apply jet veto map
+    # events, jet_veto_results = self[jet_veto_map](events, **kwargs)
+    # results += jet_veto_results
+
+    # combined event selection after all steps
+    event_sel = reduce(and_, results.steps.values())
+    results.event = event_sel
+
+    for step, sel in results.steps.items():
+        n_sel = ak.sum(sel, axis=-1)
+        print(f"{step}: {n_sel}")
+
+    n_sel = ak.sum(event_sel, axis=-1)
+    print(f"__all__: {n_sel}")
+
+    # produce features relevant for selection and event weights
+    if self.dataset_inst.has_tag("is_ttbar"):
+        events = self[gen_parton_top](events, **kwargs)
+
+    # build categories
+    events = self[wp_category_ids](events, **kwargs)
+
+    # create process ids
+    events = self[process_ids](events, **kwargs)
+
+    # increment stats
+    self[increment_stats](events, results, stats, **kwargs)
+
+    return events, results
+
+
+@wp_wo_jvm.init
+def wp_wo_jvm_init(self: Selector):
     dataset_inst = getattr(self, "dataset_inst", None)
     if dataset_inst is not None and dataset_inst.is_data:
         raise RuntimeError("selector 'wp' should not be run on data")

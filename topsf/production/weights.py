@@ -10,6 +10,7 @@ from columnflow.production.cms.electron import electron_weights
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
 from columnflow.production.cms.pileup import pu_weight
+from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
 from columnflow.util import maybe_import
 
 from topsf.production.normalization import normalization_weights
@@ -60,8 +61,14 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # compute pu weights
         events = self[pu_weight](events, **kwargs)
 
+        # compute scale weights (mur, muf, envelope) for st and tt datasets
+        if self.dataset_inst.has_tag("has_top"):
+            events = self[murmuf_weights](events, **kwargs)
+            events = self[murmuf_envelope_weights](events, **kwargs)
+
         # compute PS weights
-        events = self[ps_weights](events, **kwargs)
+        if not self.dataset_inst.has_tag("is_qcd"):
+            events = self[ps_weights](events, **kwargs)
 
     return events
 
@@ -82,15 +89,22 @@ def weights_init(self: Producer) -> None:
             self.uses |= {l1_prefiring_weights}
             self.produces |= {l1_prefiring_weights}
 
-        self.uses |= {
-            normalization_weights, pu_weight, mc_weight,
-            top_pt_weight,
-            vjets_weight,
-            ps_weights,
-        }
-        self.produces |= {
-            normalization_weights, pu_weight, mc_weight,
-            top_pt_weight,
-            vjets_weight,
-            ps_weights,
-        }
+        if not self.dataset_inst.has_tag("is_qcd"):
+            self.uses |= {ps_weights}
+            self.produces |= {ps_weights}
+
+        if self.dataset_inst.has_tag("is_ttbar"):
+            self.uses |= {top_pt_weight}
+            self.produces |= {top_pt_weight}
+
+        if self.dataset_inst.has_tag("is_v_jets"):
+            self.uses |= {vjets_weight}
+            self.produces |= {vjets_weight}
+
+        self.uses |= {normalization_weights, pu_weight, mc_weight}
+
+        if self.dataset_inst.has_tag("has_top"):
+            self.uses |= {murmuf_weights, murmuf_envelope_weights}
+            self.produces |= {murmuf_weights, murmuf_envelope_weights}
+
+        self.produces |= {normalization_weights, pu_weight, mc_weight}

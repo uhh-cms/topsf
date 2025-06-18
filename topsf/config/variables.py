@@ -51,7 +51,12 @@ def add_variables(config: od.Config) -> None:
     config.add_variable(
         name="n_jet",
         binning=(11, -0.5, 10.5),
-        x_title="Number of jets",
+        x_title="Number of AK4 jets",
+    )
+    config.add_variable(
+        name="n_fatjet",
+        binning=(11, -0.5, 10.5),
+        x_title="Number of AK8 jets",
     )
     config.add_variable(
         name="n_bjet",
@@ -91,7 +96,7 @@ def add_variables(config: od.Config) -> None:
     )
     config.add_variable(
         name="fatjet_tau32",
-        expression=lambda events: events.FatJet.tau3 / events.FatJet.tau2,
+        expression=lambda events: events['FatJet']['tau3'] / events['FatJet']['tau2'],
         null_value=EMPTY_FLOAT,
         binning=(50, 0, 1),
         x_title=r"AK8 jet $\tau_{3}/\tau_{2}$",
@@ -178,6 +183,13 @@ def add_variables(config: od.Config) -> None:
             expression=f"{obj}.eta[:,0]",
             null_value=EMPTY_FLOAT,
             binning=(50, -2.5, 2.5),
+            x_title=obj + r" $\eta$",
+        )
+        config.add_variable(
+            name=f"{obj.lower()}_eta_wide",
+            expression=f"{obj}.eta[:,0]",
+            null_value=EMPTY_FLOAT,
+            binning=(100, -5, 5),
             x_title=obj + r" $\eta$",
         )
         config.add_variable(
@@ -287,11 +299,27 @@ def add_variables(config: od.Config) -> None:
         expression="ProbeJet.msoftdrop",
         null_value=EMPTY_FLOAT,
         binning=[
-            50, 70, 85,
+            70, 85,
             105, 120, 140,
             155, 170, 185,
-            200,
-            500,
+            200, 210, 220,
+            230, 250, 275,
+            300, 350, 400,
+            450, 500,
+        ],
+        x_title=r"Probe jet $m_{SD}$",
+        unit="GeV",
+    )
+    config.add_variable(
+        name="probejet_msoftdrop_inf_rebin",
+        expression="ProbeJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=[
+            70, 85,
+            105, 120, 140,
+            155, 170, 185,
+            200, 210, 220,
+            230, 250, 500,
         ],
         x_title=r"Probe jet $m_{SD}$",
         unit="GeV",
@@ -364,7 +392,7 @@ def add_variables(config: od.Config) -> None:
     # HT: scalar jet pT sum
     config.add_variable(
         name="ht",
-        expression=lambda events: ak.sum(events.Jet.pt, axis=1),
+        expression=lambda events: ak.sum(events.Jet["pt"], axis=1),
         binning=(40, 0.0, 800.0),
         unit="GeV",
         x_title="$H_{T}$",

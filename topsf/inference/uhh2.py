@@ -168,9 +168,13 @@ def uhh2(self):
 
     for proc in processes:
         for unc in uncertainty_shifts:
+            if proc == "mj" and unc in ["FSR", "ISR"]:
+                continue
+            if unc in ["mur", "muf"] and not (proc.startswith("st") or proc.startswith("tt")):
+                continue
             par = inference_pars.get(unc, unc)
             self.add_parameter(
-                f"{par}_{proc}",
+                f"{par}",
                 process=inference_processes.get(proc, proc),
                 type=ParameterType.shape,
                 config_shift_source=unc,

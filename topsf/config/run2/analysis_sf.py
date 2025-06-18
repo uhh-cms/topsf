@@ -72,3 +72,12 @@ config_2017_limited = add_config(
     config_id=2_01_17_02,
     limit_dataset_files=1,
 )
+
+# config with limited number of files
+config_2017_medium_limited = add_config(
+    analysis_sf,
+    campaign_run2_2017_nano_v9.copy(),
+    config_name="run2_sf_2017_nano_v9_medium_limited",
+    config_id=2_01_17_03,
+    limit_dataset_files=10,
+)

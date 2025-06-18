@@ -96,13 +96,35 @@ def add_config(
     dataset_names = [
         # ttbar (fully hadronic decays only)
         "tt_fh_powheg",
-        # QCD
-        "qcd_ht300to500_madgraph",  # noqa
-        "qcd_ht500to700_madgraph",
-        "qcd_ht700to1000_madgraph",
-        "qcd_ht1000to1500_madgraph",
-        "qcd_ht1500to2000_madgraph",
-        "qcd_ht2000toinf_madgraph",
+        # # QCD
+        # "qcd_ht300to500_madgraph",  # noqa
+        # "qcd_ht500to700_madgraph",
+        # "qcd_ht700to1000_madgraph",
+        # "qcd_ht1000to1500_madgraph",
+        # "qcd_ht1500to2000_madgraph",
+        # "qcd_ht2000toinf_madgraph",
+        # QCD mu enriched
+        # "qcd_mu_pt15to20_pythia",
+        # "qcd_mu_pt20to30_pythia",
+        # "qcd_mu_pt30to50_pythia",
+        # "qcd_mu_pt50to80_pythia",
+        # "qcd_mu_pt80to120_pythia",  # FIXME AssertionError for lim. stats.
+        "qcd_mu_pt120to170_pythia",
+        "qcd_mu_pt170to300_pythia",
+        "qcd_mu_pt300to470_pythia",
+        "qcd_mu_pt470to600_pythia",
+        "qcd_mu_pt600to800_pythia",
+        "qcd_mu_pt800to1000_pythia",
+        "qcd_mu_pt1000toinf_pythia",
+        # # QCD em enriched
+        # "qcd_em_pt15to20_pythia",  # FIXME AssertionError for lim. stats.
+        # "qcd_em_pt20to30_pythia",
+        # "qcd_em_pt30to50_pythia",
+        # "qcd_em_pt50to80_pythia",
+        # "qcd_em_pt80to120_pythia",
+        "qcd_em_pt120to170_pythia",
+        "qcd_em_pt170to300_pythia",
+        "qcd_em_pt300toinf_pythia",
     ]
     for dataset_name in dataset_names:
         # add the dataset
@@ -111,6 +133,9 @@ def add_config(
         # mark ttbar
         if dataset_name.startswith("tt"):
             dataset.add_tag({"has_top", "is_ttbar"})
+        # mark QCD
+        if dataset_name.startswith("qcd"):
+            dataset.add_tag({"is_qcd"})
 
         # for testing purposes, limit the number of files per dataset
         if limit_dataset_files:
@@ -150,8 +175,10 @@ def add_config(
     # (used in wrapper_factory and during plotting)
     cfg.x.dataset_groups = {
         "all": dataset_names,
-        "qcd": ["qcd_ht*"],
+        "qcd_mu": ["qcd_mu*"],
+        "qcd_em": ["qcd_em*"],
         "tt": ["tt*"],
+        "qcd": ["qcd*"],
     }
 
     # category groups for conveniently looping over certain categories
@@ -169,8 +196,13 @@ def add_config(
     # selector step groups for conveniently looping over certain steps
     # (used in cutflow tasks)
     cfg.x.selector_step_groups = {
-        "default": [
+        "default_old": [
             "FatJet", "METFilters",
+        ],
+        "default": [
+            "met_filter",
+            "FatJet",
+            "jet_veto_map",
         ],
     }
 
@@ -260,28 +292,74 @@ def add_config(
     # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC?rev=201
     jerc_postfix = "APV" if year == 2016 and campaign.x.vfp == "post" else ""
     cfg.x.jec = DotDict.wrap({
-        "campaign": f"Summer19UL{year2}{jerc_postfix}",
-        "version": {2016: "V7", 2017: "V5", 2018: "V5"}[year],
-        "jet_type": "AK4PFchs",
-        #"levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],  # noqa
-        "levels": ["L1L2L3Res"],
-        "levels_for_type1_met": ["L1FastJet"],
-        "data_eras": sorted(filter(None, {
-            d.x("jec_era", None)
-            for d in cfg.datasets
-            if d.is_data
-        })),
-        "uncertainty_sources": [
-            "Total",
-        ],
+        "Jet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": {2016: "V7", 2017: "V5", 2018: "V5"}[year],
+            "jet_type": "AK4PFchs",
+            #"levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],  # noqa
+            "levels": ["L1L2L3Res"],
+            "levels_for_type1_met": ["L1FastJet"],
+            "data_eras": sorted(filter(None, {
+                d.x("jec_era", None)
+                for d in cfg.datasets
+                if d.is_data
+            })),
+            "uncertainty_sources": [
+                "Total",
+            ],
+        },
+        "FatJet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": {2016: "V7", 2017: "V5", 2018: "V5"}[year],
+            "jet_type": "AK8PFchs",
+            #"levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],  # noqa
+            "levels": ["L1L2L3Res"],
+            "levels_for_type1_met": ["L1FastJet"],
+            "data_eras": sorted(filter(None, {
+                d.x("jec_era", None)
+                for d in cfg.datasets
+                if d.is_data
+            })),
+            "uncertainty_sources": [
+                "Total",
+            ],
+        },
+        "SubJet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": {2016: "V7", 2017: "V5", 2018: "V5"}[year],
+            "jet_type": "AK4PFchs",
+            #"levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],  # noqa
+            "levels": ["L1L2L3Res"],
+            "levels_for_type1_met": ["L1FastJet"],
+            "data_eras": sorted(filter(None, {
+                d.x("jec_era", None)
+                for d in cfg.datasets
+                if d.is_data
+            })),
+            "uncertainty_sources": [
+                "Total",
+            ],
+        },
     })
 
     # jet energy resolution (JER)
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
     cfg.x.jer = DotDict.wrap({
-        "campaign": f"Summer19UL{year2}{jerc_postfix}",
-        "version": "JR" + {2016: "V3", 2017: "V2", 2018: "V2"}[year],
-        "jet_type": "AK4PFchs",
+        "Jet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": "JR" + {2016: "V3", 2017: "V2", 2018: "V2"}[year],
+            "jet_type": "AK4PFchs",
+        },
+        "FatJet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": "JR" + {2016: "V3", 2017: "V2", 2018: "V2"}[year],
+            "jet_type": "AK4PFchs",
+        },
+        "SubJet": {
+            "campaign": f"Summer19UL{year2}{jerc_postfix}",
+            "version": "JR" + {2016: "V3", 2017: "V2", 2018: "V2"}[year],
+            "jet_type": "AK4PFchs",
+        },
     })
 
     # JEC uncertainty sources propagated to btag scale factors
@@ -569,7 +647,7 @@ def add_config(
             )
 
         # jet energy scale (JEC) uncertainty variations
-        for jec_source in cfg.x.jec.uncertainty_sources:
+        for jec_source in cfg.x.jec.Jet.uncertainty_sources:
             idx = all_jec_sources.index(jec_source)
             cfg.add_shift(name=f"jec_{jec_source}_up", id=5000 + 2 * idx, type="shape")
             cfg.add_shift(name=f"jec_{jec_source}_down", id=5001 + 2 * idx, type="shape")
@@ -617,7 +695,7 @@ def add_config(
 
     sources = {
         "cert": "/afs/cern.ch/cms/CAF/CMSCOMM/COMM_DQM/certification/Collisions17/13TeV",
-        "local_repo": "/nfs/dust/cms/user/matthiej/topsf",  # TODO: avoid hardcoding path
+        "local_repo": "/data/dust/user/matthiej/topsf",  # TODO: avoid hardcoding path
         "json_mirror": "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-49ddc547",
         "jet": "/afs/cern.ch/user/d/dsavoiu/public/mirrors/cms-jet-JSON_Format-54860a23",
         "normtag": "/afs/cern.ch/user/d/dsavoiu/public/lumi/snapshot_2023-11-10_1610Z",
@@ -785,6 +863,7 @@ def add_config(
             "channel_id", "process_id", "category_ids",
             "normalization_weight",
             "cutflow.*",
+            "mc_weight",
         },
         "cf.UniteColumns": {
             "*",
@@ -802,8 +881,6 @@ def add_config(
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
         "electron_weight": get_shifts("electron"),
-        "ISR": get_shifts("ISR"),
-        "FSR": get_shifts("FSR"),
     })
 
     # event weights only present in certain datasets
@@ -818,10 +895,17 @@ def add_config(
         if not dataset.is_data and year == 2017:
             # prefiring weights (all datasets except real data)
             dataset.x.event_weights["l1_ecal_prefiring_weight"] = get_shifts("l1_ecal_prefiring")
+        # add PSWeight variations for all datasets but qcd
+        if not dataset.has_tag("is_qcd"):
+            dataset.x.event_weights["ISR"] = get_shifts("ISR")
+            dataset.x.event_weights["FSR"] = get_shifts("FSR")
 
     # #
     # # versions
     # #
+    # cfg.x.versions = {
+    #     "tt_*": "test_v7",
+    # }
 
     # # named references to actual versions to use for certain sets of tasks
     # main_ver = "v1"

@@ -1,6 +1,6 @@
 # coding: utf-8
 """
-Custom base tasks.
+Custom plotting tasks.
 """
 
 import luigi
