@@ -15,7 +15,7 @@ from columnflow.util import maybe_import
 from topsf.production.normalization import normalization_weights
 from topsf.production.gen_top import top_pt_weight
 from topsf.production.gen_v import vjets_weight
-from topsf.production.PSWeights import PSWeights
+from topsf.production.ps_weights import ps_weights
 from topsf.production.l1_prefiring import l1_prefiring_weights
 from topsf.util import has_tag
 
@@ -61,7 +61,7 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[pu_weight](events, **kwargs)
 
         # compute PS weights
-        events = self[PSWeights](events, **kwargs)
+        events = self[ps_weights](events, **kwargs)
 
     return events
 
@@ -86,11 +86,11 @@ def weights_init(self: Producer) -> None:
             normalization_weights, pu_weight, mc_weight,
             top_pt_weight,
             vjets_weight,
-            PSWeights,
+            ps_weights,
         }
         self.produces |= {
             normalization_weights, pu_weight, mc_weight,
             top_pt_weight,
             vjets_weight,
-            PSWeights,
+            ps_weights,
         }
