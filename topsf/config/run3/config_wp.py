@@ -1172,8 +1172,6 @@ def add_config(
         "normalization_weight": [],
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
-        # "ISR": get_shifts("ISR"),
-        # "FSR": get_shifts("FSR"),
     })
 
     # event weights only present in certain datasets or configs
