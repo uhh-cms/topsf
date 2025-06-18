@@ -223,7 +223,7 @@ def add_config(
     # TODO make configurable from CLI (as params of inference model)
     cfg.x.fit_setup = {
         "channels": [
-            "1m",
+            # "1m",
             "1e",
         ],
         "pt_bins": [
@@ -240,8 +240,8 @@ def add_config(
             "very_loose",
         ],
         "fit_vars": [
-            # "probejet_msoftdrop_inf",   # use inference mSD with merged bins
-            "probejet_msoftdrop_widebins",
+            "probejet_msoftdrop_inf_rebin",   # use inference mSD
+            # "probejet_msoftdrop_widebins",
         ],
         "shape_unc": [
             "FSR",
@@ -287,23 +287,23 @@ def add_config(
         "st_twchannel_t_sl_powheg",
         "st_twchannel_tbar_sl_powheg",
         "st_twchannel_t_dl_powheg",
-        "st_twchannel_tbar_dl_powheg",
+        # "st_twchannel_tbar_dl_powheg",  # FIXME one file missing at any remote fs in preEE
         "st_twchannel_t_fh_powheg",
         "st_twchannel_tbar_fh_powheg",
         # DY 2022 v12 datasets
-        "dy_m4to50_ht40to70_madgraph",
-        "dy_m4to50_ht70to100_madgraph",
+        # "dy_m4to50_ht40to70_madgraph",  # FIXME AssertionError for preEE/postEE
+        # "dy_m4to50_ht70to100_madgraph",  # FIXME AssertionError for preEE/postEE
         "dy_m4to50_ht100to400_madgraph",
         "dy_m4to50_ht400to800_madgraph",
         "dy_m4to50_ht800to1500_madgraph",
         "dy_m4to50_ht1500to2500_madgraph",
         "dy_m4to50_ht2500toinf_madgraph",
-        "dy_m50to120_ht40to70_madgraph",
-        "dy_m50to120_ht70to100_madgraph",
+        # "dy_m50to120_ht40to70_madgraph",  # FIXME AssertionError for preEE
+        # "dy_m50to120_ht70to100_madgraph",  # FIXME AssertionError for postEE
         "dy_m50to120_ht100to400_madgraph",
         "dy_m50to120_ht400to800_madgraph",
         # WJets 2022 v12 datasets
-        "w_lnu_mlnu0to120_ht100to400_madgraph",
+        # "w_lnu_mlnu0to120_ht100to400_madgraph",  # FIXME AssertionError for postEE
         "w_lnu_mlnu0to120_ht400to800_madgraph",
         "w_lnu_mlnu0to120_ht800to1500_madgraph",
         "w_lnu_mlnu0to120_ht1500to2500_madgraph",
@@ -312,17 +312,38 @@ def add_config(
         "ww_pythia",
         "wz_pythia",
         "zz_pythia",
-        # QCD 2022 v12 datasets
-        "qcd_ht70to100_madgraph",  # FIXME AssertionError in preEE/postEE (full stat.)
-        "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
-        "qcd_ht200to400_madgraph",  # FIXME AssertionError in preEE/postEE (full stat.)
-        "qcd_ht400to600_madgraph",
-        "qcd_ht600to800_madgraph",
-        "qcd_ht800to1000_madgraph",
-        "qcd_ht1000to1200_madgraph",
-        "qcd_ht1200to1500_madgraph",
-        "qcd_ht1500to2000_madgraph",
-        "qcd_ht2000toinf_madgraph",
+        # # QCD 2022 v12 datasets
+        # # "qcd_ht70to100_madgraph",
+        # # "qcd_ht100to200_madgraph",
+        # # "qcd_ht200to400_madgraph",
+        # # "qcd_ht400to600_madgraph",
+        # # "qcd_ht600to800_madgraph",
+        # "qcd_ht800to1000_madgraph",
+        # "qcd_ht1000to1200_madgraph",
+        # # "qcd_ht1200to1500_madgraph",
+        # "qcd_ht1500to2000_madgraph",
+        # # "qcd_ht2000toinf_madgraph",
+        # QCD mu enriched
+        # "qcd_mu_pt15to20_pythia",  # remove low pt qcd datasets due to issues with pileup jets (27.01.25)
+        # "qcd_mu_pt20to30_pythia",  # remove low pt qcd datasets due to issues with pileup jets (27.01.25)
+        # "qcd_mu_pt30to50_pythia",  # remove low pt qcd datasets due to issues with pileup jets (27.01.25)
+        # "qcd_mu_pt50to80_pythia",  # remove low pt qcd datasets due to issues with pileup jets (27.01.25)
+        # "qcd_mu_pt80to120_pythia",  # remove low pt qcd datasets due to issues with pileup jets (27.01.25)
+        # "qcd_mu_pt120to170_pythia",  # FIXME AssertionError for preEE
+        "qcd_mu_pt170to300_pythia",
+        "qcd_mu_pt300to470_pythia",
+        "qcd_mu_pt470to600_pythia",
+        "qcd_mu_pt600to800_pythia",
+        "qcd_mu_pt800to1000_pythia",
+        "qcd_mu_pt1000toinf_pythia",
+        # QCD em enriched
+        # "qcd_em_pt10to30_pythia",  # remove low pt qcd datasets due to issues with pileup jets (27.01.25)
+        # "qcd_em_pt30to50_pythia",  # remove low pt qcd datasets due to issues with pileup jets (27.01.25)
+        # "qcd_em_pt50to80_pythia",  # remove low pt qcd datasets due to issues with pileup jets (27.01.25)
+        # "qcd_em_pt80to120_pythia",  # remove low pt qcd datasets due to issues with pileup jets (27.01.25)
+        # "qcd_em_pt120to170_pythia",  # FIXME AssertionError for preEE/postEE
+        # "qcd_em_pt170to300_pythia",  # FIXME AssertionError for postEE
+        "qcd_em_pt300toinf_pythia",
     ]
     if campaign.x.EE == "pre":
         dataset_names += [
@@ -330,6 +351,9 @@ def add_config(
             "data_egamma_d",
             "data_mu_c",
             "data_mu_d",
+            "dy_m50to120_ht70to100_madgraph",
+            "w_lnu_mlnu0to120_ht100to400_madgraph",
+            "qcd_em_pt170to300_pythia",
         ]
     if campaign.x.EE == "post":
         dataset_names += [
@@ -339,6 +363,9 @@ def add_config(
             "data_mu_e",
             "data_mu_f",
             "data_mu_g",
+            "st_twchannel_tbar_dl_powheg",
+            "dy_m50to120_ht40to70_madgraph",
+            "qcd_mu_pt120to170_pythia",
         ]
 
     for dataset_name in dataset_names:
@@ -358,6 +385,10 @@ def add_config(
         # mark ttbar (for top pT reweighting)
         if dataset_name.startswith("tt"):
             dataset.add_tag("is_ttbar")
+
+        # mark qcd processes
+        if dataset_name.startswith("qcd"):
+            dataset.add_tag("is_qcd")
 
         # mark v+jets processes (for NLO reweighting)
         if dataset_name.startswith("w_lnu"):
@@ -414,13 +445,28 @@ def add_config(
         "data": ["data_*"],
         "dy": ["dy*"],
         "w_lnu": ["w_lnu*"],
-        "qcd": ["qcd_ht*"],
+        "qcd_mu": ["qcd_mu*"],
+        "qcd_em": ["qcd_em*"],
+        "qcd": ["qcd*"],
         "st": ["st*"],
         "tt": ["tt*"],
         "vv": ["ww_pythia", "wz_pythia", "zz_pythia"],
         "vx": ["w_lnu*", "dy*", "ww_pythia", "wz_pythia", "zz_pythia"],
-        "mj": ["qcd_ht*"],
+        "mj": ["qcd*"],
+        "testing": [
+            "tt_sl_powheg",
+            "st_tchannel_t_4f_powheg",
+            "dy_m4to50_ht800to1500_madgraph",
+            "w_lnu_mlnu0to120_ht1500to2500_madgraph",
+            "ww_pythia",
+            "qcd_mu_pt600to800_pythia",
+            # "qcd_em_pt120to170_pythia",
+        ],
     }
+    if campaign.x.EE == "pre":
+        cfg.x.dataset_groups["testing"] += ["data_egamma_c", "data_mu_c"]
+    if campaign.x.EE == "post":
+        cfg.x.dataset_groups["testing"] += ["data_egamma_f", "data_mu_f"]
 
     # category groups for conveniently looping over certain categories
     # (used during plotting)
@@ -527,6 +573,84 @@ def add_config(
             "1m__pt_400_480__tau32_wp_very_loose_fail",
             "1m__pt_480_600__tau32_wp_very_loose_fail",
             "1m__pt_600_inf__tau32_wp_very_loose_fail",
+        ],
+        "1e_all_pt_wp_pass_fail": [
+            "1e__pt_300_400__tau32_wp_very_tight_pass",
+            "1e__pt_400_480__tau32_wp_very_tight_pass",
+            "1e__pt_480_600__tau32_wp_very_tight_pass",
+            "1e__pt_600_inf__tau32_wp_very_tight_pass",
+            "1e__pt_300_400__tau32_wp_very_tight_fail",
+            "1e__pt_400_480__tau32_wp_very_tight_fail",
+            "1e__pt_480_600__tau32_wp_very_tight_fail",
+            "1e__pt_600_inf__tau32_wp_very_tight_fail",
+            "1e__pt_300_400__tau32_wp_tight_pass",
+            "1e__pt_400_480__tau32_wp_tight_pass",
+            "1e__pt_480_600__tau32_wp_tight_pass",
+            "1e__pt_600_inf__tau32_wp_tight_pass",
+            "1e__pt_300_400__tau32_wp_tight_fail",
+            "1e__pt_400_480__tau32_wp_tight_fail",
+            "1e__pt_480_600__tau32_wp_tight_fail",
+            "1e__pt_600_inf__tau32_wp_tight_fail",
+            "1e__pt_300_400__tau32_wp_medium_pass",
+            "1e__pt_400_480__tau32_wp_medium_pass",
+            "1e__pt_480_600__tau32_wp_medium_pass",
+            "1e__pt_600_inf__tau32_wp_medium_pass",
+            "1e__pt_300_400__tau32_wp_medium_fail",
+            "1e__pt_400_480__tau32_wp_medium_fail",
+            "1e__pt_480_600__tau32_wp_medium_fail",
+            "1e__pt_600_inf__tau32_wp_medium_fail",
+            "1e__pt_300_400__tau32_wp_loose_pass",
+            "1e__pt_400_480__tau32_wp_loose_pass",
+            "1e__pt_480_600__tau32_wp_loose_pass",
+            "1e__pt_600_inf__tau32_wp_loose_pass",
+            "1e__pt_300_400__tau32_wp_loose_fail",
+            "1e__pt_400_480__tau32_wp_loose_fail",
+            "1e__pt_480_600__tau32_wp_loose_fail",
+            "1e__pt_600_inf__tau32_wp_loose_fail",
+            "1e__pt_300_400__tau32_wp_very_loose_pass",
+            "1e__pt_400_480__tau32_wp_very_loose_pass",
+            "1e__pt_480_600__tau32_wp_very_loose_pass",
+            "1e__pt_600_inf__tau32_wp_very_loose_pass",
+            "1e__pt_300_400__tau32_wp_very_loose_fail",
+            "1e__pt_400_480__tau32_wp_very_loose_fail",
+            "1e__pt_480_600__tau32_wp_very_loose_fail",
+            "1e__pt_600_inf__tau32_wp_very_loose_fail",
+        ],
+        "1m_all_pt": [
+            "1m__pt_300_400",
+            "1m__pt_400_480",
+            "1m__pt_480_600",
+            "1m__pt_600_inf",
+        ],
+        "1e_all_pt": [
+            "1e__pt_300_400",
+            "1e__pt_400_480",
+            "1e__pt_480_600",
+            "1e__pt_600_inf",
+        ],
+        "1m_all_wp": [
+            "1m__tau32_wp_very_tight_pass",
+            "1m__tau32_wp_very_tight_fail",
+            "1m__tau32_wp_tight_pass",
+            "1m__tau32_wp_tight_fail",
+            "1m__tau32_wp_medium_pass",
+            "1m__tau32_wp_medium_fail",
+            "1m__tau32_wp_loose_pass",
+            "1m__tau32_wp_loose_fail",
+            "1m__tau32_wp_very_loose_pass",
+            "1m__tau32_wp_very_loose_fail",
+        ],
+        "1e_all_wp": [
+            "1e__tau32_wp_very_tight_pass",
+            "1e__tau32_wp_very_tight_fail",
+            "1e__tau32_wp_tight_pass",
+            "1e__tau32_wp_tight_fail",
+            "1e__tau32_wp_medium_pass",
+            "1e__tau32_wp_medium_fail",
+            "1e__tau32_wp_loose_pass",
+            "1e__tau32_wp_loose_fail",
+            "1e__tau32_wp_very_loose_pass",
+            "1e__tau32_wp_very_loose_fail",
         ],
     }
 
@@ -1528,6 +1652,17 @@ def add_config(
     # #
     # # versions
     # #
+    # cfg.x.versions = {
+    #     "tt_*": "test_v7",
+    #     "st_*": "test_v7",
+    #     "dy_*": "test_v7",
+    #     "w_*": "test_v7",
+    #     "ww_*": "test_v7",
+    #     "wz_*": "test_v7",
+    #     "zz_*": "test_v7",
+    #     "data_*": "test_v7",
+    #     "topsf.CreateDatacards": "test_v8",
+    # }
 
     # # named references to actual versions to use for certain sets of tasks
     # main_ver = "test_v4"

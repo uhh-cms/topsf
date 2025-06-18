@@ -96,13 +96,35 @@ def add_config(
     dataset_names = [
         # ttbar (fully hadronic decays only)
         "tt_fh_powheg",
-        # QCD
-        "qcd_ht300to500_madgraph",  # noqa
-        "qcd_ht500to700_madgraph",
-        "qcd_ht700to1000_madgraph",
-        "qcd_ht1000to1500_madgraph",
-        "qcd_ht1500to2000_madgraph",
-        "qcd_ht2000toinf_madgraph",
+        # # QCD
+        # "qcd_ht300to500_madgraph",  # noqa
+        # "qcd_ht500to700_madgraph",
+        # "qcd_ht700to1000_madgraph",
+        # "qcd_ht1000to1500_madgraph",
+        # "qcd_ht1500to2000_madgraph",
+        # "qcd_ht2000toinf_madgraph",
+        # QCD mu enriched
+        # "qcd_mu_pt15to20_pythia",
+        # "qcd_mu_pt20to30_pythia",
+        # "qcd_mu_pt30to50_pythia",
+        # "qcd_mu_pt50to80_pythia",
+        # "qcd_mu_pt80to120_pythia",  # FIXME AssertionError for lim. stats.
+        "qcd_mu_pt120to170_pythia",
+        "qcd_mu_pt170to300_pythia",
+        "qcd_mu_pt300to470_pythia",
+        "qcd_mu_pt470to600_pythia",
+        "qcd_mu_pt600to800_pythia",
+        "qcd_mu_pt800to1000_pythia",
+        "qcd_mu_pt1000toinf_pythia",
+        # # QCD em enriched
+        # "qcd_em_pt15to20_pythia",  # FIXME AssertionError for lim. stats.
+        # "qcd_em_pt20to30_pythia",
+        # "qcd_em_pt30to50_pythia",
+        # "qcd_em_pt50to80_pythia",
+        # "qcd_em_pt80to120_pythia",
+        "qcd_em_pt120to170_pythia",
+        "qcd_em_pt170to300_pythia",
+        "qcd_em_pt300toinf_pythia",
     ]
     for dataset_name in dataset_names:
         # add the dataset
@@ -111,6 +133,9 @@ def add_config(
         # mark ttbar
         if dataset_name.startswith("tt"):
             dataset.add_tag({"has_top", "is_ttbar"})
+        # mark QCD
+        if dataset_name.startswith("qcd"):
+            dataset.add_tag({"is_qcd"})
 
         # for testing purposes, limit the number of files per dataset
         if limit_dataset_files:
@@ -150,8 +175,10 @@ def add_config(
     # (used in wrapper_factory and during plotting)
     cfg.x.dataset_groups = {
         "all": dataset_names,
-        "qcd": ["qcd_ht*"],
+        "qcd_mu": ["qcd_mu*"],
+        "qcd_em": ["qcd_em*"],
         "tt": ["tt*"],
+        "qcd": ["qcd*"],
     }
 
     # category groups for conveniently looping over certain categories
@@ -169,8 +196,13 @@ def add_config(
     # selector step groups for conveniently looping over certain steps
     # (used in cutflow tasks)
     cfg.x.selector_step_groups = {
-        "default": [
+        "default_old": [
             "FatJet", "METFilters",
+        ],
+        "default": [
+            "met_filter",
+            "FatJet",
+            "jet_veto_map",
         ],
     }
 
@@ -831,6 +863,7 @@ def add_config(
             "channel_id", "process_id", "category_ids",
             "normalization_weight",
             "cutflow.*",
+            "mc_weight",
         },
         "cf.UniteColumns": {
             "*",
@@ -872,6 +905,9 @@ def add_config(
     # #
     # # versions
     # #
+    # cfg.x.versions = {
+    #     "tt_*": "test_v7",
+    # }
 
     # # named references to actual versions to use for certain sets of tasks
     # main_ver = "v1"

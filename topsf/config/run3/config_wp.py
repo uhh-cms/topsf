@@ -89,7 +89,37 @@ def add_config(
     process_names = [
         "tt",
         "qcd",
+        "qcd_mu_pt15to20",
+        "qcd_mu_pt20to30",
+        "qcd_mu_pt30to50",
+        "qcd_mu_pt50to80",
+        "qcd_mu_pt80to120",
+        "qcd_mu_pt120to170",
+        "qcd_mu_pt170to300",
+        "qcd_mu_pt300to470",
+        "qcd_mu_pt470to600",
+        "qcd_mu_pt600to800",
+        "qcd_mu_pt800to1000",
+        "qcd_mu_pt1000toinf",
+        "qcd_em_pt10to30",
+        "qcd_em_pt30to50",
+        "qcd_em_pt50to80",
+        "qcd_em_pt80to120",
+        "qcd_em_pt120to170",
+        "qcd_em_pt170to300",
+        "qcd_em_pt300toinf",
     ]
+
+    blue_shades_mu = [
+        "#ADD8E6", "#87CEEB", "#5CB3FF", "#4682B4",
+        "#4169E1", "#0000FF", "#0000CD", "#00008B",
+        "#191970", "#0F52BA", "#082567", "#001F3F",
+    ]
+    green_shades_em = [
+        "#98FB98", "#7CFC00", "#32CD32",
+        "#228B22", "#006400", "#013220", "#002B00",
+    ]
+
     for process_name in process_names:
         # add the process
         proc = cfg.add_process(procs.get(process_name))
@@ -98,8 +128,21 @@ def add_config(
         if proc.name.startswith("tt"):
             proc.add_tag({"has_top", "is_ttbar"})
 
-        # configuration of colors, labels, etc. can happen here
-        proc.color = colors.get(proc.name, "#aaaaaa")
+        # assign colors of qcd_mu processes using the blue shades
+        if proc.name.startswith("qcd_mu"):
+            proc.color = blue_shades_mu.pop(0)
+
+        # assign colors of qcd_em processes using the green shades
+        if proc.name.startswith("qcd_em"):
+            proc.color = green_shades_em.pop(0)
+
+        # assign colors of tt processes
+        if proc.name == "tt":
+            proc.color = colors["tt"]
+
+        # assign colors of qcd processes
+        if proc.name == "qcd":
+            proc.color = colors["qcd"]
 
     #
     # datasets
@@ -109,18 +152,43 @@ def add_config(
     dataset_names = [
         # ttbar (fully hadronic decays only)
         "tt_fh_powheg",
-        # QCD 2022 v12 datasets
-        "qcd_ht70to100_madgraph",
-        # "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
-        "qcd_ht200to400_madgraph",
-        "qcd_ht400to600_madgraph",
-        "qcd_ht600to800_madgraph",
-        "qcd_ht800to1000_madgraph",
-        "qcd_ht1000to1200_madgraph",
-        "qcd_ht1200to1500_madgraph",
-        "qcd_ht1500to2000_madgraph",
-        "qcd_ht2000toinf_madgraph",
+        # # QCD 2022 v12 datasets
+        # "qcd_ht70to100_madgraph",
+        # # "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
+        # "qcd_ht200to400_madgraph",
+        # "qcd_ht400to600_madgraph",
+        # "qcd_ht600to800_madgraph",
+        # "qcd_ht800to1000_madgraph",
+        # "qcd_ht1000to1200_madgraph",
+        # "qcd_ht1200to1500_madgraph",
+        # "qcd_ht1500to2000_madgraph",
+        # "qcd_ht2000toinf_madgraph",
+        # QCD mu enriched
+        # "qcd_mu_pt15to20_pythia",  # FIXME AssertionError for lim. stats. (preEE)
+        # # "qcd_mu_pt20to30_pythia",  # FIXME AssertionError for lim. stats. (preEE)  # FIXME broken Root file?
+        # "qcd_mu_pt30to50_pythia",  # FIXME AssertionError for lim. stats. (preEE)
+        # "qcd_mu_pt50to80_pythia",
+        # "qcd_mu_pt80to120_pythia",
+        "qcd_mu_pt120to170_pythia",
+        "qcd_mu_pt170to300_pythia",
+        "qcd_mu_pt300to470_pythia",
+        "qcd_mu_pt470to600_pythia",
+        "qcd_mu_pt600to800_pythia",
+        "qcd_mu_pt800to1000_pythia",
+        "qcd_mu_pt1000toinf_pythia",
+        # QCD em enriched
+        # "qcd_em_pt10to30_pythia",
+        # "qcd_em_pt30to50_pythia",
+        # "qcd_em_pt50to80_pythia",
+        # "qcd_em_pt80to120_pythia",
+        "qcd_em_pt120to170_pythia",
+        "qcd_em_pt170to300_pythia",
+        "qcd_em_pt300toinf_pythia",
     ]
+    # if campaign.x.EE == "post":
+    #     dataset_names += [
+    #         "qcd_mu_pt20to30_pythia",
+    #     ]
     for dataset_name in dataset_names:
         # add the dataset
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
@@ -128,6 +196,10 @@ def add_config(
         # mark ttbar
         if dataset_name.startswith("tt"):
             dataset.add_tag({"has_top", "is_ttbar"})
+
+        # mark QCD
+        if dataset_name.startswith("qcd"):
+            dataset.add_tag({"is_qcd"})
 
         # for testing purposes, limit the number of files per dataset
         if limit_dataset_files:
@@ -1100,8 +1172,8 @@ def add_config(
         "normalization_weight": [],
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
-        "ISR": get_shifts("ISR"),
-        "FSR": get_shifts("FSR"),
+        # "ISR": get_shifts("ISR"),
+        # "FSR": get_shifts("FSR"),
     })
 
     # event weights only present in certain datasets or configs
@@ -1115,10 +1187,17 @@ def add_config(
         if dataset.has_tag("is_v_jets"):
             # V+jets QCD NLO reweighting
             dataset.x.event_weights["vjets_weight"] = get_shifts("vjets")
+        # add PSWeight variations for all datasets but qcd
+        if not dataset.has_tag("is_qcd"):
+            dataset.x.event_weights["ISR"] = get_shifts("ISR")
+            dataset.x.event_weights["FSR"] = get_shifts("FSR")
 
     # #
     # # versions
     # #
+    # cfg.x.versions = {
+    #     "tt_*": "test_v7",
+    # }
 
     # # named references to actual versions to use for certain sets of tasks
     # main_ver = "v1"

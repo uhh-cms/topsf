@@ -237,7 +237,7 @@ def add_config(
             # "muon",
             # "minbias_xs",
             # # "top_pt",
-            # "jec_Total",
+            "jec_Total",
         ],
     }
 
@@ -276,7 +276,7 @@ def add_config(
         # TTbar
         "tt_sl_powheg",
         "tt_dl_powheg",
-        "tt_fh_powheg",
+        "tt_fh_powheg",  # FIXME AssertionError for lim. stats.
         # SingleTop
         "st_schannel_lep_4f_amcatnlo",
         "st_tchannel_t_4f_powheg",
@@ -284,8 +284,8 @@ def add_config(
         "st_twchannel_t_powheg",
         "st_twchannel_tbar_powheg",
         # DY
-        # "dy_m50toinf_ht70to100_madgraph",
-        "dy_m50toinf_ht100to200_madgraph",
+        "dy_m50toinf_ht70to100_madgraph",  # FIXME AssertionError for lim. stats.
+        "dy_m50toinf_ht100to200_madgraph",  # FIXME AssertionError for lim. stats.
         "dy_m50toinf_ht200to400_madgraph",
         "dy_m50toinf_ht400to600_madgraph",
         "dy_m50toinf_ht600to800_madgraph",
@@ -293,8 +293,8 @@ def add_config(
         "dy_m50toinf_ht1200to2500_madgraph",
         "dy_m50toinf_ht2500toinf_madgraph",
         # WJets
-        "w_lnu_ht70to100_madgraph",
-        "w_lnu_ht100to200_madgraph",
+        "w_lnu_ht70to100_madgraph",  # FIXME AssertionError for lim. stats.
+        "w_lnu_ht100to200_madgraph",  # FIXME AssertionError for lim. stats.
         "w_lnu_ht200to400_madgraph",
         "w_lnu_ht400to600_madgraph",
         "w_lnu_ht600to800_madgraph",
@@ -305,16 +305,38 @@ def add_config(
         "ww_pythia",
         "wz_pythia",
         "zz_pythia",
-        # QCD
-        # "qcd_ht50to100_madgraph",
-        # "qcd_ht100to200_madgraph",
-        # "qcd_ht200to300_madgraph",
-        # "qcd_ht300to500_madgraph",
-        "qcd_ht500to700_madgraph",
-        "qcd_ht700to1000_madgraph",
-        "qcd_ht1000to1500_madgraph",
-        "qcd_ht1500to2000_madgraph",
-        "qcd_ht2000toinf_madgraph",
+        # # QCD
+        # # "qcd_ht50to100_madgraph",  # FIXME AssertionError for lim. stats.
+        # # "qcd_ht100to200_madgraph",  # FIXME AssertionError for lim. stats.
+        # # "qcd_ht200to300_madgraph",  # FIXME AssertionError for lim. stats.
+        # # "qcd_ht300to500_madgraph",  # FIXME AssertionError for lim. stats.
+        # "qcd_ht500to700_madgraph",
+        # "qcd_ht700to1000_madgraph",
+        # # "qcd_ht1000to1500_madgraph",  # FIXME AssertionError for lim. stats.
+        # "qcd_ht1500to2000_madgraph",
+        # # "qcd_ht2000toinf_madgraph",  # FIXME AssertionError for lim. stats.
+        # QCD mu enriched
+        # "qcd_mu_pt15to20_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats., also for full stats.  # noqa: E501
+        "qcd_mu_pt20to30_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats.
+        "qcd_mu_pt30to50_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats.
+        "qcd_mu_pt50to80_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats.
+        "qcd_mu_pt80to120_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats.
+        "qcd_mu_pt120to170_pythia",  # FIXME AssertionError for lim. stats.
+        "qcd_mu_pt170to300_pythia",  # FIXME AssertionError for lim. stats.
+        "qcd_mu_pt300to470_pythia",
+        "qcd_mu_pt470to600_pythia",
+        "qcd_mu_pt600to800_pythia",
+        "qcd_mu_pt800to1000_pythia",
+        "qcd_mu_pt1000toinf_pythia",
+        # QCD em enriched
+        "qcd_em_pt15to20_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats.
+        "qcd_em_pt20to30_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats.
+        "qcd_em_pt30to50_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats.
+        "qcd_em_pt50to80_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats.
+        "qcd_em_pt80to120_pythia",  # FIXME AssertionError for lim. stats. also for med. lim. stats.
+        # "qcd_em_pt120to170_pythia",  # FIXME AssertionError for lim. stats., also for med. lim. stats., also for full stats.  # noqa: E501
+        "qcd_em_pt170to300_pythia",
+        "qcd_em_pt300toinf_pythia",  # FIXME AssertionError for lim. stats.
     ]
     for dataset_name in dataset_names:
         # add the dataset
@@ -329,6 +351,10 @@ def add_config(
         # mark ttbar (for top pT reweighting)
         if dataset_name.startswith("tt"):
             dataset.add_tag("is_ttbar")
+
+        # mark qcd processes
+        if dataset_name.startswith("qcd"):
+            dataset.add_tag("is_qcd")
 
         # mark v+jets processes (for NLO reweighting)
         if dataset_name.startswith("w_lnu"):
@@ -382,12 +408,14 @@ def add_config(
         "data": ["data_*"],
         "dy": ["dy*"],
         "w_lnu": ["w_lnu*"],
-        "qcd": ["qcd_ht*"],
+        "qcd_mu": ["qcd_mu*"],
+        "qcd_em": ["qcd_em*"],
+        "qcd": ["qcd*"],
         "st": ["st*"],
         "tt": ["tt*"],
         "vv": ["ww_pythia", "wz_pythia", "zz_pythia"],
         "vx": ["w_lnu*", "dy*", "ww_pythia", "wz_pythia", "zz_pythia"],
-        "mj": ["qcd_ht*"],
+        "mj": ["qcd*"],
     }
 
     # category groups for conveniently looping over certain categories
@@ -509,8 +537,19 @@ def add_config(
     # selector step groups for conveniently looping over certain steps
     # (used in cutflow tasks)
     cfg.x.selector_step_groups = {
-        "default": [
+        "default_old": [
             "LeptonTrigger", "Lepton", "AddLeptonVeto", "MET", "BJet", "METFilters",
+        ],
+        "default": [
+            "met_filter",
+            "Lepton",
+            "Jet",
+            "BJetLeptonDeltaR",
+            "JetLepton2DCut",
+            "FatJet",
+            "MET",
+            "WLepPt",
+            "jet_veto_map",
         ],
     }
 
@@ -1467,8 +1506,8 @@ def add_config(
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
         "electron_weight": get_shifts("electron"),
-        "ISR": get_shifts("ISR"),
-        "FSR": get_shifts("FSR"),
+        # "ISR": get_shifts("ISR"),
+        # "FSR": get_shifts("FSR"),
     })
 
     # event weights only present in certain datasets
@@ -1483,10 +1522,24 @@ def add_config(
         if not dataset.is_data:
             # prefiring weights (all datasets except real data)
             dataset.x.event_weights["l1_ecal_prefiring_weight"] = get_shifts("l1_ecal_prefiring")
+        # add PSWeight variations for all datasets but qcd
+        if not dataset.has_tag("is_qcd"):
+            dataset.x.event_weights["ISR"] = get_shifts("ISR")
+            dataset.x.event_weights["FSR"] = get_shifts("FSR")
 
     # #
     # # versions
     # #
+    # cfg.x.versions = {
+    #     "tt_*": "test_v7",
+    #     "st_*": "test_v7",
+    #     "dy_*": "test_v7",
+    #     "w_*": "test_v7",
+    #     "ww_*": "test_v7",
+    #     "wz_*": "test_v7",
+    #     "zz_*": "test_v7",
+    #     "data_*": "test_v7",
+    # }
 
     # # named references to actual versions to use for certain sets of tasks
     # main_ver = "test_v4"
