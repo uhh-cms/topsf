@@ -164,7 +164,9 @@ def probe_jet(
             # -- helper functions for filtering decay products
 
             def filter_closest(*args):
-                t_probejet_deltar = probejet.delta_r(args[0])
+                # attach proper behavior to args which was lost in new Vector version
+                t = ak.with_name(args[0], "PtEtaPhiMLorentzVector")
+                t_probejet_deltar = probejet.delta_r(t)
                 t_probejet_indices = ak.argsort(t_probejet_deltar, axis=1, ascending=True)
                 return tuple(
                     ak.firsts(arg[t_probejet_indices], axis=1)
@@ -179,7 +181,7 @@ def probe_jet(
 
             def is_merged(*args):
                 return tuple(
-                    probejet.delta_r(arg) < merged_max_deltar
+                    probejet.delta_r(ak.with_name(arg, "PtEtaPhiMLorentzVector")) < merged_max_deltar
                     for arg in args
                 )
 

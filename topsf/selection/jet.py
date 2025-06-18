@@ -147,8 +147,10 @@ def jet_lepton_2d_selection(
     jet_closest = ak.firsts(jet[jet_closest_indices])
 
     # calculate 2D separation metric
+    jet_closest_3d = jet_closest.to_Vector3D()
+    lepton_3d = lepton.to_Vector3D()
     delta_r = jet_closest.delta_r(lepton)
-    pt_rel = lepton.cross(jet_closest).p / jet_closest.p
+    pt_rel = lepton_3d.cross(jet_closest_3d).p / jet_closest_3d.p
     separation = (
         (delta_r / 0.4)**2 +
         (pt_rel / 30)**2

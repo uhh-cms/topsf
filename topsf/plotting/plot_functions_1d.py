@@ -11,7 +11,7 @@ import law
 
 from columnflow.util import maybe_import
 from columnflow.plotting.plot_util import (
-    prepare_plot_config,
+    prepare_stack_plot_config,
     prepare_style_config,
     remove_residual_axis,
     apply_variable_settings,
@@ -53,7 +53,7 @@ def plot_variable_per_process(
     hists = apply_process_settings(hists, process_settings)
     hists = apply_density_to_hists(hists, density)
 
-    plot_config = prepare_plot_config(
+    plot_config = prepare_stack_plot_config(
         hists,
         shape_norm=shape_norm,
         hide_errors=hide_errors,
