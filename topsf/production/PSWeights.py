@@ -21,7 +21,7 @@ ak = maybe_import("awkward")
         "FSR", "FSR_up", "FSR_down",
     },
 )
-def PSWeights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+def ps_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
     PS weights producer.
     PS weight [0]: ISR=2 FSR=1
