@@ -12,8 +12,11 @@ from HiggsAnalysis.CombinedLimit.PhysicsModel import PhysicsModel
 class TopSFCombinePhysicsModel(PhysicsModel):
 
     # old naming convention
-    RE_COMBINE_CHANNEL = "^bin_(?P<channel>\w+)__(?P<year>\w+)__(?P<pt_bin>\w+)__(?P<region>\w+)$"  # noqa: W605
-    RE_COMBINE_PROCESS = "^(?P<process>\w+?)(_(?P<msc>(3q|2q|0o1q|bkg)))?$"  # noqa: W605
+    # RE_COMBINE_CHANNEL = "^bin_(?P<channel>\w+)__(?P<year>\w+)__(?P<pt_bin>\w+)__(?P<region>\w+)$"  # noqa: W605
+    # RE_COMBINE_PROCESS = "^(?P<process>\w+?)(_(?P<msc>(3q|2q|0o1q|bkg)))?$"  # noqa: W605
+    # old naming convention
+    RE_COMBINE_CHANNEL = "^CombBin-Main-(?P<region>\w+)-(?P<channel>\w+)-(?P<year>\w+)-(?P<pt_bin>\w+)$"
+    RE_COMBINE_PROCESS = "^(?P<process>\w+?)(__MSc_(?P<msc>\w+?))?(__(?P<year>\w+?))?(__(?P<pt_bin>\w+?))?$"
 
     # # simplified naming convention (no year, pt_bin)
     # RE_COMBINE_CHANNEL = "^(?P<process>\w+?)(__MSc_(?P<msc>\w+?))?$"
@@ -31,7 +34,7 @@ class TopSFCombinePhysicsModel(PhysicsModel):
             "sf_range": None,
             "pt_bins": set(),
             "years": set(),
-            "regions": {"pass", "fail"},
+            "regions": {"Pass", "Fail"},
         }
 
     # -- command-line options parsing
@@ -165,7 +168,7 @@ class TopSFCombinePhysicsModel(PhysicsModel):
                 # scale factors for "fail" region ("anti-scale factors")
                 antisf_name = f"Anti{sf_name}"
                 yields = expected_yields_top[msc][year][pt_bin]
-                n_pass, n_fail = yields["pass"], yields["fail"]
+                n_pass, n_fail = yields["Pass"], yields["Fail"]
                 self.modelBuilder.factory_(
                     f"expr::{antisf_name}(\"max(0.,1.+(1.-@0)*{n_pass}/{n_fail})\", {sf_name})"  # noqa: C812
                 )
@@ -189,9 +192,9 @@ class TopSFCombinePhysicsModel(PhysicsModel):
 
         msc = process_dict["msc"]
         sf_name = self.sf_naming_scheme.format(msc=msc, **channel_dict)
-        if (not self.fit_merge_scenarios.get(msc)) or channel_dict["region"][-4:] == "pass":
+        if (not self.fit_merge_scenarios.get(msc)) or channel_dict["region"] == "Pass":
             return sf_name
-        elif channel_dict["region"][-4:] == "fail":
+        elif channel_dict["region"] == "Fail":
             return sf_name.replace("SF_", "AntiSF_")
         else:
             return 1

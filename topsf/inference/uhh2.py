@@ -30,14 +30,7 @@ def uhh2(self):
 
     year = self.config_inst.campaign.x.year  # noqa; not used right now
 
-    processes = [
-        f"{base_proc}_{subproc_suffix}"
-        for base_proc in ("tt", "st")
-        for subproc_suffix in ("3q", "2q", "0o1q", "bkg")
-    ] + [
-        "vx",
-        # "mj",  # no QCD datasets used for now due to error
-    ]
+    processes = self.config_inst.x.inference_processes
 
     #
     # regions/categories
@@ -49,27 +42,19 @@ def uhh2(self):
 
     # category elements to combine in fit
     years = [
-        "UL17",
+        year % 100,
     ]
-    channels = [
-        "1m",
-        "1e",
-    ]
-    pt_bins = [
-        "pt_300_400",
-        "pt_400_480",
-    ]
-    wp_names = [
-        "very_tight",
-        "tight",
-    ]
+    channels = self.config_inst.x.fit_setup["channels"]
+    pt_bins = self.config_inst.x.fit_setup["pt_bins"]
+    wp_names = self.config_inst.x.fit_setup["wp_names"]
+    fit_vars = self.config_inst.x.fit_setup["fit_vars"][0]  # TODO: do we need to support multiple vars?
 
     # tuples of inference categories and
     # corresponding config category names
     categories = [
         # (columnflow_name, combine_name)
         (f"{channel}__{pt_bin}__tau32_wp_{wp_name}_{region}",
-        f"bin_{channel}__{year}__{pt_bin}__tau32_wp_{wp_name}_{region}")  # TODO make year part of cf name?
+        f"bin_{channel}__{year}__{pt_bin}__tau32_wp_{wp_name}_{region}")
         for channel, year, pt_bin, wp_name, region in itertools.product(
             channels,
             years,
@@ -84,8 +69,8 @@ def uhh2(self):
         self.add_category(
             inference_cat,
             config_category=config_cat,
-            config_variable="probejet_msoftdrop_widebins",
-            mc_stats=True,
+            config_variable=fit_vars,
+            mc_stats="0 1 1",
             config_data_datasets=get_process_datasets(self.config_inst, "data"),
             # fake data from sum of MC processes
             data_from_processes=processes,
@@ -137,41 +122,44 @@ def uhh2(self):
             transformations=[ParameterTransformation.symmetrize],
         )
 
-    # process rates (prefit values)
-    for proc, rate in [
-        ("tt", 1.05),
-        ("st", 1.5),
-        ("vx", 1.2),
-        ("mj", 2.0),
-    ]:
+    for proc in self.config_inst.x.process_rates.keys():
+        subprocesses = [
+            subproc.name for subproc, _, _ in self.config_inst.get_process(proc).walk_processes(
+                algo="bfs",
+                include_self=True,
+            )
+        ]
         self.add_parameter(
             f"xsec_{proc}",
             type=ParameterType.rate_gauss,
+            effect=self.config_inst.x.process_rates[proc],
+            process=[inference_processes.get(subproc, subproc) for subproc in subprocesses],
         )
 
     # systematic shifts (TODO: add others)
-    uncertainty_shifts = [
-        # "pdf",
-        # "mcscale",
-        # "prefiring",
-        # "minbias_xs",  # pileup
+    uncertainty_shifts = self.config_inst.x.fit_setup["shape_unc"]
+    # uncertainty_shifts = [
+    #     # "pdf",
+    #     # "mcscale",
+    #     # "prefiring",
+    #     # "minbias_xs",  # pileup
 
-        # "muon",  # TODO: split?
-        # "mu_id",
-        # "mu_iso",
-        # "mu_reco",
-        # "mu_trigger",
+    #     # "muon",  # TODO: split?
+    #     # "mu_id",
+    #     # "mu_iso",
+    #     # "mu_reco",
+    #     # "mu_trigger",
 
-        # b-tagging
-        # "btag_cferr1",
-        # "btag_cferr2",
-        # "btag_hf",
-        # "btag_hfstats1_2017",
-        # "btag_hfstats2_2017",
-        # "btag_lf",
-        # "btag_lfstats1_2017",
-        # "btag_lfstats2_2017",
-    ]
+    #     # b-tagging
+    #     # "btag_cferr1",
+    #     # "btag_cferr2",
+    #     # "btag_hf",
+    #     # "btag_hfstats1_2017",
+    #     # "btag_hfstats2_2017",
+    #     # "btag_lf",
+    #     # "btag_lfstats1_2017",
+    #     # "btag_lfstats2_2017",
+    # ]
 
     # different naming convention for some parameters
     inference_pars = {

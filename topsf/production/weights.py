@@ -15,6 +15,7 @@ from columnflow.util import maybe_import
 from topsf.production.normalization import normalization_weights
 from topsf.production.gen_top import top_pt_weight
 from topsf.production.gen_v import vjets_weight
+from topsf.production.ps_weights import ps_weights
 from topsf.production.l1_prefiring import l1_prefiring_weights
 from topsf.util import has_tag
 
@@ -34,14 +35,6 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
             muon_mask = (events.Muon.pt >= 30) & (abs(events.Muon.eta) < 2.4)
             events = self[muon_weights](events, muon_mask=muon_mask, **kwargs)
 
-        # # compute electron weights
-        # electron_mask = (events.Electron.pt >= 35)
-        # events = self[electron_weights](events, electron_mask=electron_mask, **kwargs)
-
-        # # compute muon weights
-        # muon_mask = (events.Muon.pt >= 30) & (abs(events.Muon.eta) < 2.4)
-        # events = self[muon_weights](events, muon_mask=muon_mask, **kwargs)
-
         # # compute btag weights
         # jet_mask = (events.Jet.pt >= 100) & (abs(events.Jet.eta) < 2.5)
         # events = self[btag_weights](events, jet_mask=jet_mask, **kwargs)
@@ -50,13 +43,13 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         if self.dataset_inst.has_tag("is_ttbar"):
             events = self[top_pt_weight](events, **kwargs)
 
-        if self.config_inst.x.run == 2:
-            # compute L1 prefiring weights
-            events = self[l1_prefiring_weights](events, **kwargs)
-
         # compute V+jets K factor weights
         if self.dataset_inst.has_tag("is_v_jets"):
             events = self[vjets_weight](events, **kwargs)
+
+        if self.config_inst.x.run == 2:
+            # compute L1 prefiring weights
+            events = self[l1_prefiring_weights](events, **kwargs)
 
         # compute normalization weights
         events = self[normalization_weights](events, **kwargs)
@@ -66,6 +59,9 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         # compute pu weights
         events = self[pu_weight](events, **kwargs)
+
+        # compute PS weights
+        events = self[ps_weights](events, **kwargs)
 
     return events
 
@@ -82,15 +78,19 @@ def weights_init(self: Producer) -> None:
             self.uses |= {muon_weights}
             self.produces |= {muon_weights}
 
+        if self.config_inst.x.run == 2:
+            self.uses |= {l1_prefiring_weights}
+            self.produces |= {l1_prefiring_weights}
+
         self.uses |= {
             normalization_weights, pu_weight, mc_weight,
-            l1_prefiring_weights,
             top_pt_weight,
             vjets_weight,
+            ps_weights,
         }
         self.produces |= {
             normalization_weights, pu_weight, mc_weight,
-            l1_prefiring_weights,
             top_pt_weight,
             vjets_weight,
+            ps_weights,
         }

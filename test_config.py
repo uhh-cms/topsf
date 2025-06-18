@@ -16,6 +16,12 @@ run3_config = law.config.get_expanded("analysis", "run3_config")
 
 analysis_inst = ana = AnalysisTask.get_analysis_inst(run3_analysis)
 config_inst = cfg = ana.get_config(run3_config)
+# ana = AnalysisTask.get_analysis_inst(default_analysis)
+# config_inst = cfg = ana.get_config(default_config)
+
+print(f"================= Analysis: {ana.name} ======================")
+print(f"ID: {ana.id}")
+print(f"Config: {cfg.name}")
 
 print(" ================ Processes ======================")
 process_insts = cfg.processes
@@ -33,7 +39,8 @@ print("================= Datasets =======================")
 dataset_insts = cfg.datasets
 for data_inst in dataset_insts:
     print(f"{data_inst.name}; N_events: {data_inst.n_events:,}")
-print(f"Sum of all mc events: {sum([data_inst.n_events for data_inst in dataset_insts]):,}")
+    print(cfg.datasets.get(data_inst.name).processes.values()[0].xsecs)
+print(f"Sum of all mc events: {sum([data_inst.n_events for data_inst in dataset_insts if not data_inst.name.startswith('data')]):,}")
 print(f"Number of datasets: {len(dataset_insts)}")
 print(f"Number of dataset files: {sum([data_inst.n_files for data_inst in dataset_insts])}")
 
@@ -61,8 +68,10 @@ for shift_inst in shift_insts:
 print("================= Auxiliary ======================")
 aux = cfg.aux
 for key, value in aux.items():
-    print(key)
-print(cfg.tags)
+    print(f"aux entry {key}")
+print(f"tags: {cfg.tags}")
+if cfg.has_tag("is_top_sf"):
+    print("This is a top SF config")
 
 # print some features of an exemplary process inst
 proc_inst = cfg.get_process("tt")

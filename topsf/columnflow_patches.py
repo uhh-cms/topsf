@@ -9,8 +9,25 @@ import os
 import law
 from columnflow.util import memoize
 
+import getpass
 
 logger = law.logger.get_logger(__name__)
+
+
+@memoize
+def patch_htcondor_workflow_naf_resources():
+    """
+    Patches the HTCondorWorkflow task to declare user-specific resources when running on the NAF.
+    """
+    from columnflow.tasks.framework.remote import HTCondorWorkflow
+
+    def htcondor_job_resources(self, job_num, branches):
+        # one "naf_<username>" resource per job, indendent of the number of branches in the job
+        return {f"naf_{getpass.getuser()}": 1}
+
+    HTCondorWorkflow.htcondor_job_resources = htcondor_job_resources
+
+    logger.debug(f"patched htcondor_job_resources of {HTCondorWorkflow.task_family}")
 
 
 @memoize
@@ -37,3 +54,4 @@ def patch_bundle_repo_exclude_files():
 @memoize
 def patch_all():
     patch_bundle_repo_exclude_files()
+    patch_htcondor_workflow_naf_resources()

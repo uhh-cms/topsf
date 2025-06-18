@@ -219,7 +219,7 @@ def add_categories(config: od.Config) -> None:
                 False,
             )
 
-        assert cat_idx < 10**cat_idx_ndigits - 1, "no space for category, ID reassignement necessary"
+        assert cat_idx < 10**cat_idx_ndigits - 1, "no space for category, ID reassignment necessary"
         cat = config.add_category(
             name=cat_name,
             id=int(10**cat_idx_lsd * ((cat_idx + 1) + 10 * 3)),
@@ -237,7 +237,7 @@ def add_categories(config: od.Config) -> None:
             ("pass", "<", slice(None, cat_idx + 1)),
             ("fail", ">", slice(cat_idx + 1, None)),
         ]):
-            cat_label = rf"$\tau_{{3}}/\tau_{{2}}$ {comp_symbol} {tau32_val} ({pass_fail})"
+            cat_label = rf"{tau32_wp} wp: $\tau_{{3}}/\tau_{{2}}$ {comp_symbol} {tau32_val} ({pass_fail})"
 
             cat_name = f"tau32_wp_{tau32_wp}_{pass_fail}"
             sel_name = f"sel_{cat_name}"

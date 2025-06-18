@@ -57,6 +57,8 @@ def add_config(
     # (if id and name are not set they will be taken from the campaign)
     cfg = analysis.add_config(campaign, name=config_name, id=config_id)
 
+    cfg.x.run = 2
+
     #
     # configure processes
     #
@@ -64,9 +66,9 @@ def add_config(
     # get all root processes
     procs = get_root_processes_from_campaign(campaign)
 
-    # create parent processes for w_lep, dy_lep and qcd
+    # create parent processes for w_lep, dy and qcd
     for i_proc, (proc_name, proc_label, child_procs) in enumerate([
-        ("vx", "V+jets, VV", ["dy_lep", "w_lnu", "vv"]),
+        ("vx", "V+jets, VV", ["dy", "w_lnu", "vv"]),
         ("mj", "Multijet", ["qcd"]),
     ]):
         proc = od.Process(
@@ -166,7 +168,7 @@ def add_config(
         "qcd": "#5E8FFC",  # blue
         "w_lnu": "#82FF28",  # green
         "st": "#3E00FB",  # dark purple
-        "dy_lep": "#FBFF36",  # yellow
+        "dy": "#FBFF36",  # yellow
         "vv": "#B900FC",  # pink
         "other": "#999999",  # grey
         # christopher's color scheme
@@ -175,17 +177,70 @@ def add_config(
     }
 
     # add processes we are interested in
+    # remove processes we don't need from list and following dict!
     process_names = [
         "data",
         "tt",
         "st",
-        # "dy_lep",
+        # "dy",
         # "w_lnu",
         # "vv",
         # "qcd",
         "vx",
         "mj",
     ]
+
+    cfg.x.process_rates = {
+        "tt": 1.05,
+        "st": 1.5,
+        "vx": 1.2,
+        "mj": 2.0,
+    }
+
+    cfg.x.inference_processes = [
+        f"{base_proc}_{subproc_suffix}"
+        for base_proc in ("tt", "st")
+        for subproc_suffix in ("3q", "2q", "0o1q", "bkg")
+    ] + [
+        "vx",
+        "mj",
+    ]
+
+    # setup for fit
+    # TODO make configurable from CLI (as params of inference model)
+    cfg.x.fit_setup = {
+        "channels": [
+            "1m",
+            "1e",
+        ],
+        "pt_bins": [
+            "pt_300_400",
+            "pt_400_480",
+            "pt_480_600",
+            "pt_600_inf",
+        ],
+        "wp_names": [
+            "very_tight",
+            "tight",
+            "medium",
+            "loose",
+            "very_loose",
+        ],
+        "fit_vars": [
+            # "probejet_msoftdrop_inf",   # use inference mSD with merged bins
+            "probejet_msoftdrop_widebins",
+        ],
+        "shape_unc": [
+            # "FSR",
+            # "ISR",
+            # "electron",
+            # "muon",
+            # "minbias_xs",
+            # # "top_pt",
+            # "jec_Total",
+        ],
+    }
+
     for process_name in process_names:
         # add the process
         proc = cfg.add_process(procs.get(process_name))
@@ -209,7 +264,7 @@ def add_config(
     dataset_names = [
         # DATA
         "data_e_b",
-        # "data_e_c",  # non-finite values in Jet.eta array  # rm!
+        "data_e_c",
         "data_e_d",
         "data_e_e",
         "data_e_f",
@@ -223,43 +278,43 @@ def add_config(
         "tt_dl_powheg",
         "tt_fh_powheg",
         # SingleTop
-        "st_schannel_lep_amcatnlo",
-        "st_tchannel_t_powheg",
-        "st_tchannel_tbar_powheg",
+        "st_schannel_lep_4f_amcatnlo",
+        "st_tchannel_t_4f_powheg",
+        "st_tchannel_tbar_4f_powheg",
         "st_twchannel_t_powheg",
         "st_twchannel_tbar_powheg",
         # DY
-        #"dy_lep_m50_ht70to100_madgraph",  # rm?  # noqa
-        #"dy_lep_m50_ht100to200_madgraph",  # rm?  # noqa
-        "dy_lep_m50_ht200to400_madgraph",
-        "dy_lep_m50_ht400to600_madgraph",
-        "dy_lep_m50_ht600to800_madgraph",
-        "dy_lep_m50_ht800to1200_madgraph",
-        "dy_lep_m50_ht1200to2500_madgraph",
-        "dy_lep_m50_ht2500_madgraph",
+        # "dy_m50toinf_ht70to100_madgraph",
+        "dy_m50toinf_ht100to200_madgraph",
+        "dy_m50toinf_ht200to400_madgraph",
+        "dy_m50toinf_ht400to600_madgraph",
+        "dy_m50toinf_ht600to800_madgraph",
+        "dy_m50toinf_ht800to1200_madgraph",
+        "dy_m50toinf_ht1200to2500_madgraph",
+        "dy_m50toinf_ht2500toinf_madgraph",
         # WJets
-        #"w_lnu_ht70To100_madgraph",  # rm?  # noqa
-        #"w_lnu_ht100To200_madgraph",  # rm?  # noqa
-        "w_lnu_ht200To400_madgraph",
-        "w_lnu_ht400To600_madgraph",
-        "w_lnu_ht600To800_madgraph",
-        "w_lnu_ht800To1200_madgraph",
-        "w_lnu_ht1200To2500_madgraph",
-        "w_lnu_ht2500_madgraph",
+        "w_lnu_ht70to100_madgraph",
+        "w_lnu_ht100to200_madgraph",
+        "w_lnu_ht200to400_madgraph",
+        "w_lnu_ht400to600_madgraph",
+        "w_lnu_ht600to800_madgraph",
+        "w_lnu_ht800to1200_madgraph",
+        "w_lnu_ht1200to2500_madgraph",
+        "w_lnu_ht2500toinf_madgraph",
         # Diboson
         "ww_pythia",
         "wz_pythia",
         "zz_pythia",
         # QCD
-        #"qcd_ht50to100_madgraph",  # rm?  # noqa
-        #"qcd_ht100to200_madgraph",  # rm?  # noqa
-        #"qcd_ht200to300_madgraph",  # rm?  # noqa
-        #"qcd_ht300to500_madgraph",  # rm?  # noqa
-        # "qcd_ht500to700_madgraph",
-        # "qcd_ht700to1000_madgraph",
-        # "qcd_ht1000to1500_madgraph",  # rm!
-        # "qcd_ht1500to2000_madgraph",
-        # "qcd_ht2000_madgraph",  # rm!
+        # "qcd_ht50to100_madgraph",
+        # "qcd_ht100to200_madgraph",
+        # "qcd_ht200to300_madgraph",
+        # "qcd_ht300to500_madgraph",
+        "qcd_ht500to700_madgraph",
+        "qcd_ht700to1000_madgraph",
+        "qcd_ht1000to1500_madgraph",
+        "qcd_ht1500to2000_madgraph",
+        "qcd_ht2000toinf_madgraph",
     ]
     for dataset_name in dataset_names:
         # add the dataset
@@ -279,7 +334,7 @@ def add_config(
         if dataset_name.startswith("w_lnu"):
             dataset.add_tag("is_v_jets")
             dataset.add_tag("is_w_jets")
-        if dataset_name.startswith("dy_lep"):
+        if dataset_name.startswith("dy"):
             dataset.add_tag("is_v_jets")
             dataset.add_tag("is_z_jets")
 
@@ -325,13 +380,13 @@ def add_config(
     cfg.x.dataset_groups = {
         "all": dataset_names,
         "data": ["data_*"],
-        "dy_lep": ["dy_lep*"],
+        "dy": ["dy*"],
         "w_lnu": ["w_lnu*"],
         "qcd": ["qcd_ht*"],
         "st": ["st*"],
         "tt": ["tt*"],
         "vv": ["ww_pythia", "wz_pythia", "zz_pythia"],
-        "vx": ["w_lnu*", "dy_lep*", "ww_pythia", "wz_pythia", "zz_pythia"],
+        "vx": ["w_lnu*", "dy*", "ww_pythia", "wz_pythia", "zz_pythia"],
         "mj": ["qcd_ht*"],
     }
 
@@ -459,6 +514,13 @@ def add_config(
         ],
     }
 
+    # Exception: no weight producer configured for task. cf.MergeShiftedHistograms.
+    # As of 02.05.2024, it is required to pass a weight_producer for tasks creating histograms.
+    # You can add a 'default_weight_producer' to your config or directly add the weight_producer
+    # on command line via the '--weight_producer' parameter. To reproduce results from before this date,
+    # you can use the 'all_weights' weight_producer defined in columnflow.weight.all_weights:
+    cfg.x.default_weight_producer = "all_weights"
+
     # custom labels for selector steps
     cfg.x.selector_step_labels = {}
 
@@ -511,28 +573,28 @@ def add_config(
     # overwrite cross sections from cmsdb to adapt to UHH2 crosssections
     # https://github.com/UHH2/UHH2-datasets/blob/master/CrossSectionHelper.py#L1804C22-L1804C35
     dy_xsecs = {
-        "dy_lep_m50_ht70to100": 140.1,
-        "dy_lep_m50_ht100to200": 140.2,
-        "dy_lep_m50_ht200to400": 38.399,
-        "dy_lep_m50_ht400to600": 5.21278,
-        "dy_lep_m50_ht600to800": 1.26567,
-        "dy_lep_m50_ht800to1200": 0.5684304,
-        "dy_lep_m50_ht1200to2500": 0.1331514,
-        "dy_lep_m50_ht2500": 0.00297803565,
+        "dy_m50toinf_ht70to100": 140.1,
+        "dy_m50toinf_ht100to200": 140.2,
+        "dy_m50toinf_ht200to400": 38.399,
+        "dy_m50toinf_ht400to600": 5.21278,
+        "dy_m50toinf_ht600to800": 1.26567,
+        "dy_m50toinf_ht800to1200": 0.5684304,
+        "dy_m50toinf_ht1200to2500": 0.1331514,
+        "dy_m50toinf_ht2500toinf": 0.00297803565,
     }
 
     for ds in dy_xsecs:
         procs.n(ds).set_xsec(13, dy_xsecs[ds])
 
     w_lnu_xsecs = {
-        "w_lnu_ht70To100": 1271,
-        "w_lnu_ht100To200": 1253,
-        "w_lnu_ht200To400": 335.9,
-        "w_lnu_ht400To600": 45.21,
-        "w_lnu_ht600To800": 10.99,
-        "w_lnu_ht800To1200": 4.936,
-        "w_lnu_ht1200To2500": 1.156,
-        "w_lnu_ht2500": 0.02623,
+        "w_lnu_ht70to100": 1271,
+        "w_lnu_ht100to200": 1253,
+        "w_lnu_ht200to400": 335.9,
+        "w_lnu_ht400to600": 45.21,
+        "w_lnu_ht600to800": 10.99,
+        "w_lnu_ht800to1200": 4.936,
+        "w_lnu_ht1200to2500": 1.156,
+        "w_lnu_ht2500toinf": 0.02623,
     }
 
     for ds in w_lnu_xsecs:
@@ -556,9 +618,10 @@ def add_config(
     # pileup
     #
 
-    # minimum bias cross section in mb (milli) for creating PU weights, values from
-    # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData?rev=45#Recommended_cross_section
-    cfg.x.minbias_xs = Number(69.2, 0.046j)
+    # # minimum bias cross section in mb (milli) for creating PU weights, values from
+    # # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData?rev=45#Recommended_cross_section
+    # not used after moving to correctionlib based PU weights
+    # cfg.x.minbias_xs = Number(69.2, 0.046j)
 
     #
     # MET filters
@@ -1032,6 +1095,13 @@ def add_config(
                 "MET.pt": "MET.pt_{name}",
             },
         )
+        # PSWeight variations
+        cfg.add_shift(name="ISR_up", id=7001, type="shape")  # PS weight [0] ISR=2 FSR=1
+        cfg.add_shift(name="ISR_down", id=7002, type="shape")  # PS weight [2] ISR=0.5 FSR=1
+        add_shift_aliases(cfg, "ISR", {"ISR": "ISR_{direction}"})
+        cfg.add_shift(name="FSR_up", id=7003, type="shape")  # PS weight [1] ISR=1 FSR=2
+        cfg.add_shift(name="FSR_down", id=7004, type="shape")  # PS weight [3] ISR=1 FSR=0.5
+        add_shift_aliases(cfg, "FSR", {"FSR": "FSR_{direction}"})
 
     # add the shifts
     add_shifts(cfg)
@@ -1107,6 +1177,7 @@ def add_config(
             "genWeight",
             "LHEWeight.*",
             "LHEPdfWeight", "LHEScaleWeight",
+            "PSWeight",
 
             # muons
             "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
@@ -1235,6 +1306,8 @@ def add_config(
         "pu_weight": get_shifts("minbias_xs"),
         "muon_weight": get_shifts("muon"),
         "electron_weight": get_shifts("electron"),
+        "ISR": get_shifts("ISR"),
+        "FSR": get_shifts("FSR"),
     })
 
     # event weights only present in certain datasets

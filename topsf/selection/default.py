@@ -59,8 +59,8 @@ def increment_stats(
     mask = ak.values_astype(mask, bool)
 
     # increment plain counts
-    stats["n_events"] += len(events)
-    stats["n_events_selected"] += ak.sum(mask, axis=0)
+    stats["num_events"] += len(events)
+    stats["num_events_selected"] += np.float64(ak.sum(mask, axis=0))
 
     # create a map of entry names to (weight, mask) pairs that will be written to stats
     weight_map = OrderedDict()
@@ -79,22 +79,22 @@ def increment_stats(
         joinable_mask = True if mask is Ellipsis else mask
 
         # sum for all processes
-        stats[f"sum_{name}"] += ak.sum(weights[mask])
+        stats[f"sum_{name}"] += np.float64(ak.sum(weights[mask]))
 
         # sums per process id
         stats.setdefault(f"sum_{name}_per_process", defaultdict(float))
         processes = np.unique(events.process_id)
         for p in processes:
-            stats[f"sum_{name}_per_process"][int(p)] += ak.sum(
-                weights[(events.process_id == p) & joinable_mask],
+            stats[f"sum_{name}_per_process"][int(p)] += np.float64(
+                ak.sum(weights[(events.process_id == p) & joinable_mask]),
             )
 
         # sums per category
         stats.setdefault(f"sum_{name}_per_category", defaultdict(float))
         categories = np.unique(ak.ravel(events.category_ids))
         for c in categories:
-            stats[f"sum_{name}_per_category"][int(c)] += ak.sum(
-                weights[ak.any(events.category_ids == c, axis=-1) & joinable_mask],
+            stats[f"sum_{name}_per_category"][int(c)] += np.float64(
+                ak.sum(weights[ak.any(events.category_ids == c, axis=-1) & joinable_mask]),
             )
 
     return events
@@ -225,3 +225,10 @@ def default_init(self: Selector):
     dataset_inst = getattr(self, "dataset_inst", None)
     if dataset_inst is not None and dataset_inst.is_data:
         self.uses |= {json_filter}
+
+    # Add shift dependencies
+    self.shifts |= {
+        shift_inst.name
+        for shift_inst in self.config_inst.shifts
+        if shift_inst.has_tag(("jec", "jer"))
+    }

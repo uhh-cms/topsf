@@ -41,7 +41,6 @@ from columnflow.util import maybe_import
 from columnflow.categorization import Categorizer, categorizer
 
 from topsf.config.util import create_category_combinations
-from topsf.production.probe_jet import probe_jet
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -152,7 +151,6 @@ def add_categories_per_jet(config):
             # set input columns
             column = self.cfg.get("column", "FatJet")
             self.uses.add(f"{column}.pt")
-
 
         assert cat_idx < 10**cat_idx_ndigits - 1, "no space for category, ID reassignment necessary"
         cat_id = int(10**cat_idx_lsd * ((cat_idx + 1) + 300))

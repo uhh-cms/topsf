@@ -11,9 +11,11 @@ action() {
     # set variables and source the combine setup
     export CF_SANDBOX_FILE="${CF_SANDBOX_FILE:-${this_file}}"
     export CF_COMBINE_GIT_URL="${CF_COMBINE_GIT_URL:-https://github.com/cms-analysis/HiggsAnalysis-CombinedLimit.git}"
-    export CF_COMBINE_SCRAM_ARCH="$( [ "${os_version}" = "8" ] && echo "el8" || echo "slc7" )_amd64_gcc10"
-    export CF_COMBINE_CMSSW_VERSION="CMSSW_12_6_2"
-    export CF_COMBINE_VERSION="${CF_COMBINE_VERSION:-v9.1.0}"
+    export CF_COMBINE_HARVESTER_GIT_URL="${CF_COMBINE_HARVESTER_GIT_URL:-https://github.com/cms-analysis/CombineHarvester.git}"
+    export CF_COMBINE_SCRAM_ARCH="el9_amd64_gcc12"
+    export CF_COMBINE_CMSSW_VERSION="CMSSW_14_1_0_pre5"  # from combine docu 23.07.24
+    export CF_COMBINE_HARVESTER_VERSION="${CF_COMBINE_HARVESTER_VERSION:-v3.0.0-pre1}"
+    export CF_COMBINE_VERSION="${CF_COMBINE_VERSION:-v10.0.1}"  # from combine docu 23.07.24
     export CF_COMBINE_ENV_NAME="$( basename "${this_file%.sh}" )"
     export CF_COMBINE_FLAG="1"  # increment when content changed
 
