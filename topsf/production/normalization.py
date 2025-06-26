@@ -7,8 +7,9 @@ Column production methods related to sample normalization event weights.
 from collections import defaultdict
 
 from columnflow.production import Producer, producer
-from columnflow.util import maybe_import, InsertableDict
+from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
+from law.util import InsertableDict
 
 
 np = maybe_import("numpy")
