@@ -12,7 +12,7 @@ import re
 
 from columnflow.tasks.framework.base import Requirements, AnalysisTask, wrapper_factory
 from columnflow.tasks.framework.mixins import (
-    CalibratorsMixin, SelectorStepsMixin, ProducersMixin, MLModelsMixin, InferenceModelMixin,
+    CalibratorsMixin, ProducersMixin, MLModelsMixin, InferenceModelMixin,
 )
 from columnflow.tasks.framework.remote import RemoteWorkflow
 from columnflow.tasks.histograms import MergeHistograms, MergeShiftedHistograms
@@ -35,7 +35,6 @@ class CreateDatacards(
     InferenceModelMixin,
     MLModelsMixin,
     ProducersMixin,
-    SelectorStepsMixin,
     CalibratorsMixin,
     law.LocalWorkflow,
     RemoteWorkflow,

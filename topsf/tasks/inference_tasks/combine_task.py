@@ -64,7 +64,7 @@ import shutil
 
 from columnflow.tasks.framework.base import Requirements, CommandTask
 from columnflow.tasks.framework.mixins import (
-    CalibratorsMixin, SelectorStepsMixin, ProducersMixin, MLModelsMixin, InferenceModelMixin,
+    CalibratorsMixin, ProducersMixin, MLModelsMixin, InferenceModelMixin,
 )
 from columnflow.tasks.framework.remote import RemoteWorkflow
 from topsf.tasks.inference_tasks.create_workspace import CreateWorkspace
@@ -78,7 +78,6 @@ class CombineTask(
     InferenceModelMixin,
     MLModelsMixin,
     ProducersMixin,
-    SelectorStepsMixin,
     CalibratorsMixin,
     law.LocalWorkflow,
     RemoteWorkflow,
