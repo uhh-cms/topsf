@@ -855,6 +855,7 @@ def add_config(
                 # "CorrelationGroupFlavor",
                 # "CorrelationGroupUncorrelated",
             ],
+            "data_per_era": True,
         },
         "FatJet": {
             "campaign": jerc_campaign,
@@ -920,6 +921,7 @@ def add_config(
                 # "CorrelationGroupFlavor",
                 # "CorrelationGroupUncorrelated",
             ],
+            "data_per_era": True,
         },
         "SubJet": {
             "campaign": jerc_campaign,
@@ -985,6 +987,7 @@ def add_config(
                 # "CorrelationGroupFlavor",
                 # "CorrelationGroupUncorrelated",
             ],
+            "data_per_era": True,
         },
     })
 
@@ -1000,8 +1003,7 @@ def add_config(
         "FatJet": {
             "campaign": jerc_campaign,
             "version": {2022: "JRV1"}[year],
-            "jet_type": jet_type,
-            "external_file_key": "jet_jerc",
+            "jet_type": fatjet_type,
         },
         "SubJet": {
             "campaign": jerc_campaign,

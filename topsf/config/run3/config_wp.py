@@ -567,8 +567,7 @@ def add_config(
         "FatJet": {
             "campaign": jerc_campaign,
             "version": {2022: "JRV1"}[year],
-            "jet_type": jet_type,
-            "external_file_key": "jet_jerc",
+            "jet_type": fatjet_type,
         },
         "SubJet": {
             "campaign": jerc_campaign,
@@ -961,6 +960,9 @@ def add_config(
 
         # jet energy correction
         "jet_jerc": (f"{json_mirror}/POG/JME/{corr_tag}/jet_jerc.json.gz", "v1"),
+
+        # jet energy correction ak8
+        "fat_jet_jerc": (f"{json_mirror}/POG/JME/{corr_tag}/fatJet_jerc.json.gz", "v1"),
 
         # jet veto map
         "jet_veto_map": (f"{json_mirror}/POG/JME/{corr_tag}/jetvetomaps.json.gz", "v1"),
