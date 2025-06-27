@@ -949,7 +949,7 @@ def add_config(
     #
 
     # external files
-    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-49ddc547"
+    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-b7a48c75"
     local_repo = "/data/dust/user/matthiej/topsf"  # TODO: avoid hardcoding path
 
     if cfg.x.run == 3:
