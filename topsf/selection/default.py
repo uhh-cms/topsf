@@ -10,6 +10,7 @@ from collections import defaultdict, OrderedDict
 
 from columnflow.util import maybe_import
 from columnflow.columnar_util import optional_column as optional
+from columnflow.columnar_util import remove_ak_column, EMPTY_FLOAT
 
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.selection.cms.met_filters import met_filters
