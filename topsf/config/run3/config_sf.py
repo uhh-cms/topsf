@@ -415,6 +415,7 @@ def add_config(
     # ml model, inference model, etc
     cfg.x.default_calibrator = "default"
     cfg.x.default_selector = "default"
+    cfg.x.default_reducer = "cf_default"
     cfg.x.default_producer = "default"
     cfg.x.default_ml_model = None
     cfg.x.default_inference_model = "default"  # "uhh2"
