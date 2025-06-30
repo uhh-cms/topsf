@@ -3,6 +3,7 @@
 """
 Column production methods related to sample normalization event weights.
 """
+import law
 
 from collections import defaultdict
 
@@ -50,20 +51,26 @@ def normalization_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Arra
 
 
 @normalization_weights.requires
-def normalization_weights_requires(self: Producer, reqs: dict) -> None:
+def normalization_weights_requires(self: Producer, task: law.Task, reqs: dict) -> None:
     """
     Adds the requirements needed by the underlying py:attr:`task` to access selection stats into
     *reqs*.
     """
     from columnflow.tasks.selection import MergeSelectionStats
     reqs["selection_stats"] = MergeSelectionStats.req(
-        self.task,
+        task,
         branch=-1,
     )
 
 
 @normalization_weights.setup
-def normalization_weights_setup(self: Producer, reqs: dict, inputs: dict, reader_targets: InsertableDict) -> None:
+def normalization_weights_setup(
+    self: Producer,
+    task: law.Task,
+    reqs: dict,
+    inputs: dict,
+    reader_targets: InsertableDict,
+) -> None:
     """
     Sets up objects required by the computation of normalization weights and stores them as instance
     attributes:
