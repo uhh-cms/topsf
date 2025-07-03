@@ -83,7 +83,7 @@ def plot_variable_stack(
         deep=True
     )
     if shape_norm:
-        style_config["ax_cfg"]["ylabel"] = r"$\Delta N/N$"
+        style_config["ax_cfg"]["ylabel"] = "Normalized entries"
 
     skip_legend = kwargs.pop("skip_legend", False)
     fig, axs = plot_all(plot_config, style_config, skip_legend=True, **kwargs)
