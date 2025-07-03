@@ -227,6 +227,22 @@ def default(
     # increment stats
     self[increment_stats](events, results, stats, **kwargs)
 
+    # remove unused columns
+    for col in ["GenPart", "GenPartonTop"]:
+        for field in [
+            "genPartIdxMother",
+            "statusFlags",
+            "genPartIdxMotherG",
+            "distinctParentIdxG",
+            "childrenIdxG",
+            "distinctChildrenIdxG",
+            "distinctChildrenDeepIdxG",
+        ]:
+            events = remove_ak_column(events, f"{col}.{field}", silent=True)
+
+    # avoid none values in events
+    events = ak.fill_none(events, EMPTY_FLOAT)
+
     return events, results
 
 
