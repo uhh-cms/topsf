@@ -31,15 +31,15 @@ class EfficiencyVariablesMixin(VariablesMixin):
     )
 
     @classmethod
-    def resolve_param_values(cls, params):
+    def resolve_param_values_post_init(cls, params):
         """
         Resolve `signal_variable` and `binning_variables` and set `variables` param
         to be passed to dependent histogram task.
         """
-        params = super().resolve_param_values(params)
+        params = super().resolve_param_values_post_init(params)
 
         # no-op if config is not set
-        if "config_inst" not in params:
+        if "config_insts" not in params:
             return params
 
         # required parameters not present, do nothing
@@ -51,7 +51,7 @@ class EfficiencyVariablesMixin(VariablesMixin):
             return params
 
         # get configuration instance
-        config_inst = params["config_inst"]
+        config_inst = params["config_insts"][0]
 
         # handle binning variables
         for var_name in list(params["binning_variables"]):
