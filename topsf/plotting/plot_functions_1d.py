@@ -16,7 +16,7 @@ from columnflow.plotting.plot_util import (
     remove_residual_axis,
     apply_variable_settings,
     apply_process_settings,
-    apply_density_to_hists,
+    apply_density,
 )
 from columnflow.plotting.plot_all import plot_all
 
@@ -29,11 +29,12 @@ mplhep = maybe_import("mplhep")
 od = maybe_import("order")
 
 
-def plot_variable_per_process(
+def plot_variable_stack(
     hists: OrderedDict,
     config_inst: od.Config,
     category_inst: od.Category,
     variable_insts: list[od.Variable],
+    shift_insts: list[od.Shift] | None,
     style_config: dict | None = None,
     density: bool | None = False,
     shape_norm: bool | None = False,
@@ -49,14 +50,19 @@ def plot_variable_per_process(
     remove_residual_axis(hists, "shift")
 
     variable_inst = variable_insts[0]
-    hists = apply_variable_settings(hists, variable_insts, variable_settings)
-    hists = apply_process_settings(hists, process_settings)
-    hists = apply_density_to_hists(hists, density)
+    hists, variable_style_config = apply_variable_settings(hists, variable_insts, variable_settings)
+    hists, process_style_config = apply_process_settings(hists, process_settings)
+    # TODO: check 'hists = apply_process_scaling(hists)' in new cf implementation
+    # https://github.com/columnflow/columnflow/commit/ab1372be66040767d14426fe5ecce192e8b90f9e#diff-c42ce639168b3f538b75f7c78404ba4be180f525393b3ff14e9100f847c6cbadR64
+    if density:
+        hists = apply_density(hists, density)
 
     plot_config = prepare_stack_plot_config(
         hists,
         shape_norm=shape_norm,
         hide_errors=hide_errors,
+        shift_insts=shift_insts,
+        **kwargs,
     )
 
     default_style_config = prepare_style_config(
@@ -69,7 +75,13 @@ def plot_variable_per_process(
     default_style_config["annotate_cfg"]["xycoords"] = "axes fraction"
     default_style_config["rax_cfg"]["ylim"] = (0.3, 1.7)
 
-    style_config = law.util.merge_dicts(default_style_config, style_config, deep=True)
+    style_config = law.util.merge_dicts(
+        default_style_config,
+        process_style_config,
+        variable_style_config[variable_inst],
+        style_config,
+        deep=True
+    )
     if shape_norm:
         style_config["ax_cfg"]["ylabel"] = r"$\Delta N/N$"
 

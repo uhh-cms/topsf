@@ -5,6 +5,7 @@ Custom plotting tasks.
 
 import luigi
 import law
+import order as od
 from collections import OrderedDict
 
 import columnflow.tasks.plotting
@@ -19,7 +20,7 @@ class PlotVariables1D(
     TopSFTask,
 ):
     plot_function = columnflow.tasks.plotting.PlotVariables1D.plot_function.copy(
-        default="topsf.plotting.plot_functions_1d.plot_variable_per_process",
+        default="topsf.plotting.plot_functions_1d.plot_variable_stack",
         add_default_to_description=True,
     )
 
@@ -42,6 +43,7 @@ class PlotVariables1D(
             self.config_inst.get_variable(var_name)
             for var_name in variable_tuple
         ]
+
         category_inst = self.config_inst.get_category(self.branch_data.category)
         leaf_category_insts = category_inst.get_leaf_categories() or [category_inst]
         process_insts = list(map(self.config_inst.get_process, self.processes))
@@ -49,12 +51,14 @@ class PlotVariables1D(
             proc: [sub for sub, _, _ in proc.walk_processes(include_self=True)]
             for proc in process_insts
         }
-
-        # histogram data per process
-        hists = {}
+        # get assignment of processes to datasets and shifts
+        config_process_map, process_shift_map = self.get_config_process_map()
 
         message = f"plotting {self.branch_data.variable} in {category_inst.name}"
         message += " with pretty legend" if self.pretty_legend else ""
+        # following implementation in columnflow:
+        # https://github.com/columnflow/columnflow/blob/master/columnflow/tasks/plotting.py#L165
+        hists: dict[od.Config, dict[od.Process, hist.Hist]] = {}
         with self.publish_step(message):
             for dataset, inp in self.input().items():
                 dataset_inst = self.config_inst.get_dataset(dataset)
@@ -69,24 +73,24 @@ class PlotVariables1D(
                     # work on a copy
                     h = h_in.copy()
 
-                    # axis selections
-                    h = h[{
-                        "process": [
-                            hist.loc(p.id)
-                            for p in sub_process_insts[process_inst]
-                            if p.id in h.axes["process"]
-                        ],
-                        "category": [
-                            hist.loc(c.id)
-                            for c in leaf_category_insts
-                            if c.id in h.axes["category"]
-                        ],
-                        "shift": [
-                            hist.loc(s.id)
-                            for s in plot_shifts
-                            if s.id in h.axes["shift"]
-                        ],
-                    }]
+                                # axis selections
+                                h = h[{
+                                    "process": [
+                                        hist.loc(p.name)
+                                        for p in sub_process_insts[process_inst]
+                                        if p.name in h.axes["process"]
+                                    ],
+                                    "category": [
+                                        hist.loc(c.name)
+                                        for c in leaf_category_insts
+                                        if c.name in h.axes["category"]
+                                    ],
+                                    "shift": [
+                                        hist.loc(s.name)
+                                        for s in plot_shifts
+                                        if s.name in h.axes["shift"]
+                                    ]
+                                }]
 
                     # axis reductions
                     h = h[{"process": sum, "category": sum}]

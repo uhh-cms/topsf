@@ -201,27 +201,27 @@ class PlotEfficiencyBase(
 
                     h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")
 
-                    # work on a copy
-                    h = h_in.copy()
+                            # work on a copy
+                            h = h_in.copy()
 
-                    # axis selections
-                    h = h[{
-                        "process": [
-                            hist.loc(p.name)
-                            for p in leaf_process_insts
-                            if p.name in h.axes["process"]
-                        ],
-                        "category": [
-                            hist.loc(c.name)
-                            for c in leaf_category_insts
-                            if c.name in h.axes["category"]
-                        ],
-                        "shift": [
-                            hist.loc(s.name)
-                            for s in plot_shifts
-                            if s.name in h.axes["shift"]
-                        ],
-                    }]
+                            # axis selections
+                            h = h[{
+                                "process": [
+                                    hist.loc(p.name)
+                                    for p in leaf_process_insts
+                                    if p.name in h.axes["process"]
+                                ],
+                                "category": [
+                                    hist.loc(c.name)
+                                    for c in leaf_category_insts
+                                    if c.name in h.axes["category"]
+                                ],
+                                "shift": [
+                                    hist.loc(s.name)
+                                    for s in plot_shifts
+                                    if s.name in h.axes["shift"]
+                                ],
+                            }]
 
                     # axis reductions
                     assert len(h.axes["shift"]) == 1, f"expected exactly one shift axis, got: {h.axes['shift']}"
@@ -268,6 +268,7 @@ class PlotEfficiencyBase(
                 hists[key] = hists[key][sel_hist]
 
             # post-process histograms
+            # FIXME: what does this do?
             hists = self.process_hists(hists)
 
             # call the plot function
