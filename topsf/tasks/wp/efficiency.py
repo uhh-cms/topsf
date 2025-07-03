@@ -6,6 +6,7 @@ for WP derivation.
 
 import luigi
 import law
+from collections import OrderedDict
 
 from columnflow.util import dict_add_strict, maybe_import
 from columnflow.tasks.framework.base import Requirements
@@ -191,15 +192,18 @@ class PlotEfficiencyBase(
         hists = {}
 
         with self.publish_step(f"plotting ROC curve for variable {self.branch_data.variable} in category {category_inst.name}"):  # noqa
-            for config, datasets in self.input().items():
-                for dataset, inp in datasets.items():
-                    dataset_inst = config_inst.get_dataset(dataset)
-
-                    # skip when the dataset does not contain any leaf process
-                    if not any(map(dataset_inst.has_process, leaf_process_insts)):
-                        continue
-
-                    h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")
+            for i, config_inst in enumerate(self.config_insts):
+                # histogram data per process
+                hists_config = {}
+                hists[config_inst] = hists_config
+                for config, ds_inp in self.input().items():
+                    if config_inst.name == config:
+                        for dataset, inp in ds_inp.items():
+                            dataset_inst = config_inst.get_dataset(dataset)
+                            # skip when the dataset does not contain any leaf process
+                            if not any(map(dataset_inst.has_process, leaf_process_insts)):
+                                continue
+                            h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")
 
                             # work on a copy
                             h = h_in.copy()
@@ -223,16 +227,22 @@ class PlotEfficiencyBase(
                                 ],
                             }]
 
-                    # axis reductions
-                    assert len(h.axes["shift"]) == 1, f"expected exactly one shift axis, got: {h.axes['shift']}"
-                    h = h[{"process": sum, "category": sum, "shift": 0}]
+                            # axis reductions
+                            assert len(h.axes["shift"]) == 1, f"expected exactly one shift axis, got: {h.axes['shift']}"
+                            h = h[{"process": sum, "category": sum, "shift": 0}]
 
-                    # add the histogram
-                    hists_key = self.get_hists_key(dataset_inst)
-                    if hists_key in hists:
-                        hists[hists_key] += h
-                    else:
-                        hists[hists_key] = h
+                            # add the histogram
+                            hists_key = self.get_hists_key(dataset_inst)
+                            if hists_key in hists:
+                                hists_config[hists_key] += h
+                            else:
+                                hists_config[hists_key] = h
+                        for key in ['signal', 'background']:
+                            try:
+                                hists[config_inst][key] = hists_config[key]
+                            except KeyError:
+                                # if the key is not present, skip it
+                                continue
 
             # there should be hists to plot
             if not hists:
@@ -241,6 +251,24 @@ class PlotEfficiencyBase(
                     "  - requested variable requires columns that were missing during histogramming\n" +
                     "  - selected --processes did not match any value on the process axis of the input histogram",
                 )
+
+            # merge configs if multiconfig
+            if len(self.config_insts) != 1:
+                plot_mode_memory = {}
+                merged_hists = {}
+                for _hists in hists.values():
+                    for plot_mode, h in _hists.items():
+                        if plot_mode in merged_hists:
+                            merged_hists[plot_mode] += h
+                        else:
+                            merged_hists[plot_mode] = h
+                            plot_mode_memory[plot_mode] = plot_mode
+
+                plot_modes = list(plot_mode_memory.values())
+                hists = {plot_mode_memory[plot_mode]: h for plot_mode, h in merged_hists.items()}
+            else:
+                hists = hists[self.config_inst]
+                plot_modes = list(hists.keys())
 
             # apply binning variables and ranges to histograms,
             # keeping track of total values
@@ -271,15 +299,19 @@ class PlotEfficiencyBase(
             # FIXME: what does this do?
             hists = self.process_hists(hists)
 
-            # call the plot function
-            fig, axs, data = self.call_plot_func(
-                self.plot_function,
-                hists=hists,
-                totals=totals,
-                config_inst=self.config_inst,
-                category_inst=category_inst.copy_shallow(),
-                **self.get_plot_parameters(),
-            )
+            # temporarily use a merged luminostiy value, assigned to the first config
+            config_inst = self.config_insts[0]
+            lumi = sum([_config_inst.x.luminosity for _config_inst in self.config_insts])
+            with law.util.patch_object(config_inst.x, "luminosity", lumi):
+                # call the plot function
+                fig, axs, data = self.call_plot_func(
+                    self.plot_function,
+                    hists=hists,
+                    totals=totals,
+                    config_inst=config_inst,
+                    category_inst=category_inst.copy_shallow(),
+                    **self.get_plot_parameters(),
+                )
 
             # save the plot
             for outp in self.output()["plots"]:
