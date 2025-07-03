@@ -178,8 +178,8 @@ class PlotEfficiencyBase(
         # retrieve config object instances
         category_inst = self.config_inst.get_category(self.branch_data.category)
         leaf_category_insts = category_inst.get_leaf_categories() or [category_inst]
-
-        process_insts = list(map(self.config_inst.get_process, self.processes))
+        for i, config_inst in enumerate(self.config_insts):
+            process_insts = [config_inst.get_process(p) for p in self.processes[i]]
         leaf_process_insts = {
             leaf_proc
             for proc in process_insts
@@ -191,46 +191,48 @@ class PlotEfficiencyBase(
         hists = {}
 
         with self.publish_step(f"plotting ROC curve for variable {self.branch_data.variable} in category {category_inst.name}"):  # noqa
-            for dataset, inp in self.input().items():
-                dataset_inst = self.config_inst.get_dataset(dataset)
+            for config, datasets in self.input().items():
+                for dataset, inp in datasets.items():
+                    dataset_inst = config_inst.get_dataset(dataset)
 
-                # skip when the dataset does not contain any leaf process
-                if not any(map(dataset_inst.has_process, leaf_process_insts)):
-                    continue
+                    # skip when the dataset does not contain any leaf process
+                    if not any(map(dataset_inst.has_process, leaf_process_insts)):
+                        continue
 
-                h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")
+                    h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")
 
-                # work on a copy
-                h = h_in.copy()
+                    # work on a copy
+                    h = h_in.copy()
 
-                # axis selections
-                h = h[{
-                    "process": [
-                        hist.loc(p.id)
-                        for p in leaf_process_insts
-                        if p.id in h.axes["process"]
-                    ],
-                    "category": [
-                        hist.loc(c.id)
-                        for c in leaf_category_insts
-                        if c.id in h.axes["category"]
-                    ],
-                    "shift": [
-                        hist.loc(s.id)
-                        for s in plot_shifts
-                        if s.id in h.axes["shift"]
-                    ],
-                }]
+                    # axis selections
+                    h = h[{
+                        "process": [
+                            hist.loc(p.name)
+                            for p in leaf_process_insts
+                            if p.name in h.axes["process"]
+                        ],
+                        "category": [
+                            hist.loc(c.name)
+                            for c in leaf_category_insts
+                            if c.name in h.axes["category"]
+                        ],
+                        "shift": [
+                            hist.loc(s.name)
+                            for s in plot_shifts
+                            if s.name in h.axes["shift"]
+                        ],
+                    }]
 
-                # axis reductions
-                h = h[{"process": sum, "category": sum}]
+                    # axis reductions
+                    assert len(h.axes["shift"]) == 1, f"expected exactly one shift axis, got: {h.axes['shift']}"
+                    h = h[{"process": sum, "category": sum, "shift": 0}]
 
-                # add the histogram
-                hists_key = self.get_hists_key(dataset_inst)
-                if hists_key in hists:
-                    hists[hists_key] += h
-                else:
-                    hists[hists_key] = h
+                    # add the histogram
+                    hists_key = self.get_hists_key(dataset_inst)
+                    if hists_key in hists:
+                        hists[hists_key] += h
+                    else:
+                        hists[hists_key] = h
 
             # there should be hists to plot
             if not hists:
