@@ -3,8 +3,8 @@
 """
 Producers for L1 prefiring weights.
 """
-
 from __future__ import annotations
+import law
 
 from columnflow.production import Producer, producer
 from columnflow.util import maybe_import, DotDict
@@ -201,16 +201,16 @@ def vjets_weight_init(self: Producer) -> None:
 
 
 @vjets_weight.requires
-def vjets_weight_requires(self: Producer, reqs: dict) -> None:
+def vjets_weight_requires(self: Producer, task: law.Task, reqs: dict) -> None:
     if "external_files" in reqs:
         return
 
     from columnflow.tasks.external import BundleExternalFiles
-    reqs["external_files"] = BundleExternalFiles.req(self.task)
+    reqs["external_files"] = BundleExternalFiles.req(task)
 
 
 @vjets_weight.setup
-def vjets_weight_setup(self: Producer, reqs: dict, inputs: dict, reader_targets: InsertableDict) -> None:
+def vjets_weight_setup(self: Producer, task: law.Task, reqs: dict, inputs: dict, reader_targets: InsertableDict) -> None:
     bundle = reqs["external_files"]
 
     # create the L1 prefiring weight evaluator
