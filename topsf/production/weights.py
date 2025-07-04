@@ -30,10 +30,10 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
     if self.dataset_inst.is_mc:
         if not has_tag("skip_electron_weights", self.config_inst, self.dataset_inst, operator=any):
-            electron_mask = (events.Electron.pt >= 35)
+            electron_mask = (events.Electron["pt"] >= 35)
             events = self[electron_weights](events, electron_mask=electron_mask, **kwargs)
         if not has_tag("skip_muon_weights", self.config_inst, self.dataset_inst, operator=any):
-            muon_mask = (events.Muon.pt >= 30) & (abs(events.Muon.eta) < 2.4)
+            muon_mask = (events.Muon["pt"] >= 30) & (abs(events.Muon["eta"]) < 2.4)
             events = self[muon_weights](events, muon_mask=muon_mask, **kwargs)
 
         # # compute btag weights

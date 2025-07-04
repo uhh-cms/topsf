@@ -9,7 +9,7 @@ from columnflow.tasks.framework.remote import RemoteWorkflow
 from topsf.tasks.inference import CreateDatacards
 from columnflow.util import dev_sandbox
 from columnflow.tasks.framework.mixins import (
-    CalibratorsMixin, SelectorStepsMixin, ProducersMixin, MLModelsMixin, InferenceModelMixin,
+    CalibratorsMixin, ProducersMixin, MLModelsMixin, InferenceModelMixin,
 )
 
 from topsf.tasks.inference_v2.mixins import FitMixin
@@ -22,7 +22,6 @@ class InferenceBaseTask(
     InferenceModelMixin,
     MLModelsMixin,
     ProducersMixin,
-    SelectorStepsMixin,
     CalibratorsMixin,
     law.LocalWorkflow,
     RemoteWorkflow,
