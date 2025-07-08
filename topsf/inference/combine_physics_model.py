@@ -12,7 +12,7 @@ from HiggsAnalysis.CombinedLimit.PhysicsModel import PhysicsModel
 class TopSFCombinePhysicsModel(PhysicsModel):
 
     # old naming convention
-    RE_COMBINE_CHANNEL = "^bin_(?P<channel>\w+)__(?P<year>\w+)__(?P<pt_bin>\w+)__(?P<region>\w+)$"  # noqa: W605
+    RE_COMBINE_CHANNEL = "^bin_(?P<channel>\w+)__(?P<pt_bin>\w+)__(?P<region>\w+)$"  # noqa: W605
     RE_COMBINE_PROCESS = "^(?P<process>\w+?)(_(?P<msc>(3q|2q|0o1q|bkg)))?$"  # noqa: W605
 
     # # simplified naming convention (no year, pt_bin)
@@ -30,7 +30,6 @@ class TopSFCombinePhysicsModel(PhysicsModel):
             "sf_naming_scheme": None,
             "sf_range": None,
             "pt_bins": set(),
-            "years": set(),
             "regions": {"pass", "fail"},
         }
 
@@ -61,7 +60,7 @@ class TopSFCombinePhysicsModel(PhysicsModel):
             elif name in ("sf_naming_scheme", "sf_range"):
                 self.model_options[name] = value
 
-            elif name in ("pt_bins", "years"):
+            elif name in ("pt_bins"):
                 self.model_options[name] = set(value.split(","))
 
             else:
@@ -80,10 +79,6 @@ class TopSFCombinePhysicsModel(PhysicsModel):
     @property
     def pt_bins(self):
         return self.model_options["pt_bins"]
-
-    @property
-    def years(self):
-        return self.model_options["years"]
 
     @property
     def regions(self):
@@ -126,12 +121,10 @@ class TopSFCombinePhysicsModel(PhysicsModel):
             channel_dicts.items(),
         ):
             # skip unrequested combinations
-            year = channel_dict["year"]
             pt_bin = channel_dict["pt_bin"]
             region = channel_dict["region"]
             region = region[-4:]
             if (
-                year not in self.years or
                 pt_bin not in self.pt_bins or
                 region not in self.regions
             ):
@@ -141,18 +134,18 @@ class TopSFCombinePhysicsModel(PhysicsModel):
                 process_dict = self.parse_process(process)
                 if not msc == process_dict["msc"]:
                     continue
-                expected_yields_top.setdefault(msc, {}).setdefault(year, {}).setdefault(pt_bin, {}).setdefault(region, 0)  # noqa: E501
-                expected_yields_top[msc][year][pt_bin][region] += self.DC.exp.get(channel).get(process)
+                expected_yields_top.setdefault(msc, {}).setdefault(pt_bin, {}).setdefault(region, 0)  # noqa: E501
+                expected_yields_top[msc][pt_bin][region] += self.DC.exp.get(channel).get(process)
 
         print(f"expected_yields_top: {expected_yields_top}")
         # FIXME: why is the CLI-supplied naming scheme being overridden here?
-        # self.sf_naming_scheme = "__".join(["SF", r"{msc}", r"{year}", r"{pt_bin}"])
+        # self.sf_naming_scheme = "__".join(["SF", r"{msc}", r"{pt_bin}"])
 
         for msc, fit_msc in self.fit_merge_scenarios.items():
-            for year, pt_bin in itertools.product(self.years, self.pt_bins):
+            for pt_bin in self.pt_bins:
 
                 # scale factors for pass region
-                sf_name = self.sf_naming_scheme.format(msc=msc, year=year, pt_bin=pt_bin)
+                sf_name = self.sf_naming_scheme.format(msc=msc, pt_bin=pt_bin)
                 sf_range = self.sf_range
 
                 self.modelBuilder.doVar(sf_name + sf_range)
@@ -164,7 +157,7 @@ class TopSFCombinePhysicsModel(PhysicsModel):
 
                 # scale factors for "fail" region ("anti-scale factors")
                 antisf_name = f"Anti{sf_name}"
-                yields = expected_yields_top[msc][year][pt_bin]
+                yields = expected_yields_top[msc][pt_bin]
                 n_pass, n_fail = yields["pass"], yields["fail"]
                 self.modelBuilder.factory_(
                     f"expr::{antisf_name}(\"max(0.,1.+(1.-@0)*{n_pass}/{n_fail})\", {sf_name})"  # noqa: C812
