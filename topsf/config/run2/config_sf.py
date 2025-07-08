@@ -559,8 +559,9 @@ def add_config(
     # As of 02.05.2024, it is required to pass a weight_producer for tasks creating histograms.
     # You can add a 'default_weight_producer' to your config or directly add the weight_producer
     # on command line via the '--weight_producer' parameter. To reproduce results from before this date,
-    # you can use the 'all_weights' weight_producer defined in columnflow.weight.all_weights:
-    cfg.x.default_weight_producer = "all_weights"
+    # you can use the 'all_weights' weight_producer defined in columnflow.weight.all_weights.
+    # With cf 0.3.x, the 'weight_producer' has been renamed to 'hist_producer'.
+    cfg.x.default_hist_producer = "all_weights"
 
     # custom labels for selector steps
     cfg.x.selector_step_labels = {}
