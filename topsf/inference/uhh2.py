@@ -3,7 +3,6 @@
 """
 TopSF inference model, based on UHH2 LegacyTopTagging analysis
 """
-import itertools
 from collections import defaultdict
 
 from columnflow.inference import inference_model, ParameterType, ParameterTransformation
@@ -40,7 +39,7 @@ def uhh2(self):
     for config_inst in self.config_insts:
         if config_inst.x.fit_setup is None:
             raise ValueError(
-                f"Config {config_inst.name} does not have a fit setup defined."
+                f"Config {config_inst.name} does not have a fit setup defined.",
             )
 
     # Use the first config as the reference

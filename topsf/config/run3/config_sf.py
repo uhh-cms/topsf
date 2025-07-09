@@ -1644,7 +1644,7 @@ def add_config(
             # V+jets QCD NLO reweighting
             dataset.x.event_weights["vjets_weight"] = get_shifts("vjets")
         # add PSWeight variations for all datasets but qcd
-        if not dataset.has_tag("is_qcd"):
+        if not dataset.has_tag("is_qcd") and dataset.is_mc:
             dataset.x.event_weights["ISR"] = get_shifts("ISR")
             dataset.x.event_weights["FSR"] = get_shifts("FSR")
         if dataset.has_tag("has_top"):

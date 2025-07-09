@@ -61,7 +61,7 @@ class CreateDatacards(
             if merge_variables:
                 variables = tuple(
                     _cat_obj.config_data.get(config_inst.name).variable
-                    for _cat_obj in list(self.branch_map.values())[0]["categories"]  # different from cf implementation of SerializeInferenceModelBase
+                    for _cat_obj in list(self.branch_map.values())[0]["categories"]  # noqa: E501, different from cf implementation of SerializeInferenceModelBase
                 )
             else:
                 variables = (config_data.variable,)
@@ -143,7 +143,7 @@ class CreateDatacards(
         reqs = law.util.InsertableDict()
 
         reqs["merged_hists"] = hist_reqs = {}
-        for cat_obj in list(self.branch_map.values())[0]["categories"]:  # different from cf implementation of SerializeInferenceModelBase
+        for cat_obj in list(self.branch_map.values())[0]["categories"]:  # noqa: E501, different from cf implementation of SerializeInferenceModelBase
             cat_reqs = self._requires_cat_obj(cat_obj)
             for config_name, proc_reqs in cat_reqs.items():
                 hist_reqs.setdefault(config_name, {})
@@ -280,7 +280,7 @@ class CreateDatacards(
                                 # hists[proc_obj_name] = {}
                                 for d in ["up", "down"]:
                                     shift_inst = config_inst.get_shift(
-                                        f"{param_obj.config_data[config_inst.name].shift_source}_{d}"
+                                        f"{param_obj.config_data[config_inst.name].shift_source}_{d}",
                                     )
                                     hists[proc_obj_name][(param_obj.name, d)] = h_proc[
                                         {"shift": hist.loc(shift_inst.name)}
@@ -291,7 +291,7 @@ class CreateDatacards(
                             hists_all_cats[cat_obj.name] = OrderedDict()
 
                         for process_name, hist_dict in hists.items():
-                            hists_all_cats[cat_obj.name].setdefault(process_name, OrderedDict())[config_inst.name] = hist_dict
+                            hists_all_cats[cat_obj.name].setdefault(process_name, OrderedDict())[config_inst.name] = hist_dict  # noqa: E501
 
         # forward objects to the datacard writer
         outputs = self.output()

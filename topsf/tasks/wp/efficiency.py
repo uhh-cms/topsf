@@ -6,7 +6,6 @@ for WP derivation.
 
 import luigi
 import law
-from collections import OrderedDict
 
 from columnflow.util import dict_add_strict, maybe_import
 from columnflow.tasks.framework.base import Requirements
@@ -203,7 +202,7 @@ class PlotEfficiencyBase(
                             # skip when the dataset does not contain any leaf process
                             if not any(map(dataset_inst.has_process, leaf_process_insts)):
                                 continue
-                            h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")
+                            h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")  # noqa: E501
 
                             # work on a copy
                             h = h_in.copy()
@@ -237,7 +236,7 @@ class PlotEfficiencyBase(
                                 hists_config[hists_key] += h
                             else:
                                 hists_config[hists_key] = h
-                        for key in ['signal', 'background']:
+                        for key in ["signal", "background"]:
                             try:
                                 hists[config_inst][key] = hists_config[key]
                             except KeyError:
@@ -264,11 +263,9 @@ class PlotEfficiencyBase(
                             merged_hists[plot_mode] = h
                             plot_mode_memory[plot_mode] = plot_mode
 
-                plot_modes = list(plot_mode_memory.values())
                 hists = {plot_mode_memory[plot_mode]: h for plot_mode, h in merged_hists.items()}
             else:
                 hists = hists[self.config_inst]
-                plot_modes = list(hists.keys())
 
             # apply binning variables and ranges to histograms,
             # keeping track of total values

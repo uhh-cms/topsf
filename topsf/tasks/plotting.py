@@ -69,7 +69,7 @@ class PlotVariables1D(
                     if config_inst.name == config:
                         for dataset, inp in ds_inp.items():
                             dataset_inst = config_inst.get_dataset(dataset)
-                            h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")
+                            h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")  # noqa: E501
 
                             # loop and extract one histogram per process
                             for process_inst in process_insts:
@@ -96,7 +96,7 @@ class PlotVariables1D(
                                         hist.loc(s.name)
                                         for s in plot_shifts
                                         if s.name in h.axes["shift"]
-                                    ]
+                                    ],
                                 }]
 
                                 # axis reductions

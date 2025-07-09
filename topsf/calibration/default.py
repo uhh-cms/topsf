@@ -13,7 +13,11 @@ from columnflow.production.cms.seeds import deterministic_seeds
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 
-from topsf.calibration.jets import jet_lepton_cleaner, jec_subjets, jer_subjets
+from topsf.calibration.jets import (
+    jet_lepton_cleaner,
+    jec_subjets,
+    # jer_subjets
+)
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -54,7 +58,8 @@ def default(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     events = self[deterministic_seeds](events, **kwargs)
 
     # fake subjet area column by setting it to an array with the same structure as the subjet pt column containing 0.5
-    # (needed to be able to use same code as for top-level AK4/AK8 jets, as the producer formally requires an `area` column, despite not actually using it)
+    # (needed to be able to use same code as for top-level AK4/AK8 jets, as the producer formally requires an `area`
+    # column, despite not actually using it)
     events = set_ak_column_f32(events, "SubJet.area", 0.5 * ak.ones_like(events.SubJet.pt))
 
     events = self[jec_subjets](events, **kwargs)

@@ -80,7 +80,7 @@ def plot_variable_stack(
         process_style_config,
         variable_style_config[variable_inst],
         style_config,
-        deep=True
+        deep=True,
     )
     if shape_norm:
         style_config["ax_cfg"]["ylabel"] = "Normalized entries"

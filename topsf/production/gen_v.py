@@ -210,7 +210,13 @@ def vjets_weight_requires(self: Producer, task: law.Task, reqs: dict) -> None:
 
 
 @vjets_weight.setup
-def vjets_weight_setup(self: Producer, task: law.Task, reqs: dict, inputs: dict, reader_targets: InsertableDict) -> None:
+def vjets_weight_setup(
+    self: Producer,
+    task: law.Task,
+    reqs: dict,
+    inputs: dict,
+    reader_targets: InsertableDict,
+) -> None:
     bundle = reqs["external_files"]
 
     # create the L1 prefiring weight evaluator
