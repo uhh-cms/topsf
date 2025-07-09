@@ -383,7 +383,7 @@ def add_config(
     cfg.x.default_selector = "default"
     cfg.x.default_reducer = "cf_default"
     cfg.x.default_producer = "default"
-    cfg.x.default_hist_producer = "cf_default"
+    cfg.x.default_hist_producer = "all_weights"
     cfg.x.default_ml_model = None
     cfg.x.default_inference_model = "default"  # "uhh2"
     cfg.x.default_categories = ("incl",)
@@ -561,7 +561,6 @@ def add_config(
     # on command line via the '--weight_producer' parameter. To reproduce results from before this date,
     # you can use the 'all_weights' weight_producer defined in columnflow.weight.all_weights.
     # With cf 0.3.x, the 'weight_producer' has been renamed to 'hist_producer'.
-    cfg.x.default_hist_producer = "all_weights"
 
     # custom labels for selector steps
     cfg.x.selector_step_labels = {}
