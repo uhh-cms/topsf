@@ -47,7 +47,7 @@ def uhh2(self):
     ref_channels = ref_setup["channels"]
     ref_pt_bins = ref_setup["pt_bins"]
     ref_wp_names = ref_setup["wp_names"]
-    ref_fit_vars = ref_setup["fit_vars"][0]  # Assuming single var for now
+    ref_fit_vars = ref_setup["fit_vars"]
     ref_shape_unc = ref_setup["shape_unc"]
 
     # Compare the rest against the reference
@@ -59,10 +59,19 @@ def uhh2(self):
             raise ValueError(f"Config {config_inst.name} has different pt_bins.")
         if setup["wp_names"] != ref_wp_names:
             raise ValueError(f"Config {config_inst.name} has different wp_names.")
-        if setup["fit_vars"][0] != ref_fit_vars:
-            raise ValueError(f"Config {config_inst.name} has different fit_vars[0].")
+        if setup["fit_vars"] != ref_fit_vars:
+            raise ValueError(f"Config {config_inst.name} has different fit_vars.")
         if setup["shape_unc"] != ref_shape_unc:
             raise ValueError(f"Config {config_inst.name} has different shape_unc.")
+
+        # Add check to make sure only one fit variable is used
+        if len(ref_fit_vars) != 1:
+            raise ValueError(
+                "Only one fit variable is supported. "
+                f"Found {len(ref_fit_vars)} variables in {config_inst.name}: {', '.join(ref_fit_vars)}.",
+            )
+
+    ref_fit_vars = ref_fit_vars[0]  # use the first fit variable in the given list
 
     # Now safe to assign
     channels = ref_channels
