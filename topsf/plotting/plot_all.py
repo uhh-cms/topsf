@@ -9,7 +9,8 @@ from __future__ import annotations
 from columnflow.util import DotDict, maybe_import
 from columnflow.plotting.plot_util import get_position
 from columnflow.plotting.plot_all import (
-    draw_error_bands,
+    draw_stat_error_bands,
+    # draw_syst_error_bands,  # FIXME not used
     draw_stack,
     draw_hist,
     draw_errorbars,
@@ -350,7 +351,7 @@ def plot_all(
 plot_all.plot_methods = {
     func.__name__: func
     for func in [
-        draw_error_bands,
+        draw_stat_error_bands,
         draw_stack,
         draw_hist,
         draw_errorbars,

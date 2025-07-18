@@ -34,3 +34,8 @@ data
 .data
 .law
 .setups
+workflow_scripts/*
+luigi-server*
+examples/009_combine/cf_shapes*
+examples/009_combine/task_dirs*
+zzz_copy_space/*

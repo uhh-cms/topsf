@@ -292,7 +292,7 @@ def probe_jet(
     events = set_ak_column(events, "ProbeJet.n_merged", n_merged)
 
     for v in ("pt", "eta", "phi", "mass", "tau3", "tau2", "msoftdrop"):
-        events = set_ak_column(events, f"ProbeJet.{v}", probejet[v])
+        events = set_ak_column(events, f"ProbeJet['{v}']", probejet[v])
 
     events = set_ak_column(
         events,

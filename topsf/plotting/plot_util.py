@@ -85,7 +85,7 @@ def prepare_plot_config(
         }
         if not hide_errors:
             plot_config["mc_uncert"] = {
-                "method": "draw_error_bands",
+                "method": "draw_stats_error_bands",
                 "hist": h_mc,
                 "kwargs": {"norm": mc_norm, "label": "MC stat. unc."},
                 "ratio_kwargs": {"norm": h_mc.values()},

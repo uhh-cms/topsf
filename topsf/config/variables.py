@@ -96,7 +96,7 @@ def add_variables(config: od.Config) -> None:
     )
     config.add_variable(
         name="fatjet_tau32",
-        expression=lambda events: events['FatJet']['tau3'] / events['FatJet']['tau2'],
+        expression=lambda events: events["FatJet"]["tau3"] / events["FatJet"]["tau2"],
         null_value=EMPTY_FLOAT,
         binning=(50, 0, 1),
         x_title=r"AK8 jet $\tau_{3}/\tau_{2}$",

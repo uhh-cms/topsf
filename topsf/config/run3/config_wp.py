@@ -218,7 +218,9 @@ def add_config(
     # ml model, inference model, etc
     cfg.x.default_calibrator = "default"
     cfg.x.default_selector = "wp"
+    cfg.x.default_reducer = "cf_default"
     cfg.x.default_producer = "default"
+    cfg.x.default_hist_producer = "all_weights"
     cfg.x.default_ml_model = None
     cfg.x.default_inference_model = None
     cfg.x.default_categories = ("incl",)
@@ -272,7 +274,7 @@ def add_config(
     # You can add a 'default_weight_producer' to your config or directly add the weight_producer
     # on command line via the '--weight_producer' parameter. To reproduce results from before this date,
     # you can use the 'all_weights' weight_producer defined in columnflow.weight.all_weights:
-    cfg.x.default_weight_producer = "all_weights"
+    # With cf 0.3.x, the 'weight_producer' has been renamed to 'hist_producer'.
 
     # custom labels for selector steps
     cfg.x.selector_step_labels = {}
@@ -567,8 +569,7 @@ def add_config(
         "FatJet": {
             "campaign": jerc_campaign,
             "version": {2022: "JRV1"}[year],
-            "jet_type": jet_type,
-            "external_file_key": "jet_jerc",
+            "jet_type": fatjet_type,
         },
         "SubJet": {
             "campaign": jerc_campaign,
@@ -949,7 +950,7 @@ def add_config(
     #
 
     # external files
-    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-49ddc547"
+    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-b7a48c75"
     local_repo = "/data/dust/user/matthiej/topsf"  # TODO: avoid hardcoding path
 
     if cfg.x.run == 3:
@@ -961,6 +962,9 @@ def add_config(
 
         # jet energy correction
         "jet_jerc": (f"{json_mirror}/POG/JME/{corr_tag}/jet_jerc.json.gz", "v1"),
+
+        # jet energy correction ak8
+        "fat_jet_jerc": (f"{json_mirror}/POG/JME/{corr_tag}/fatJet_jerc.json.gz", "v1"),
 
         # jet veto map
         "jet_veto_map": (f"{json_mirror}/POG/JME/{corr_tag}/jetvetomaps.json.gz", "v1"),
