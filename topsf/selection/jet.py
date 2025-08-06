@@ -8,6 +8,7 @@ from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
 
 from columnflow.selection import Selector, SelectionResult, selector
+# from columnflow.production.cms.jet import jet_id. # FIXME recalculate jetId in Nano version > v12
 
 from topsf.selection.util import masked_sorted_indices
 from topsf.production.lepton import choose_lepton
@@ -35,7 +36,8 @@ def jet_selection(
     # select jets
     jet_mask = (
         (abs(jet.eta) < self.cfg.max_abseta) &
-        (jet.pt > self.cfg.min_pt)
+        (jet.pt > self.cfg.min_pt) &
+        (jet.jetId & self.cfg.jetId == self.cfg.jetId)  # jetId bitmask
     )
     jet_indices = masked_sorted_indices(jet_mask, jet.pt)
 
@@ -84,6 +86,7 @@ def jet_selection_init(self: Selector) -> None:
             f"{column}.phi",
             f"{column}.mass",
             f"{column}.{self.cfg.btag_column}",
+            f"{column}.jetId",
         }
 
     # Add shift dependencies

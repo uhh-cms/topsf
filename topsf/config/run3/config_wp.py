@@ -730,6 +730,8 @@ def add_config(
             "min_pt": 300,
             "max_abseta": 2.4,  # note: SF analysis has 2.5
             "msoftdrop_range": (105, 210),
+            # https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV
+            "jetId": 2,  # bit2 (2): pass tight ID, fail tightLepVeto, bit3 (6): pass tight and tightLepVeto ID
             # probe jet pt bins (used by category builder)
             "pt_bins": [300, 400, 480, 600, None],
             # parameters for b-tagged subjets
