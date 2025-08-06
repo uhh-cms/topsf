@@ -1056,6 +1056,32 @@ def add_config(
         "TimePtEta",
     ]
 
+    if cfg.x.run == 2:
+        cfg.x.met_phi_correction_set = "{variable}_metphicorr_pfmet_{data_source}"
+    else:
+        cfg.x.met_phi_correction_set = "met_xy_corrections"
+        cfg.x.met_phi_correction = {
+            "met_name": "PuppiMET",
+            "correction_set": "met_xy_corrections",
+            "keep_uncorrected": False,
+            "variable_config": {
+                "pt": (
+                    "pt",
+                    "pt_stat_yup",
+                    "pt_stat_ydn",
+                    "pt_stat_xup",
+                    "pt_stat_xdn",
+                ),
+                "phi": (
+                    "phi",
+                    "phi_stat_yup",
+                    "phi_stat_ydn",
+                    "phi_stat_xup",
+                    "phi_stat_xdn",
+                ),
+            },
+        }
+
     #
     # tagger working points
     #
@@ -1425,20 +1451,22 @@ def add_config(
         # btag scale factor
         "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
 
-        # met phi corrector
-        "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met.json.gz", "v1"),
-
         # V+jets reweighting
         "vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
     })
 
-    # temporary fix due to missing corrections in run 3
-    if cfg.x.run == 3:
-        # cfg.add_tag("skip_electron_weights")
-        # cfg.add_tag("skip_muon_weights")
-        cfg.x.external_files.pop("met_phi_corr")
+    if cfg.x.run == 2:
+        cfg.x.external_files.update(DotDict.wrap({
+            "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met.json.gz", "v1"),
+        }))
+    elif cfg.x.run == 3:
+        met_corr_tag = f"{year}_{year}{jerc_postfix}"
+        cfg.x.external_files.update(DotDict.wrap({
+            # met phi corrector
+            "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met_xyCorrections_{met_corr_tag}.json.gz", "v1"),
+        }))
 
-    if year == 2022 and campaign.x.EE == "pre":
+    if cfg.x.cpn_tag == "2022preEE":
         cfg.x.external_files.update(DotDict.wrap({
             # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
             "lumi": {

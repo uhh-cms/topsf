@@ -952,7 +952,7 @@ def add_config(
     #
 
     # external files
-    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-b7a48c75"
+    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-406118ec"  # updated 31.07.25
     local_repo = "/data/dust/user/matthiej/topsf"  # TODO: avoid hardcoding path
 
     if cfg.x.run == 3:
@@ -980,12 +980,23 @@ def add_config(
         # btag scale factor
         "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
 
-        # met phi corrector
-        "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met.json.gz", "v1"),
-
         # V+jets reweighting
         "vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
+
+        # jet id
+        "jet_id": f"{json_mirror}/POG/JME/{corr_tag}/jetid.json.gz",
     })
+
+    if cfg.x.run == 2:
+        cfg.x.external_files.update(DotDict.wrap({
+            "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met.json.gz", "v1"),
+        }))
+    elif cfg.x.run == 3:
+        met_corr_tag = f"{year}_{year}{jerc_postfix}"
+        cfg.x.external_files.update(DotDict.wrap({
+            # met phi corrector
+            "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met_xyCorrections_{met_corr_tag}.json.gz", "v1"),
+        }))
 
     # temporary fix due to missing corrections in run 3
     # electron and met still missing
