@@ -7,7 +7,7 @@ Producers related to event weights.
 
 from columnflow.production import Producer, producer
 from columnflow.production.cms.electron import electron_weights
-from columnflow.production.cms.mc_weight import mc_weight
+# from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.muon import muon_weights
 from columnflow.production.cms.pileup import pu_weight
 from columnflow.production.cms.scale import murmuf_weights, murmuf_envelope_weights
@@ -55,8 +55,8 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # compute normalization weights
         events = self[normalization_weights](events, **kwargs)
 
-        # compute MC weights
-        events = self[mc_weight](events, **kwargs)
+        # # compute MC weights
+        # events = self[mc_weight](events, **kwargs)
 
         # compute pu weights
         events = self[pu_weight](events, **kwargs)
@@ -101,10 +101,10 @@ def weights_init(self: Producer) -> None:
             self.uses |= {vjets_weight}
             self.produces |= {vjets_weight}
 
-        self.uses |= {normalization_weights, pu_weight, mc_weight}
+        self.uses |= {normalization_weights, pu_weight}
 
         if self.dataset_inst.has_tag("has_top"):
             self.uses |= {murmuf_weights, murmuf_envelope_weights}
             self.produces |= {murmuf_weights, murmuf_envelope_weights}
 
-        self.produces |= {normalization_weights, pu_weight, mc_weight}
+        self.produces |= {normalization_weights, pu_weight}
