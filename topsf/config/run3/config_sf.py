@@ -1225,9 +1225,11 @@ def add_config(
     })
 
     # MET selection parameters
+    # FIXME: use PuppiMET for Run 3? What's the difference? It's better?
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections?rev=79#xy_Shift_Correction_MET_phi_modu
     cfg.x.met_selection = DotDict.wrap({
         "default": {
-            "column": "MET",
+            "column": "PuppiMET" if cfg.x.run == 3 else "MET",
             "min_pt": 50,
         },
     })
