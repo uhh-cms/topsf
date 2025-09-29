@@ -1060,14 +1060,6 @@ def add_config(
             "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met_xyCorrections_{met_corr_tag}.json.gz", "v1"),
         }))
 
-    # temporary fix due to missing corrections in run 3
-    # electron and met still missing
-    if cfg.x.run == 3:
-        # cfg.add_tag("skip_electron_weights")
-        # cfg.add_tag("skip_muon_weights")
-
-        cfg.x.external_files.pop("met_phi_corr")
-
     if cfg.x.cpn_tag == "2022preEE":
         cfg.x.external_files.update(DotDict.wrap({
             # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
