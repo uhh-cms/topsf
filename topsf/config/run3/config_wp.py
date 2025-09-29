@@ -660,6 +660,32 @@ def add_config(
         "TimePtEta",
     ]
 
+    if cfg.x.run == 2:
+        cfg.x.met_phi_correction_set = "{variable}_metphicorr_pfmet_{data_source}"
+    else:
+        cfg.x.met_phi_correction_set = "met_xy_corrections"
+        cfg.x.met_phi_correction = {
+            "met_name": "PuppiMET",
+            "correction_set": "met_xy_corrections",
+            "keep_uncorrected": False,
+            "variable_config": {
+                "pt": (
+                    "pt",
+                    "pt_stat_yup",
+                    "pt_stat_ydn",
+                    "pt_stat_xup",
+                    "pt_stat_xdn",
+                ),
+                "phi": (
+                    "phi",
+                    "phi_stat_yup",
+                    "phi_stat_ydn",
+                    "phi_stat_xup",
+                    "phi_stat_xdn",
+                ),
+            },
+        }
+
     #
     # tagger working points
     #
