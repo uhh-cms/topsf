@@ -6,7 +6,9 @@ from __future__ import annotations
 
 import law
 
+from columnflow.types import Any
 from columnflow.util import maybe_import
+from columnflow.columnar_util import ArrayFunction, deferred_column
 
 np = maybe_import("numpy")
 
@@ -25,3 +27,11 @@ def has_tag(tag, *container, operator: callable = any) -> bool:
     """
     values = [inst.has_tag(tag) for inst in container]
     return operator(values)
+
+
+@deferred_column
+def IF_MC(self: ArrayFunction.DeferredColumn, func: ArrayFunction) -> Any | set[Any]:
+    if getattr(func, "dataset_inst", None) is None:
+        return self.get()
+
+    return self.get() if func.dataset_inst.is_mc else None

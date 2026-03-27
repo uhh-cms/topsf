@@ -23,6 +23,8 @@ plt = maybe_import("matplotlib.pyplot")
 mplhep = maybe_import("mplhep")
 od = maybe_import("order")
 
+logger = law.logger.get_logger(__name__)
+
 
 def plot_roc_curve(
     hists: OrderedDict,
@@ -48,8 +50,8 @@ def plot_roc_curve(
 
     if "signal" not in hists or "background" not in hists:
         hists_keys_str = ", ".join(hists)
-        print(
-            f"WARNING: `hists` should contain the keys 'signal' and 'background', got: {hists_keys_str}",
+        logger.warning(
+            f"`hists` should contain the keys 'signal' and 'background', got: {hists_keys_str}",
         )
 
     # plot config with a single entry for drawing the ROC curve
@@ -133,13 +135,13 @@ def plot_efficiency(
         "background" not in hists
     ):
         hists_keys_str = ", ".join(hists)
-        print(
-            f"WARNING: `hists` should contain the keys 'signal' and 'background', got: {hists_keys_str}",
+        logger.warning(
+            f"`hists` should contain the keys 'signal' and 'background', got: {hists_keys_str}",
         )
     elif plot_mode not in hists:
         hists_keys_str = ", ".join(hists)
-        print(
-            f"WARNING: `hists` should contain the key '{plot_mode}', got: {hists_keys_str}",
+        logger.warning(
+            f"`hists` should contain the key '{plot_mode}', got: {hists_keys_str}",
         )
 
     # plot config with a single entry for drawing the ROC curve

@@ -18,6 +18,8 @@ from topsf.tasks.base import TopSFTask
 
 np = maybe_import("numpy")
 
+logger = law.logger.get_logger(__name__)
+
 
 class EfficiencyVariablesMixin(VariablesMixin):
 
@@ -139,6 +141,31 @@ class PlotEfficiencyBase(
         PlotVariablesBaseSingleShift.reqs,
     )
 
+    def requires(self):
+        # retrieving reqs from parent class didn't work due to `bypass_branch_requirements`
+        # in `PlotVariablesBaseSingleShift`; copy-pasted the relevant part of the code here
+        reqs = {}
+
+        for config_inst, datasets in zip(self.config_insts, self.datasets):
+            logger.info(f"datasets to plot for config '{config_inst.name}': {datasets}")
+            reqs[config_inst.name] = {}
+            for d in datasets:
+                if d not in config_inst.datasets:
+                    logger.warning(
+                        f"dataset '{d}' not found in config '{config_inst.name}', skipping it",
+                    )
+                    continue
+                reqs[config_inst.name][d] = self.reqs.MergeHistograms.req_different_branching(
+                    self,
+                    config=config_inst.name,
+                    shift=self.global_shift_insts[config_inst].name,
+                    dataset=d,
+                    branch=-1,
+                    _prefer_cli={"variables"},
+                )
+
+        return reqs
+
     plot_function = PlotBase.plot_function.copy(
         default="topsf.plotting.plot_roc_curve.plot_efficiency",
         add_default_to_description=True,
@@ -171,6 +198,8 @@ class PlotEfficiencyBase(
     @law.decorator.safe_output
     def run(self):
         import hist
+        if len(self.input().items()) == 0:
+            raise Exception("No input found.")
 
         # get the shifts to extract and plot
         plot_shifts = law.util.make_list(self.get_plot_shifts())
@@ -192,15 +221,20 @@ class PlotEfficiencyBase(
 
         with self.publish_step(f"plotting ROC curve for variable {self.branch_data.variable} in category {category_inst.name}"):  # noqa
             for i, config_inst in enumerate(self.config_insts):
+                logger.debug(f"processing config '{config_inst.name}'")
                 # histogram data per process
                 hists_config = {}
                 hists[config_inst] = hists_config
-                for config, ds_inp in self.input().items():
-                    if config_inst.name == config:
+                for cfg, ds_inp in self.input().items():
+                    logger.debug(f"processing input for config '{cfg}'")
+                    if config_inst.name == cfg:
                         for dataset, inp in ds_inp.items():
                             dataset_inst = config_inst.get_dataset(dataset)
                             # skip when the dataset does not contain any leaf process
                             if not any(map(dataset_inst.has_process, leaf_process_insts)):
+                                logger.warning(
+                                    f"dataset {dataset} does not contain any of the leaf processes {', '.join(p.name for p in leaf_process_insts)}, skipping it",
+                                )
                                 continue
                             h_in = inp["collection"][0]["hists"].targets[self.branch_data.variable].load(formatter="pickle")  # noqa: E501
 
@@ -241,14 +275,36 @@ class PlotEfficiencyBase(
                                 hists[config_inst][key] = hists_config[key]
                             except KeyError:
                                 # if the key is not present, skip it
+                                logger.warning(
+                                    f"histogram with key '{key}' not found for config '{config_inst.name}', skipping it",
+                                )
                                 continue
-
+                    else:
+                        logger.warning(
+                            f"config '{config_inst.name}' not found in input, skipping it",
+                        )
             # there should be hists to plot
             if not hists:
                 raise Exception(
                     "no histograms found to plot; possible reasons:\n" +
                     "  - requested variable requires columns that were missing during histogramming\n" +
                     "  - selected --processes did not match any value on the process axis of the input histogram",
+                )
+            if all(not _hists for _hists in hists.values()):
+                raise Exception(
+                    "no histograms found to plot after processing; possible reasons:\n" +
+                    "  - requested variable requires columns that were missing during histogramming\n" +
+                    "  - selected --processes did not match any value on the process axis of the input histogram\n" +
+                    "configs with no histograms: " +
+                    ", ".join(config_inst.name for config_inst, _hists in hists.items() if not _hists)
+                )
+            if any(not _hists for _hists in hists.values()):
+                logger.warning(
+                    "some configs do not have any histograms to plot after processing; possible reasons:\n" +
+                    "  - requested variable requires columns that were missing during histogramming\n" +
+                    "  - selected --processes did not match any value on the process axis of the input histogram\n" +
+                    "configs with no histograms: " +
+                    ", ".join(config_inst.name for config_inst, _hists in hists.items() if not _hists)
                 )
 
             # merge configs if multiconfig
