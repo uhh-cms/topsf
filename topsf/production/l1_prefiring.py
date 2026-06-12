@@ -150,11 +150,11 @@ def l1_prefiring_weights(
     return events
 
 
-@l1_prefiring_weights.init
-def l1_prefiring_weights_init(self: Producer) -> None:
-    shift_inst = getattr(self, "local_shift_inst", None)
-    if not shift_inst:
-        return
+# @l1_prefiring_weights.init
+# def l1_prefiring_weights_init(self: Producer) -> None:
+#     shift_inst = getattr(self, "local_shift_inst", None)
+#     if not shift_inst:
+#         return
 
 
 @l1_prefiring_weights.requires

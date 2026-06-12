@@ -44,8 +44,10 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
 
     # revert JEC for jet pt and jet mass,
     # set correction factor to 0
-    events = set_ak_column(events, "Jet.pt", events.Jet.pt * (1 - events.Jet.rawFactor))
-    events = set_ak_column(events, "Jet.mass", events.Jet.mass * (1 - events.Jet.rawFactor))
+    raw_pt = events.Jet.pt * (1 - events.Jet.rawFactor)
+    raw_mass = events.Jet.mass * (1 - events.Jet.rawFactor)
+    events = set_ak_column(events, "Jet.pt", raw_pt)
+    events = set_ak_column(events, "Jet.mass", raw_mass)
     events = set_ak_column(events, "Jet.rawFactor", 0)
 
     # build jet lorentz vectors
@@ -157,6 +159,10 @@ def jet_lepton_cleaner(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array
         # ensure no missing values
         value = ak.fill_none(ak.nan_to_none(getattr(jet_lv, var)), 0.0)
         events = set_ak_column(events, f"Jet.{var}", value)
+
+    # do not set to updated raw factor as out dated JECs are already reverted
+    # raw_factor = ak.nan_to_num(1 - raw_pt / events.Jet.pt, nan=0.0)
+    # events = set_ak_column(events, "Jet.rawFactor", raw_factor)
 
     return events
 

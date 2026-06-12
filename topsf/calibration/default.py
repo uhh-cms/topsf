@@ -6,7 +6,8 @@ Calibration methods.
 import functools
 
 from columnflow.calibration import Calibrator, calibrator
-from columnflow.calibration.cms.jets import jets_ak4, jets_ak8
+from columnflow.calibration.cms.jets import jec_ak4, jer_ak4, jec_ak8, jer_ak8
+from columnflow.calibration.cms.met import met_phi
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.cms.jet import msoftdrop
 from columnflow.production.cms.seeds import deterministic_seeds
@@ -30,9 +31,12 @@ set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
         mc_weight,
         deterministic_seeds,
         jet_lepton_cleaner,
-        jets_ak4,
-        jets_ak8,
+        jec_ak4,
+        jec_ak8,
+        jer_ak4,
+        jer_ak8,
         jec_subjets,
+        met_phi,
         # jer_subjets,
         msoftdrop,
     },
@@ -40,9 +44,12 @@ set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
         mc_weight,
         deterministic_seeds,
         jet_lepton_cleaner,
-        jets_ak4,
-        jets_ak8,
+        jec_ak4,
+        jec_ak8,
+        jer_ak4,
+        jer_ak8,
         jec_subjets,
+        met_phi,
         # jer_subjets,
         msoftdrop,
     },
@@ -51,11 +58,13 @@ def default(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     events = self[jet_lepton_cleaner](events, **kwargs)  # set Jet.pt to raw Pt -> run before jets (JER) calibrator
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
-
-    events = self[jets_ak4](events, **kwargs)  # call_force ?
-    events = self[jets_ak8](events, **kwargs)  # call_force ?
-
     events = self[deterministic_seeds](events, **kwargs)
+    # run JEC calibrators for AK4 and AK8 jets
+    events = self[jec_ak4](events, **kwargs)
+    events = self[jec_ak8](events, **kwargs)
+    if self.dataset_inst.is_mc:
+        events = self[jer_ak4](events, **kwargs)
+        events = self[jer_ak8](events, **kwargs)
 
     # fake subjet area column by setting it to an array with the same structure as the subjet pt column containing 0.5
     # (needed to be able to use same code as for top-level AK4/AK8 jets, as the producer formally requires an `area`
@@ -67,19 +76,21 @@ def default(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     #     events = self[jer_subjets](events, **kwargs)
     events = self[msoftdrop](events, **kwargs)
 
+    events = self[met_phi](events, **kwargs)
+
     return events
 
 
 @calibrator(
-    uses={mc_weight, deterministic_seeds, jets_ak4, jets_ak8},
-    produces={mc_weight, deterministic_seeds, jets_ak4, jets_ak8},
+    uses={mc_weight, deterministic_seeds},
+    produces={mc_weight, deterministic_seeds},
 )
 def no_jet_cleaning(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     if self.dataset_inst.is_mc:
         events = self[mc_weight](events, **kwargs)
 
-    events = self[jets_ak4](events, **kwargs)
-    events = self[jets_ak8](events, **kwargs)  # call_force ?
+    # events = self[jets_ak4](events, **kwargs)
+    # events = self[jets_ak8](events, **kwargs)  # call_force ?
     events = self[deterministic_seeds](events, **kwargs)
 
     return events

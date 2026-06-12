@@ -7,6 +7,7 @@ Selectors for large-radius jets.
 from columnflow.util import maybe_import
 
 from columnflow.selection import Selector, SelectionResult, selector
+# from columnflow.production.cms.jet import jet_id. # FIXME recalculate jetId in Nano version > v12
 
 from topsf.selection.util import masked_sorted_indices
 from topsf.selection.lepton import lepton_selection
@@ -39,7 +40,8 @@ def fatjet_selection(
     # select jets
     fatjet_mask = (
         (abs(fatjet.eta) < self.cfg.max_abseta) &
-        (fatjet.pt > self.cfg.min_pt)
+        (fatjet.pt > self.cfg.min_pt) &
+        (fatjet.jetId & self.cfg.jetId == self.cfg.jetId)  # jetId bitmask
     )
     fatjet_indices = masked_sorted_indices(fatjet_mask, fatjet.pt)
 
@@ -94,4 +96,5 @@ def fatjet_selection_init(self: Selector) -> None:
         f"{column}.eta",
         f"{column}.phi",
         f"{column}.mass",
+        f"{column}.jetId",
     }

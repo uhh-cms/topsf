@@ -193,11 +193,11 @@ def vjets_weight_skip(self: Producer) -> bool:
     )
 
 
-@vjets_weight.init
-def vjets_weight_init(self: Producer) -> None:
-    shift_inst = getattr(self, "local_shift_inst", None)
-    if not shift_inst:
-        return
+# @vjets_weight.init
+# def vjets_weight_init(self: Producer) -> None:
+#     shift_inst = getattr(self, "local_shift_inst", None)
+#     if not shift_inst:
+#         return
 
 
 @vjets_weight.requires

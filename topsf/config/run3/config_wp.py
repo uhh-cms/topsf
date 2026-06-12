@@ -22,6 +22,8 @@ from columnflow.config_util import (
     get_shifts_from_sources,
     verify_config_processes,
 )
+from columnflow.production.cms.electron import ElectronSFConfig
+from columnflow.production.cms.jet import JetIdConfig
 
 from topsf.config.variables import add_variables
 from topsf.config.categories_wp import add_categories
@@ -57,7 +59,7 @@ def add_config(
     elif year == 2023:
         corr_postfix = f"{campaign.x.BPix}BPix"
 
-    implemented_years = [2022]
+    implemented_years = [2022, 2023]
 
     if year not in implemented_years:
         raise NotImplementedError("For now, only 2022 campaign is fully implemented")
@@ -185,10 +187,20 @@ def add_config(
         "qcd_em_pt170to300_pythia",
         "qcd_em_pt300toinf_pythia",
     ]
-    # if campaign.x.EE == "post":
-    #     dataset_names += [
-    #         "qcd_mu_pt20to30_pythia",
-    #     ]
+    if year == 2022:
+        if campaign.x.EE == "pre":
+            dataset_names += [
+            ]
+        elif campaign.x.EE == "post":
+            dataset_names += [
+            ]
+    elif year == 2023:
+        if campaign.has_tag("preBPix"):
+            dataset_names += [
+            ]
+        elif campaign.has_tag("postBPix"):
+            dataset_names += [
+            ]
     for dataset_name in dataset_names:
         # add the dataset
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
@@ -312,6 +324,17 @@ def add_config(
                 "lumi_13TeV_2022": 0.01j,
                 "lumi_13TeV_correlated": 0.006j,
             })
+    elif year == 2023:
+        if campaign.has_tag("preBPix"):
+            cfg.x.luminosity = Number(17794, {
+                "lumi_13TeV_2023": 0.01j,
+                "lumi_13TeV_correlated": 0.006j,
+            })
+        elif campaign.has_tag("postBPix"):
+            cfg.x.luminosity = Number(9451, {
+                "lumi_13TeV_2023": 0.01j,
+                "lumi_13TeV_correlated": 0.006j,
+            })
     else:
         raise NotImplementedError(f"Luminosity for year {year} is not defined.")
 
@@ -350,19 +373,27 @@ def add_config(
     # jec configuration taken from HBW
     # https://github.com/uhh-cms/hh2bbww/blob/master/hbw/config/config_run2.py#L138C5-L269C1
     # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC?rev=201
-    jerc_postfix = ""
-    if year == 2022 and campaign.x.EE == "post":
-        jerc_postfix = "EE"
+    jerc_postfix = campaign.x.postfix
+    if jerc_postfix not in ("", "EE", "BPix"):
+        raise ValueError(f"Invalid JERC postfix '{jerc_postfix}' for campaign {campaign.name}.")
+    if year == 2022:
+        jer_campaign = jec_campaign = f"Summer{year2}{jerc_postfix}_22Sep2023"
+    elif year == 2023:
+        era = "Cv1234" if campaign.has_tag("preBPix") else "D"
+        jer_campaign = f"Summer{year2}{jerc_postfix}Prompt{year2}_Run{era}"
+        jec_campaign = f"Summer{year2}{jerc_postfix}Prompt{year2}"
 
-    if cfg.x.run == 3:
-        jerc_campaign = f"Summer{year2}{jerc_postfix}_22Sep2023"
-        jet_type = "AK4PFPuppi"
-        fatjet_type = "AK8PFPuppi"
+    jet_type = "AK4PFPuppi"
+    fatjet_type = "AK8PFPuppi"
+    jec_ak4_version = jec_ak8_version = {
+        2022: "V2",
+        2023: "V2" if jerc_postfix == "" else "V3",
+    }[year]
 
     cfg.x.jec = DotDict.wrap({
         "Jet": {
-            "campaign": jerc_campaign,
-            "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2"}[year],
+            "campaign": jec_campaign,
+            "version": jec_ak4_version,
             "jet_type": jet_type,
             "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
             "levels_for_type1_met": ["L1FastJet"],
@@ -424,10 +455,11 @@ def add_config(
                 "CorrelationGroupFlavor",
                 "CorrelationGroupUncorrelated",
             ],
+            "data_per_era": False if year == 2023 else True,
         },
         "FatJet": {
-            "campaign": jerc_campaign,
-            "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2"}[year],
+            "campaign": jec_campaign,
+            "version": jec_ak8_version,
             "jet_type": fatjet_type,
             "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
             "levels_for_type1_met": ["L1FastJet"],
@@ -489,10 +521,11 @@ def add_config(
                 "CorrelationGroupFlavor",
                 "CorrelationGroupUncorrelated",
             ],
+            "data_per_era": False if year == 2023 else True,
         },
         "SubJet": {
-            "campaign": jerc_campaign,
-            "version": {2016: "V7", 2017: "V5", 2018: "V5", 2022: "V2"}[year],
+            "campaign": jec_campaign,
+            "version": jec_ak4_version,
             "jet_type": jet_type,
             "levels": ["L1FastJet", "L2Relative", "L2L3Residual", "L3Absolute"],
             "levels_for_type1_met": ["L1FastJet"],
@@ -554,6 +587,7 @@ def add_config(
                 # "CorrelationGroupFlavor",
                 # "CorrelationGroupUncorrelated",
             ],
+            "data_per_era": False if year == 2023 else True,
         },
     })
 
@@ -562,21 +596,27 @@ def add_config(
     # TODO: get jerc working for Run3
     cfg.x.jer = DotDict.wrap({
         "Jet": {
-            "campaign": jerc_campaign,
-            "version": {2022: "JRV1"}[year],
+            "campaign": jer_campaign,
+            "version": {2022: "JRV1", 2023: "JRV1"}[year],
             "jet_type": jet_type,
         },
         "FatJet": {
-            "campaign": jerc_campaign,
-            "version": {2022: "JRV1"}[year],
+            "campaign": jer_campaign,
+            "version": {2022: "JRV1", 2023: "JRV1"}[year],
             "jet_type": fatjet_type,
         },
         "SubJet": {
-            "campaign": jerc_campaign,
-            "version": {2022: "JRV1"}[year],
+            "campaign": jer_campaign,
+            "version": {2022: "JRV1", 2023: "JRV1"}[year],
             "jet_type": jet_type,
         },
     })
+    cfg.x.jet_id = JetIdConfig(
+        corrections={
+            "AK4PUPPI_Tight": 2,
+            "AK4PUPPI_TightLeptonVeto": 6,
+        },
+    )
 
     # JEC uncertainty sources propagated to btag scale factors
     # (names derived from contents in BTV correctionlib file)
@@ -620,6 +660,32 @@ def add_config(
         "TimePtEta",
     ]
 
+    if cfg.x.run == 2:
+        cfg.x.met_phi_correction_set = "{variable}_metphicorr_pfmet_{data_source}"
+    else:
+        cfg.x.met_phi_correction_set = "met_xy_corrections"
+        cfg.x.met_phi_correction = {
+            "met_name": "PuppiMET",
+            "correction_set": "met_xy_corrections",
+            "keep_uncorrected": False,
+            "variable_config": {
+                "pt": (
+                    "pt",
+                    "pt_stat_yup",
+                    "pt_stat_ydn",
+                    "pt_stat_xup",
+                    "pt_stat_xdn",
+                ),
+                "phi": (
+                    "phi",
+                    "phi_stat_yup",
+                    "phi_stat_ydn",
+                    "phi_stat_xup",
+                    "phi_stat_xdn",
+                ),
+            },
+        }
+
     #
     # tagger working points
     #
@@ -628,28 +694,29 @@ def add_config(
     # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22/
     # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/
     # TODO: add correct 2022 + 2022preEE WP for deepcsv if needed
-    btag_key = f"2022{campaign.x.EE}EE" if year == 2022 else year
+    # TODO: use PNet?
+    btag_key = cfg.x.cpn_tag
     cfg.x.btag_working_points = DotDict.wrap({
         "deepjet": {
             "loose": {
-                "2022preEE": 0.0583, "2022postEE": 0.0614,
+                "2022preEE": 0.0583, "2022postEE": 0.0614, "2023preBPix": 0.0479, "2023postBPix": 0.048,
             }[btag_key],
             "medium": {
-                "2022preEE": 0.3086, "2022postEE": 0.3196,
+                "2022preEE": 0.3086, "2022postEE": 0.3196, "2023preBPix": 0.2431, "2023postBPix": 0.2435,
             }[btag_key],
             "tight": {
-                "2022preEE": 0.7183, "2022postEE": 0.7300,
+                "2022preEE": 0.7183, "2022postEE": 0.7300, "2023preBPix": 0.6553, "2023postBPix": 0.6563,
             }[btag_key],
         },
         "deepcsv": {
             "loose": {
-                "2022preEE": 0.1208, "2022postEE": 0.1208,
+                "2022preEE": 0.1208, "2022postEE": 0.1208, "2023preBPix": 0.1208, "2023postBPix": 0.1208,
             }[btag_key],
             "medium": {
-                "2022preEE": 0.4168, "2022postEE": 0.4168,
+                "2022preEE": 0.4168, "2022postEE": 0.4168, "2023preBPix": 0.4168, "2023postBPix": 0.4168,
             }[btag_key],
             "tight": {
-                "2022preEE": 0.7665, "2022postEE": 0.7665,
+                "2022preEE": 0.7665, "2022postEE": 0.7665, "2023preBPix": 0.7665, "2023postBPix": 0.7665,
             }[btag_key],
         },
     })
@@ -730,19 +797,23 @@ def add_config(
             "min_pt": 300,
             "max_abseta": 2.4,  # note: SF analysis has 2.5
             "msoftdrop_range": (105, 210),
+            # https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV
+            "jetId": 2,  # bit2 (2): pass tight ID, fail tightLepVeto, bit3 (6): pass tight and tightLepVeto ID
             # probe jet pt bins (used by category builder)
             "pt_bins": [300, 400, 480, 600, None],
             # parameters for b-tagged subjets
             "subjet_column": "SubJet",
             "subjet_btag": "btagDeepB",
-            "subjet_btag_wp": cfg.x.btag_working_points.deepcsv.loose,
+            "subjet_btag_wp": cfg.x.btag_working_points.deepcsv.loose,  # FIXME: use DeepJet or PNet?
         },
     })
 
     # MET selection parameters
+    # FIXME: use PuppiMET for Run 3? What's the difference? It's better?
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections?rev=79#xy_Shift_Correction_MET_phi_modu
     cfg.x.met_selection = DotDict.wrap({
         "default": {
-            "column": "MET",
+            "column": "PuppiMET" if cfg.x.run == 3 else "MET",
             "min_pt": 50,
         },
     })
@@ -751,28 +822,45 @@ def add_config(
     # producer configurations
     #
 
-    if cfg.x.run == 3:
-        # TODO: check that everyting is setup as intended
+    # btag weight configuration
+    cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
 
-        # btag weight configuration
-        cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
-
-        # lepton sf taken from
-        # https://github.com/uhh-cms/hh2bbww/blob/master/hbw/config/config_run2.py#L338C1-L352C85
-        # names of electron correction sets and working points
-        # (used in the electron_sf producer)
-        if cfg.x.cpn_tag == "2022postEE":
-            # TODO: we need to use different SFs for control regions
-            cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoE+PromptFG", "Tight")
-        elif cfg.x.cpn_tag == "2022preEE":
-            cfg.x.electron_sf_names = ("Electron-ID-SF", "2022Re-recoBCD", "Tight")
-
-        # names of muon correction sets and working points
-        # (used in the muon producer)
+    # lepton sf taken from
+    # https://github.com/uhh-cms/hh2bbww/blob/master/hbw/config/config_run2.py#L338C1-L352C85
+    # names of electron correction sets and working points
+    # (used in the electron_sf producer)
+    if cfg.x.cpn_tag == "2022postEE":
         # TODO: we need to use different SFs for control regions
-        cfg.x.muon_sf_names = ("NUM_TightPFIso_DEN_TightID", f"{cfg.x.cpn_tag}")
-        cfg.x.muon_id_sf_names = ("NUM_TightID_DEN_TrackerMuons", f"{cfg.x.cpn_tag}")
-        cfg.x.muon_iso_sf_names = ("NUM_TightPFIso_DEN_TightID", f"{cfg.x.cpn_tag}")
+        cfg.x.electron_sf_names = ElectronSFConfig(
+            correction="Electron-ID-SF",
+            campaign="2022Re-recoE+PromptFG",
+            working_point="Tight",
+        )
+    elif cfg.x.cpn_tag == "2022preEE":
+        cfg.x.electron_sf_names = ElectronSFConfig(
+            correction="Electron-ID-SF",
+            campaign="2022Re-recoBCD",
+            working_point="Tight",
+        )
+    elif cfg.x.cpn_tag == "2023preBPix":
+        cfg.x.electron_sf_names = ElectronSFConfig(
+            correction="Electron-ID-SF",
+            campaign="2023PromptC",
+            working_point="Tight",
+        )
+    elif cfg.x.cpn_tag == "2023postBPix":
+        cfg.x.electron_sf_names = ElectronSFConfig(
+            correction="Electron-ID-SF",
+            campaign="2023PromptD",
+            working_point="Tight",
+        )
+
+    # names of muon correction sets and working points
+    # (used in the muon producer)
+    # TODO: we need to use different SFs for control regions
+    cfg.x.muon_sf_names = ("NUM_TightPFIso_DEN_TightID", f"{cfg.x.cpn_tag}")
+    cfg.x.muon_id_sf_names = ("NUM_TightID_DEN_TrackerMuons", f"{cfg.x.cpn_tag}")
+    cfg.x.muon_iso_sf_names = ("NUM_TightPFIso_DEN_TightID", f"{cfg.x.cpn_tag}")
 
     # top pt reweighting parameters
     # https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting#TOP_PAG_corrections_based_on_dat?rev=31
@@ -950,11 +1038,13 @@ def add_config(
     #
 
     # external files
-    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-b7a48c75"
+    json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-406118ec"  # updated 31.07.25
     local_repo = "/data/dust/user/matthiej/topsf"  # TODO: avoid hardcoding path
 
-    if cfg.x.run == 3:
+    if cfg.x.cpn_tag == "2022preEE" or cfg.x.cpn_tag == "2022postEE":
         corr_tag = f"{year}_Summer22{jerc_postfix}"
+    elif cfg.x.cpn_tag == "2023preBPix" or cfg.x.cpn_tag == "2023postBPix":
+        corr_tag = f"{year}_Summer23{jerc_postfix}"
 
     cfg.x.external_files = DotDict.wrap({
         # pileup weight corrections
@@ -978,62 +1068,54 @@ def add_config(
         # btag scale factor
         "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
 
-        # met phi corrector
-        "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met.json.gz", "v1"),
-
         # V+jets reweighting
         "vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
+
+        # jet id
+        "jet_id": f"{json_mirror}/POG/JME/{corr_tag}/jetid.json.gz",
     })
 
-    # temporary fix due to missing corrections in run 3
-    # electron and met still missing
-    if cfg.x.run == 3:
-        # cfg.add_tag("skip_electron_weights")
-        # cfg.add_tag("skip_muon_weights")
+    if cfg.x.run == 2:
+        cfg.x.external_files.update(DotDict.wrap({
+            "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met.json.gz", "v1"),
+        }))
+    elif cfg.x.run == 3:
+        met_corr_tag = f"{year}_{year}{jerc_postfix}"
+        cfg.x.external_files.update(DotDict.wrap({
+            # met phi corrector
+            "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met_xyCorrections_{met_corr_tag}.json.gz", "v1"),
+        }))
 
-        cfg.x.external_files.pop("met_phi_corr")
-
-    if year == 2022 and campaign.x.EE == "pre":
+    if cfg.x.cpn_tag == "2022preEE":
         cfg.x.external_files.update(DotDict.wrap({
             # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
             "lumi": {
                 "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
                 "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
-            },
-            "pu": {
-                # "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileup_JSON.txt", "v1"),  # noqa
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),  # noqa
-                "mc_profile": ("https://raw.githubusercontent.com/cms-sw/cmssw/bb525104a7ddb93685f8ced6fed1ab793b2d2103/SimGeneral/MixingModule/python/Run3_2022_LHC_Simulation_10h_2h_cfi.py", "v1"),  # noqa
-                "data_profile": {
-                    # "nominal": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileupHistogram-Cert_Collisions2022_355100_357900_eraBCD_GoldenJson-13p6TeV-69200ub-99bins.root", "v1"),  # noqa
-                    # "minbias_xs_up": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileupHistogram-Cert_Collisions2022_355100_357900_eraBCD_GoldenJson-13p6TeV-72400ub-99bins.root", "v1"),  # noqa
-                    # "minbias_xs_down": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCD/pileupHistogram-Cert_Collisions2022_355100_357900_eraBCD_GoldenJson-13p6TeV-66000ub-99bins.root", "v1"),  # noqa
-                    "nominal": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions22/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-69200ub-100bins.root", "v1"),  # noqa
-                    "minbias_xs_up": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions22/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-72400ub-100bins.root", "v1"),  # noqa
-                    "minbias_xs_down": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions22/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-66000ub-100bins.root", "v1"),  # noqa
-                },
             },
         }))
-    elif year == 2022 and campaign.x.EE == "post":
+    elif cfg.x.cpn_tag == "2022postEE":
         cfg.x.external_files.update(DotDict.wrap({
             # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
             "lumi": {
                 "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
                 "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
             },
-            "pu": {
-                # "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileup_JSON.txt", "v1"),  # noqa
-                "json": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/BCDEFG/pileup_JSON.txt", "v1"),  # noqa
-                "mc_profile": ("https://raw.githubusercontent.com/cms-sw/cmssw/bb525104a7ddb93685f8ced6fed1ab793b2d2103/SimGeneral/MixingModule/python/Run3_2022_LHC_Simulation_10h_2h_cfi.py", "v1"),  # noqa
-                "data_profile": {
-                    # data profiles were produced with 99 bins instead of 100 --> use custom produced data profiles instead  # noqa
-                    # "nominal": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileupHistogram-Cert_Collisions2022_359022_362760_eraEFG_GoldenJson-13p6TeV-69200ub-99bins.root", "v1"),  # noqa
-                    # "minbias_xs_up": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileupHistogram-Cert_Collisions2022_359022_362760_eraEFG_GoldenJson-13p6TeV-72400ub-99bins.root", "v1"),  # noqa
-                    # "minbias_xs_down": (f"https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/PileUp/EFG/pileupHistogram-Cert_Collisions2022_359022_362760_eraEFG_GoldenJson-13p6TeV-66000ub-99bins.root", "v1"),  # noqa
-                    "nominal": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions22/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-69200ub-100bins.root", "v1"),  # noqa
-                    "minbias_xs_up": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions22/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-72400ub-100bins.root", "v1"),  # noqa
-                    "minbias_xs_down": (f"/afs/cern.ch/user/a/anhaddad/public/Collisions22/pileupHistogram-Cert_Collisions2022_355100_362760_GoldenJson-13p6TeV-66000ub-100bins.root", "v1"),  # noqa
-                },
+        }))
+    elif cfg.x.cpn_tag == "2023preBPix":
+        cfg.x.external_files.update(DotDict.wrap({
+            # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
+            "lumi": {
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
+            },
+        }))
+    elif cfg.x.cpn_tag == "2023postBPix":
+        cfg.x.external_files.update(DotDict.wrap({
+            # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
+            "lumi": {
+                "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
+                "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
             },
         }))
     else:

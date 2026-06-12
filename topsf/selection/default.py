@@ -33,8 +33,8 @@ from topsf.production.probe_jet import probe_jet
 from topsf.production.gen_top import gen_parton_top
 from topsf.production.gen_v import gen_v_boson
 
-# from columnflow.production.categories import category_ids
-from topsf.production.categories import category_ids
+from columnflow.production.categories import category_ids
+# from topsf.production.categories import category_ids
 
 
 np = maybe_import("numpy")

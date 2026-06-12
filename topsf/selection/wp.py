@@ -15,6 +15,7 @@ from columnflow.selection.cms.met_filters import met_filters
 from columnflow.selection.cms.jets import jet_veto_map
 
 from columnflow.production.cms.mc_weight import mc_weight
+# from columnflow.production.cms.jet import jet_id. # FIXME recalculate jetId in Nano version > v12
 from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.processes import process_ids
 
@@ -53,7 +54,8 @@ def wp_fatjet_selection(
     # select jets
     fatjet_mask = (
         (abs(fatjet.eta) < self.cfg.max_abseta) &
-        (fatjet.pt > self.cfg.min_pt)
+        (fatjet.pt > self.cfg.min_pt) &
+        (fatjet.jetId & self.cfg.jetId == self.cfg.jetId)  # jetId bitmask
     )
 
     # resolve optional msoftdrop range
@@ -110,6 +112,7 @@ def wp_fatjet_selection_init(self: Selector) -> None:
         f"{column}.phi",
         f"{column}.mass",
         f"{column}.msoftdrop",
+        f"{column}.jetId",
     }
 
     # if ttbar, produce parton-level top quarks
