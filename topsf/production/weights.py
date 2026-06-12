@@ -16,14 +16,15 @@ from columnflow.production.cms.btag import btag_weights, btag_wp_weights
 from columnflow.production.cms.pdf import pdf_weights
 from columnflow.util import maybe_import
 from columnflow.selection import SelectionResult
-from columnflow.columnar_util import fill_at
+from columnflow.columnar_util import fill_at, set_ak_column
 
 from topsf.production.normalization import normalization_weights
 from topsf.production.gen_top import top_pt_weight
 from topsf.production.gen_v import vjets_weight
-from topsf.production.ps_weights import ps_weights
+# from topsf.production.ps_weights import ps_weights
+from columnflow.production.cms.parton_shower import ps_weights
 from topsf.production.normalized_weights import normalized_weight_factory, normalized_btag_weights
-from topsf.util import has_tag
+from topsf.util import has_tag, record_calls
 
 ak = maybe_import("awkward")
 np = maybe_import("numpy")
@@ -31,6 +32,21 @@ np = maybe_import("numpy")
 logger = law.logger.get_logger(__name__)
 
 
+def high_pt_muon_reco(producer, corrector, variable_map):
+    # for muon reco SFs, use pT and eta as variables and apply a mask to only compute weights for high pT muons
+    momentum = variable_map["pt"] * np.cosh(variable_map["eta"])
+    variable_map["p"] = momentum
+    return variable_map
+
+
+muon_reco_weights = muon_weights.derive(
+    "muon_reco_weights",
+    cls_dict={
+        "weight_name": "muon_reco_weight",
+        "get_muon_config": (lambda self: MuonSFConfig.new(self.config_inst.x.muon_reco_sf_config)),
+        "update_corrector_variables": (lambda self, corrector, variables: high_pt_muon_reco(self, corrector, variables)),
+    }
+)
 muon_id_weights = muon_weights.derive(
     "muon_id_weights",
     cls_dict={
@@ -43,6 +59,13 @@ muon_iso_weights = muon_weights.derive(
     cls_dict={
         "weight_name": "muon_iso_weight",
         "get_muon_config": (lambda self: MuonSFConfig.new(self.config_inst.x.muon_id_sf_config)),
+    }
+)
+muon_trigger_weights = muon_weights.derive(
+    "muon_trigger_weights",
+    cls_dict={
+        "weight_name": "muon_trigger_weight",
+        "get_muon_config": (lambda self: MuonSFConfig.new(self.config_inst.x.muon_trigger_sf_config)),
     }
 )
 
@@ -61,17 +84,50 @@ electron_id_iso_weights = electron_weights.derive(
     }
 )
 
+electron_trigger_weights = electron_weights.derive(
+    "electron_trigger_weights",
+    cls_dict={
+        "weight_name": "electron_trigger_weight",
+        "get_electron_config": (lambda self: ElectronSFConfig.new(self.config_inst.x.electron_trigger_sf_config)),
+        "get_electron_file": (lambda self, external_files: external_files.electron_trigger_sf),
+    }
+)
+
 
 @producer(
-    uses={muon_id_weights, muon_iso_weights},
-    produces={muon_id_weights, muon_iso_weights},
+    uses={"Electron.pt"},
+    produces={"electron_norm_fix_weight"},
     mc_only=True,
 )
-def muon_id_iso_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+def electron_norm_fix_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Add a column with a flat 1.2 SF.
+    """
+    electron_mask = ak.num(events.Electron) == 1
+    electron_norm_weight = ak.where(electron_mask, 1.2, 1.0)
+    events = set_ak_column(events, "electron_norm_fix_weight", electron_norm_weight)
+    return events
+
+
+@producer(
+    uses={
+        muon_reco_weights,
+        muon_id_weights,
+        muon_iso_weights
+    },
+    produces={
+        muon_reco_weights,
+        muon_id_weights,
+        muon_iso_weights
+    },
+    mc_only=True,
+)
+def muon_reco_id_iso_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
     Producer to compute muon ID and isolation weights separately.
     """
     muon_mask = (events.Muon["pt"] >= 30) & (abs(events.Muon["eta"]) < 2.4)
+    events = self[muon_reco_weights](events, muon_mask=muon_mask, **kwargs)
     events = self[muon_id_weights](events, muon_mask=muon_mask, **kwargs)
     events = self[muon_iso_weights](events, muon_mask=muon_mask, **kwargs)
     return events
@@ -100,63 +156,76 @@ def weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     """
     Main event weight producer (e.g. MC generator, scale factors, normalization).
     """
-    if self.dataset_inst.is_mc:
-        # compute normalization weights
-        events = self[normalization_weights](events, **kwargs)
+    run_list = []
+    with record_calls(self, run_list):
+        if self.dataset_inst.is_mc:
+            # compute normalization weights
+            events = self[normalization_weights](events, **kwargs)
 
-        # compute top pT weights
-        if self.dataset_inst.has_tag("is_ttbar"):
-            events = self[top_pt_weight](events, **kwargs)
+            # compute top pT weights
+            if self.dataset_inst.has_tag("is_ttbar"):
+                events = self[top_pt_weight](events, **kwargs)
 
-        # compute V+jets K factor weights
-        if self.dataset_inst.has_tag("is_v_jets"):
-            events = self[vjets_weight](events, **kwargs)
+            # compute V+jets K factor weights
+            if not has_tag("skip_kfactor_weights", self.config_inst, self.dataset_inst, operator=any) and self.dataset_inst.has_tag("is_v_jets"):
+                events = self[vjets_weight](events, **kwargs)
 
-        # compute btag weights
-        if (
-            has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any)
-            and not has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any)
-        ):
-            logger.info("Skipping shape based btag weights and applying fixed WP SF instead.")
-            # skip shape based btag weights and apply fixed WP SF instead (for 2024)
-            jet_mask = (events.Jet["pt"] < 10_000) & (abs(events.Jet["eta"]) < 2.5)
-            events = self[btag_wp_weights](events, jet_mask=jet_mask, **kwargs)
-        elif (
-            has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any)
-            and not has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any)
-        ):
-            logger.info("Skipping fixed WP btag weights and applying shape based SF instead.")
-            # apply shape based btag weights (for 2022/23)
-            # and normalize
-            jet_mask = (events.Jet["pt"] >= 100) & (abs(events.Jet["eta"]) < 2.5)
-            events = self[btag_weights](events, jet_mask=jet_mask, **kwargs)
-            events = self[normalized_btag_weights](events, jet_mask=jet_mask, **kwargs)
-        else:
-            logger.warning("No btag weights applied.")
+            if not has_tag("skip_electron_weights", self.config_inst, self.dataset_inst, operator=any):
+                events = self[electron_reco_id_iso_weights](events, **kwargs)
+                events = self[electron_trigger_weights](events, **kwargs)
+                events = self[electron_norm_fix_weights](events, **kwargs)
 
-        if not has_tag("skip_electron_weights", self.config_inst, self.dataset_inst, operator=any):
-            events = self[electron_reco_id_iso_weights](events, **kwargs)
+            if not has_tag("skip_muon_weights", self.config_inst, self.dataset_inst, operator=any):
+                events = self[muon_reco_id_iso_weights](events, **kwargs)
+                events = self[muon_trigger_weights](events, **kwargs)
 
-        if not has_tag("skip_muon_weights", self.config_inst, self.dataset_inst, operator=any):
-            events = self[muon_id_iso_weights](events, **kwargs)
+            # FIXME add trigger SF here
 
-        # FIXME add trigger SF here
+            # normalize event weights using stats
+            events = self[normalized_pu_weights](events, **kwargs)
 
-        # normalize event weights using stats
-        events = self[normalized_pu_weights](events, **kwargs)
+            if not has_tag("no_ps_weights", self.config_inst, self.dataset_inst, operator=any):
+                logger.debug("Applying PS weights and normalizing them.")
+                events = self[normalized_ps_weights](events, **kwargs)
 
-        if not has_tag("no_ps_weights", self.config_inst, self.dataset_inst, operator=any):
-            events = self[normalized_ps_weights](events, **kwargs)
+            if not has_tag("skip_scale", self.config_inst, self.dataset_inst, operator=any):
+                logger.debug("Applying scale weights and normalizing them.")
+                events = self[normalized_scale_weights](events, **kwargs)
 
-        if not has_tag("skip_scale", self.config_inst, self.dataset_inst, operator=any):
-            events = self[normalized_scale_weights](events, **kwargs)
+            if not has_tag("skip_pdf", self.config_inst, self.dataset_inst, operator=any):
+                logger.debug("Applying pdf weights and normalizing them.")
+                events = self[normalized_pdf_weights](events, **kwargs)
 
-        if not has_tag("skip_pdf", self.config_inst, self.dataset_inst, operator=any):
-            events = self[normalized_pdf_weights](events, **kwargs)
+            # compute btag weights
+            if (
+                has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any) and
+                not has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any)
+            ):
+                logger.debug("Skipping shape based btag weights and applying fixed WP SF instead.")
+                # skip shape based btag weights and apply fixed WP SF instead (for 2024)
+                jet_mask = (events.Jet["pt"] < 10_000) & (abs(events.Jet["eta"]) < 2.5)
+                events = self[btag_wp_weights](events, jet_mask=jet_mask, **kwargs)
+            elif (
+                has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any) and
+                not has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any)
+            ):
+                logger.debug("Skipping fixed WP btag weights and applying shape based SF instead.")
+                # apply shape based btag weights (for 2022/23)
+                # and normalize
+                jet_mask = (events.Jet["pt"] >= 100) & (abs(events.Jet["eta"]) < 2.5)
+                events = self[btag_weights](events, jet_mask=jet_mask, **kwargs)
+                events = self[normalized_btag_weights](events, jet_mask=jet_mask, **kwargs)
+            else:
+                logger.warning("No btag weights applied.")
 
-        # # compute MC weights
-        # # already run in selection, not needed here?
-        # events = self[mc_weight](events, **kwargs)
+            # # compute MC weights
+            # # already run in selection, not needed here?
+            # events = self[mc_weight](events, **kwargs)
+
+    logger.info_once(
+        "Finished computing event weights:\n" +
+        "\n".join(run_list)
+    )
 
     return events
 
@@ -166,12 +235,28 @@ def weights_init(self: Producer) -> None:
     if getattr(self, "dataset_inst", None) and self.dataset_inst.is_mc:
         # dynamically add dependencies if running on MC
         if not has_tag("skip_electron_weights", self.config_inst, self.dataset_inst, operator=any):
-            self.uses |= {electron_reco_id_iso_weights, "Electron.{pt,eta}"}
-            self.produces |= {electron_reco_id_iso_weights}
+            self.uses |= {
+                electron_reco_id_iso_weights,
+                electron_trigger_weights,
+                electron_norm_fix_weights,
+                "Electron.{pt,eta}"
+            }
+            self.produces |= {
+                electron_reco_id_iso_weights,
+                electron_trigger_weights,
+                electron_norm_fix_weights
+            }
 
         if not has_tag("skip_muon_weights", self.config_inst, self.dataset_inst, operator=any):
-            self.uses |= {muon_id_iso_weights, "Muon.{pt,eta,phi}"}
-            self.produces |= {muon_id_iso_weights}
+            self.uses |= {
+                muon_reco_id_iso_weights,
+                muon_trigger_weights,
+                "Muon.{pt,eta,phi}"
+            }
+            self.produces |= {
+                muon_reco_id_iso_weights,
+                muon_trigger_weights
+            }
 
         if not self.dataset_inst.has_tag("is_qcd"):
             self.uses |= {ps_weights}
@@ -181,7 +266,7 @@ def weights_init(self: Producer) -> None:
             self.uses |= {top_pt_weight}
             self.produces |= {top_pt_weight}
 
-        if self.dataset_inst.has_tag("is_v_jets"):
+        if not has_tag("skip_kfactor_weights", self.config_inst, self.dataset_inst, operator=any) and self.dataset_inst.has_tag("is_v_jets"):
             self.uses |= {vjets_weight}
             self.produces |= {vjets_weight}
 
@@ -200,14 +285,22 @@ def weights_init(self: Producer) -> None:
             self.uses |= {normalized_pdf_weights}
             self.produces |= {normalized_pdf_weights}
 
-        if has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any) and not has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any):
+        if (
+            has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any) and
+            not has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any)
+        ):
+            logger.warning_once("Using fixed wp b-tagging weights for 2024.")
             self.uses |= {btag_wp_weights}
             self.produces |= {btag_wp_weights}
-        elif has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any) and not has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any):
-            self.uses |= {btag_weights}
-            self.produces |= {btag_weights}
+        elif (
+            has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any) and
+            not has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any)
+        ):
+            logger.warning_once("Using shape based b-tagging weights for 2022/2023.")
+            self.uses |= {btag_weights, normalized_btag_weights}
+            self.produces |= {btag_weights, normalized_btag_weights}
         else:
-            logger.warning("No btag weights producer loaded.")
+            logger.warning_once("No btag weights producer loaded.")
 
 
 @producer(
@@ -227,11 +320,15 @@ def event_weights_to_normalize(self: Producer, events: ak.Array, results: Select
 
     # compute pu weights
     events = self[pu_weight](events, **kwargs)
-    if self.has_dep(ps_weights):
+    # if self.has_dep(ps_weights):
+    if not has_tag("no_ps_weights", self.config_inst, self.dataset_inst, operator=any):
         logger.debug("Compute PS weights for normalization")
         events = self[ps_weights](events, **kwargs)
 
-    if not has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any) and self.has_dep(btag_weights):
+    if (
+            has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any) and
+            not has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any)
+    ):
         # compute btag SF weights (for renormalization tasks)
         logger.debug("Compute btag weights for normalization")
         events = self[btag_weights](
@@ -243,17 +340,20 @@ def event_weights_to_normalize(self: Producer, events: ak.Array, results: Select
         )
 
     # skip scale/pdf weights for some datasets (missing columns)
-    if self.has_dep(murmuf_envelope_weights):
+    # if self.has_dep(murmuf_envelope_weights):
+    if not has_tag("skip_scale", self.config_inst, self.dataset_inst, operator=any) and self.has_dep(murmuf_envelope_weights):
         # compute scale weights
         logger.debug("Compute scale weights for normalization")
         events = self[murmuf_envelope_weights](events, **kwargs)
 
-    if self.has_dep(murmuf_weights):
+    # if self.has_dep(murmuf_weights):
+    if not has_tag("skip_scale", self.config_inst, self.dataset_inst, operator=any) and self.has_dep(murmuf_weights):
         # read out mur and weights
         logger.debug("Compute murmuf weights for normalization")
         events = self[murmuf_weights](events, **kwargs)
 
-    if self.has_dep(pdf_weights):
+    # if self.has_dep(pdf_weights):
+    if not has_tag("skip_pdf", self.config_inst, self.dataset_inst, operator=any) and self.has_dep(pdf_weights):
         # compute pdf weights
         logger.debug("Compute pdf weights for normalization")
         events = self[pdf_weights](
@@ -271,7 +371,10 @@ def event_weights_to_normalize(self: Producer, events: ak.Array, results: Select
 @event_weights_to_normalize.init
 def event_weights_to_normalize_init(self) -> None:
     # used Producers need to be set in the init or decorator
-    if not has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any):
+    if (
+            has_tag("skip_btag_wp_weights", self.config_inst, self.dataset_inst, operator=any) and
+            not has_tag("skip_btag_weights", self.config_inst, self.dataset_inst, operator=any)
+    ):
         self.uses |= {btag_weights}
 
     if not has_tag("skip_scale", self.config_inst, self.dataset_inst, operator=any):

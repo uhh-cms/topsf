@@ -27,7 +27,7 @@ from topsf.production.filter import ECALBadCalibrationFilter
 from topsf.selection.stats import topsf_selection_step_stats, topsf_increment_stats
 from topsf.selection.hists import topsf_selection_hists
 from topsf.selection.bad_events import extend_bad_events, get_outlier_scale_weights
-from topsf.util import IF_MC
+from topsf.util import IF_MC, record_calls
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -83,58 +83,65 @@ def pre_selection(
     task: law.Task,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
-    """ Methods that are called for both SL and DL before calling the selection modules """
+    """ Methods that are called for both WP and SF before calling the selection modules """
+    run_list = []
 
-    # temporary fix for optional types from Calibration (e.g. events.Jet.pt --> ?float32)
-    # TODO: remove as soon as possible as it might lead to weird bugs when there are none entries in inputs
-    events = ak.fill_none(events, EMPTY_FLOAT)
+    with record_calls(self, run_list):
+        # temporary fix for optional types from Calibration (e.g. events.Jet.pt --> ?float32)
+        # TODO: remove as soon as possible as it might lead to weird bugs when there are none entries in inputs
+        events = ak.fill_none(events, EMPTY_FLOAT)
 
-    # prepare the selection results that are updated at every step
-    results = SelectionResult()
+        # prepare the selection results that are updated at every step
+        results = SelectionResult()
 
-    # run deterministic seeds when no Calibrator has been requested
-    if not task.calibrators:
-        events = self[deterministic_seeds](events, **kwargs)
+        # run deterministic seeds when no Calibrator has been requested
+        if not task.calibrators:
+            events = self[deterministic_seeds](events, **kwargs)
 
-    # mc weight
-    if self.dataset_inst.is_mc:
-        events = self[mc_weight](events, **kwargs)
-        events = self[large_weights_killer](events, stats, **kwargs)
+        # mc weight
+        if self.dataset_inst.is_mc:
+            events = self[mc_weight](events, **kwargs)
+            events = self[large_weights_killer](events, stats, **kwargs)
 
-    # create process ids
-    events = self[process_ids](events, **kwargs)
+        # create process ids
+        events = self[process_ids](events, **kwargs)
 
-    # ensure coffea behavior
-    events = self[attach_coffea_behavior](events, **kwargs)
+        # ensure coffea behavior
+        events = self[attach_coffea_behavior](events, **kwargs)
 
-    # apply some general quality criteria on events
-    results.steps["good_vertex"] = events.PV.npvsGood >= 1
-    events, met_results = self[topsf_met_filters](events, **kwargs)  # produces "met_filter" step
+        # apply some general quality criteria on events
+        results.steps["good_vertex"] = events.PV.npvsGood >= 1
+        events, met_results = self[topsf_met_filters](events, **kwargs)  # produces "met_filter" step
 
-    # recompute ecalBadCalibrationFilter
-    if self.has_dep(ECALBadCalibrationFilter):
-        events = self[ECALBadCalibrationFilter](events, **kwargs)
-        logger.info("patching met_filter with patchedEcalBadCalibFilter")
-        met_results.steps["met_filter"] = met_results.steps.met_filter & events.patchedEcalBadCalibFilter
+        # recompute ecalBadCalibrationFilter
+        if self.has_dep(ECALBadCalibrationFilter):
+            events = self[ECALBadCalibrationFilter](events, **kwargs)
+            logger.info("patching met_filter with patchedEcalBadCalibFilter")
+            met_results.steps["met_filter"] = met_results.steps.met_filter & events.patchedEcalBadCalibFilter
 
-    results += met_results
+        results += met_results
 
-    if self.dataset_inst.is_data:
-        events, json_results = self[json_filter](events, **kwargs)  # produces "json" step
-        results += json_results
-    else:
-        results.steps["json"] = ak.Array(np.ones(len(events), dtype=bool))
+        if self.dataset_inst.is_data:
+            events, json_results = self[json_filter](events, **kwargs)  # produces "json" step
+            results += json_results
+        else:
+            results.steps["json"] = ak.Array(np.ones(len(events), dtype=bool))
 
-    # apply jet veto map
-    events, jet_veto_results = self[jet_veto_map](events, **kwargs)
-    results += jet_veto_results
+        # apply jet veto map
+        events, jet_veto_results = self[jet_veto_map](events, **kwargs)
+        results += jet_veto_results
 
-    # combine quality criteria into a single step
-    results.steps["cleanup"] = (
-        results.steps.jet_veto_map &
-        results.steps.good_vertex &
-        results.steps.met_filter &
-        results.steps.json
+        # combine quality criteria into a single step
+        results.steps["cleanup"] = (
+            results.steps.jet_veto_map &
+            results.steps.good_vertex &
+            results.steps.met_filter &
+            results.steps.json
+        )
+
+    logger.info_once(
+        "Finished pre-selection steps:\n" +
+        "\n".join(run_list)
     )
 
     return events, results

@@ -25,7 +25,7 @@ from topsf.production.wp import wp_category_ids
 from topsf.production.gen_top import gen_parton_top
 
 from topsf.selection.common import get_weights_and_no_sel_mask, pre_selection
-from topsf.util import has_tag
+from topsf.util import has_tag, record_calls
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -45,7 +45,7 @@ def wp_fatjet_selection(
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
     """
-    Select AK8 jets that are well separated from the lepton.
+    Select AK8 jets.
     """
     # get selection parameters from the config
     self.cfg = self.config_inst.x.jet_selection.get("ak8", "FatJet")
@@ -151,66 +151,73 @@ def wp(
     msoftdrop_range=None,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
-    events, results = self[pre_selection](events, stats, **kwargs)
+    run_list = []
+    with record_calls(self, run_list):
+        events, results = self[pre_selection](events, stats, **kwargs)
 
-    # fatjet selection
-    events, wp_fatjet_results = self[wp_fatjet_selection](
-        events,
-        msoftdrop_range=msoftdrop_range,
-        **kwargs,
+        # fatjet selection
+        events, wp_fatjet_results = self[wp_fatjet_selection](
+            events,
+            msoftdrop_range=msoftdrop_range,
+            **kwargs,
+        )
+        results += wp_fatjet_results
+
+        # derive event weights and add base mask of all events that are not considered bad to "cleanup" step
+        events, results = self[get_weights_and_no_sel_mask](events, results, **kwargs)
+        results.steps["cleanup"] = results.steps.cleanup & results.steps["no_sel_mask"]
+
+        results.steps["all"] = (
+            results.steps.cleanup &
+            results.steps.FatJet
+        )
+
+        # combined event selection after all steps
+        event_sel = reduce(and_, results.steps.values())
+        results.event = event_sel
+
+        for step, sel in results.steps.items():
+            n_sel = ak.sum(sel, axis=-1)
+            logger.debug(f"{step}: {n_sel}")
+
+        n_sel = ak.sum(event_sel, axis=-1)
+        logger.debug(f"__all__: {n_sel}")
+
+        # produce features relevant for selection and event weights
+        if self.dataset_inst.has_tag("is_ttbar"):
+            events = self[gen_parton_top](events, **kwargs)
+
+        # build categories
+        events = self[wp_category_ids](events, **kwargs)
+
+        # create process ids
+        events = self[process_ids](events, **kwargs)
+
+        # increment stats
+        events = self[topsf_increment_stats](events, results, stats, **kwargs)
+        # no custom hists needed, because we don't do b tagging in wp analysis
+
+        def log_fraction(stats_key: str, msg: str | None = None):
+            if not stats.get(stats_key):
+                return
+            if not msg:
+                msg = "Fraction of {stats_key}"
+            logger.info(f"{msg}: {(100 * stats[stats_key] / stats['num_events']):.2f}%")
+
+        log_fraction("num_negative_weights", "Fraction of negative weights")
+        log_fraction("num_pu_0", "Fraction of events with pu_weight == 0")
+        log_fraction("num_pu_100", "Fraction of events with pu_weight >= 100")
+
+        # temporary fix for optional types from Calibration (e.g. events.Jet.pt --> ?float32)
+        # TODO: remove as soon as possible as it might lead to weird bugs when there are none entries in inputs
+        events = ak.fill_none(events, EMPTY_FLOAT)
+
+        logger.info(f"Selected {ak.sum(results.event)} from {len(events)} events")
+
+    logger.info_once(
+        "Finished WP selection steps:\n" +
+        "\n".join(run_list)
     )
-    results += wp_fatjet_results
-
-    # derive event weights and add base mask of all events that are not considered bad to "cleanup" step
-    events, results = self[get_weights_and_no_sel_mask](events, results, **kwargs)
-    results.steps["cleanup"] = results.steps.cleanup & results.steps["no_sel_mask"]
-
-    results.steps["all"] = (
-        results.steps.cleanup &
-        results.steps.FatJet
-    )
-
-    # combined event selection after all steps
-    event_sel = reduce(and_, results.steps.values())
-    results.event = event_sel
-
-    for step, sel in results.steps.items():
-        n_sel = ak.sum(sel, axis=-1)
-        logger.debug(f"{step}: {n_sel}")
-
-    n_sel = ak.sum(event_sel, axis=-1)
-    logger.debug(f"__all__: {n_sel}")
-
-    # produce features relevant for selection and event weights
-    if self.dataset_inst.has_tag("is_ttbar"):
-        events = self[gen_parton_top](events, **kwargs)
-
-    # build categories
-    events = self[wp_category_ids](events, **kwargs)
-
-    # create process ids
-    events = self[process_ids](events, **kwargs)
-
-    # increment stats
-    events = self[topsf_increment_stats](events, results, stats, **kwargs)
-    # no custom hists needed, because we don't do b tagging in wp analysis
-
-    def log_fraction(stats_key: str, msg: str | None = None):
-        if not stats.get(stats_key):
-            return
-        if not msg:
-            msg = "Fraction of {stats_key}"
-        logger.info(f"{msg}: {(100 * stats[stats_key] / stats['num_events']):.2f}%")
-
-    log_fraction("num_negative_weights", "Fraction of negative weights")
-    log_fraction("num_pu_0", "Fraction of events with pu_weight == 0")
-    log_fraction("num_pu_100", "Fraction of events with pu_weight >= 100")
-
-    # temporary fix for optional types from Calibration (e.g. events.Jet.pt --> ?float32)
-    # TODO: remove as soon as possible as it might lead to weird bugs when there are none entries in inputs
-    events = ak.fill_none(events, EMPTY_FLOAT)
-
-    logger.info(f"Selected {ak.sum(results.event)} from {len(events)} events")
 
     return events, results
 

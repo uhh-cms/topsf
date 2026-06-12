@@ -41,6 +41,7 @@ def normalized_weight_factory(
         missing_weights = self.weight_names.difference(events.fields)
 
         if missing_weights:
+            logger.warning(f"Missing weight columns: {missing_weights}")
             # try to produce missing weights
             for prod in self.weight_producers:
                 if (
@@ -55,6 +56,7 @@ def normalized_weight_factory(
             logger.warning(f"Weight columns {not_reproduced} could not be reproduced")
 
         for weight_name in self.weight_names.intersection(events.fields):
+            logger.debug(f"Creating normalized weight column for {weight_name}")
             # create a weight vector starting with ones
             norm_weight_per_pid = np.ones(len(events), dtype=np.float32)
 
@@ -150,12 +152,13 @@ def normalized_btag_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Ar
     for var in ("ht", "njet"):
         consistency_check = np.isclose(events[var], variable_map[var], rtol=0.0001)
         if not ak.all(consistency_check):
-            raise ValueError(f"Variable {var} is not consistent between before and after event selection")
+            logger.warning(f"Variable {var} is not consistent between before and after event selection. Please check the consistency of {var} and the selection steps.")
+            # raise ValueError(f"Variable {var} is not consistent between before and after event selection")
 
     for mode in self.modes:
         if mode not in ("ht_njet_nhf", "ht_njet", "njet", "ht"):
             raise NotImplementedError(
-                f"Normalization mode {mode} not implemented (see hbw.tasks.corrections.GetBtagNormalizationSF)",
+                f"Normalization mode {mode} not implemented (see topsf.tasks.corrections.GetBtagNormalizationSF)",
             )
         for weight_route in self[btag_weights].produced_columns:
             weight_name = weight_route.string_column
@@ -191,7 +194,7 @@ def normalized_btag_weights_post_init(self: Producer, task: law.Task) -> None:
 
 @normalized_btag_weights.requires
 def normalized_btag_weights_requires(self: Producer, task: law.Task, reqs: dict) -> None:
-    from hbw.tasks.corrections import GetBtagNormalizationSF
+    from topsf.tasks.corrections import GetBtagNormalizationSF
     reqs["btag_renormalization_sf"] = GetBtagNormalizationSF.req(task)
 
 

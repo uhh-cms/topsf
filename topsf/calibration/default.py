@@ -21,7 +21,7 @@ from topsf.calibration.jets import (
     jec_subjets,
     jer_subjets
 )
-from topsf.util import has_tag
+from topsf.util import has_tag, record_calls
 
 logger = law.logger.get_logger(__name__)
 
@@ -88,54 +88,69 @@ jer_subjets_Puppi = jer_subjets.derive(
         deterministic_seeds,
         jet_lepton_cleaner,
         msoftdrop,
+        "Muon.pt", "Muon.tunepRelPt",
     },
     produces={
         mc_weight,
         deterministic_seeds,
         jet_lepton_cleaner,
         msoftdrop,
+        "Muon.pt", "Muon.rawPt",
     },
 )
 def default(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
-    if self.dataset_inst.is_mc:
-        events = self[mc_weight](events, **kwargs)
-    events = self[deterministic_seeds](events, **kwargs)
-
-    events = self[jet_lepton_cleaner](events, **kwargs)  # set Jet.pt to raw Pt -> run before jets (JER) calibrator
-    # run JEC calibrators for AK4 and AK8 jets
-    events = set_ak_column_f32(events, "SubJet.area", 0.5 * ak.ones_like(events.SubJet.pt))
-    if self.config_inst.x.year == 2024:
-        events = self[jec_ak4_Puppi](events, **kwargs)
-        events = self[jec_ak8_Puppi](events, **kwargs)
-        events = self[jec_subjets_Puppi](events, **kwargs)
+    run_list = []
+    with record_calls(self, run_list):
+        # highPt muons: use tuneP pT
+        events = set_ak_column_f32(events, "Muon.rawPt", events.Muon.pt)
+        events = set_ak_column_f32(events, "Muon.pt", events.Muon.tunepRelPt * events.Muon.pt)
+        logger.info_once(
+            "Finished recalculating muon pt with tuneP for highPt muons. Stored original pt in Muon.rawPt."
+        )
         if self.dataset_inst.is_mc:
-            events = self[jer_ak4_Puppi](events, **kwargs)
-            events = self[jer_ak8_Puppi](events, **kwargs)
-            # events = self[jer_subjets_Puppi](events, **kwargs)
-    else:
-        events = self[jec_ak4](events, **kwargs)
-        events = self[jec_ak8](events, **kwargs)
-        events = self[jec_subjets](events, **kwargs)
-        if self.dataset_inst.is_mc:
-            events = self[jer_ak4](events, **kwargs)
-            events = self[jer_ak8](events, **kwargs)
-            # events = self[jer_subjets](events, **kwargs)
+            events = self[mc_weight](events, **kwargs)
+        events = self[deterministic_seeds](events, **kwargs)
 
-    # fake subjet area column by setting it to an array with the same structure as the subjet pt column containing 0.5
-    # (needed to be able to use same code as for top-level AK4/AK8 jets, as the producer formally requires an `area`
-    # column, despite not actually using it)
-    events = self[msoftdrop](events, **kwargs)
-    if self.config_inst.x.year in {2022, 2023}:
-        events = self[met_phi](events, **kwargs)
-    elif self.config_inst.x.year == 2024:
-        logger.warning("met_phi calibrator not run for 2024 config, as it is not yet available.")
-    else:
-        raise ValueError(f"Unsupported year {self.config_inst.x.year} in default calibrator")
+        events = self[jet_lepton_cleaner](events, **kwargs)  # set Jet.pt to raw Pt -> run before jets (JER) calibrator
+        # run JEC calibrators for AK4 and AK8 jets
+        # fake subjet area column by setting it to an array with the same structure as the subjet pt column containing 0.5
+        # (needed to be able to use same code as for top-level AK4/AK8 jets, as the producer formally requires an `area`
+        # column, despite not actually using it)
+        events = set_ak_column_f32(events, "SubJet.area", 0.5 * ak.ones_like(events.SubJet.pt))
+        if self.config_inst.x.year == 2024:
+            events = self[jec_ak4_Puppi](events, **kwargs)
+            events = self[jec_ak8_Puppi](events, **kwargs)
+            events = self[jec_subjets_Puppi](events, **kwargs)
+            if self.dataset_inst.is_mc:
+                events = self[jer_ak4_Puppi](events, **kwargs)
+                events = self[jer_ak8_Puppi](events, **kwargs)
+                # events = self[jer_subjets_Puppi](events, **kwargs)
+        else:
+            events = self[jec_ak4](events, **kwargs)
+            events = self[jec_ak8](events, **kwargs)
+            events = self[jec_subjets](events, **kwargs)
+            if self.dataset_inst.is_mc:
+                events = self[jer_ak4](events, **kwargs)
+                events = self[jer_ak8](events, **kwargs)
+                # events = self[jer_subjets](events, **kwargs)
 
-    if not has_tag("skip_jet_ids", self.config_inst, self.dataset_inst, operator=any):
-        logger.debug("Recalulating (fat)jet IDs.")
-        events = self[jet_id](events, **kwargs)
-        events = self[fatjet_id](events, **kwargs)
+        events = self[msoftdrop](events, **kwargs)
+        if self.config_inst.x.year in {2022, 2023}:
+            events = self[met_phi](events, **kwargs)
+        elif self.config_inst.x.year == 2024:
+            logger.warning_once("met_phi calibrator not run for 2024 config, as it is not yet available.")
+        else:
+            raise ValueError(f"Unsupported year {self.config_inst.x.year} in default calibrator")
+
+        if not has_tag("skip_jet_ids", self.config_inst, self.dataset_inst, operator=any):
+            logger.debug("Recalulating (fat)jet IDs.")
+            events = self[jet_id](events, **kwargs)
+            events = self[fatjet_id](events, **kwargs)
+
+    logger.info_once(
+        "Finished default calibration steps:\n" +
+        "\n".join(run_list)
+    )
 
     return events
 

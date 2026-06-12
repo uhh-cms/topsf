@@ -21,6 +21,8 @@ from columnflow.hist_util import create_hist_from_variables
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
+logger = law.logger.get_logger(__name__)
+
 
 @selector(
     uses={increment_stats, event_weights_to_normalize, IF_MC("Jet.hadronFlavour")},
@@ -87,6 +89,7 @@ def topsf_selection_hists(
     # initialize histograms if not already done
     # (NOTE: this only works as long as this is the only selector that adds histograms)
     if not hists:
+        logger.debug("Initializing histograms for weight normalization...")
         for key, weight in weight_map.items():
             if "btag_weight" not in key:
                 hists[key] = create_hist_from_variables(self.steps_variable)
@@ -102,13 +105,17 @@ def topsf_selection_hists(
 
     # fill histograms
     for key, weight in weight_map.items():
+        logger.debug(f"Filling histogram for {key}...")
         for step, mask in event_masks.items():
+            logger.debug(f"Filling histogram for {key} and step {step}...")
             # TODO: can I fill with single value instead of array of strings?
             step_arr = np.array([step] * ak.sum(mask))
             if "btag_weight" not in key:
+                logger.debug(f"Filling histogram for {key} and step {step} without btag weights...")
                 hists[key].fill(steps=step_arr, weight=weight[mask])
                 hists[f"{key}_per_process"].fill(steps=step_arr, process=events.process_id[mask], weight=weight[mask])
             if step == "selected_no_bjet" and (key == "sum_mc_weight" or "btag_weight" in key):
+                logger.debug(f"Filling histogram for {key} and step {step} with btag weights...")
                 # to reduce computing time, only fill the selected_no_bjet mask for btag weights
                 hists[f"{key}_per_process_ht_njet_nhf"].fill(
                     steps=step_arr,
