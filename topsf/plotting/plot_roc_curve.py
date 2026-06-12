@@ -28,6 +28,7 @@ logger = law.logger.get_logger(__name__)
 
 def plot_roc_curve(
     hists: OrderedDict,
+    totals: dict,
     config_inst: od.Config,
     category_inst: od.Category,
     variable_inst: od.Variable,
@@ -35,6 +36,7 @@ def plot_roc_curve(
     # hide_errors: bool | None = None,
     # variable_settings: dict | None = None,
     binning_variable_labels: list | None = None,
+    signal_side: str | None = None,
     **kwargs,
 ) -> plt.Figure:
     """
@@ -61,6 +63,8 @@ def plot_roc_curve(
             "hist": hists,
             "kwargs": {
                 "plot_mode": "roc",
+                "totals": totals,
+                "signal_side": signal_side,
             },
         },
     }
@@ -116,6 +120,7 @@ def plot_efficiency(
     # hide_errors: bool | None = None,
     # variable_settings: dict | None = None,
     binning_variable_labels: list | None = None,
+    signal_side: str | None = None,
     **kwargs,
 ) -> plt.Figure:
     """
@@ -152,6 +157,7 @@ def plot_efficiency(
             "kwargs": {
                 "totals": totals,
                 "plot_mode": plot_mode,
+                "signal_side": signal_side,
             },
         },
     }

@@ -6,6 +6,8 @@ Custom plot methods.
 
 from __future__ import annotations
 
+import law
+
 from columnflow.util import DotDict, maybe_import
 from columnflow.plotting.plot_util import get_position
 from columnflow.plotting.plot_all import (
@@ -23,6 +25,8 @@ plt = maybe_import("matplotlib.pyplot")
 mplhep = maybe_import("mplhep")
 od = maybe_import("order")
 
+logger = law.logger.get_logger(__name__)
+
 
 def draw_efficiency(
     ax: plt.Axes,
@@ -31,6 +35,7 @@ def draw_efficiency(
     norm: float = 1.0,
     data: dict | None = None,
     plot_mode: str | None = "roc",
+    signal_side: str | None = None,
     **kwargs,
 ) -> None:
 
@@ -46,13 +51,13 @@ def draw_efficiency(
 
     for key, h in hists.items():
         totals_[key] = totals.get(key, h.sum(flow=True).value)
-        passes[key] = np.array([
-            h[:hist.loc(v)].sum().value
-            for v in values
-        ])
-        pass_fractions[key] = (
-            passes[key] / totals_[key]
-        )
+        if signal_side == "left":
+            passes[key] = np.array([h[:hist.loc(v)].sum().value for v in values])
+        elif signal_side == "right":
+            passes[key] = np.array([h[hist.loc(v):].sum().value for v in values])
+        else:
+            raise ValueError(f"invalid signal_side: {signal_side}")
+        pass_fractions[key] = passes[key] / totals_[key]
 
     plot_kwargs = {
         # "linewidth": 1,
@@ -83,11 +88,36 @@ def draw_efficiency(
 
     # mask values that are not strictly monotonically increasing
     # (strict monotonicity required by interpolation)
-    mask = (pass_fraction_background[1:] / pass_fraction_background[:-1]) > 1.001
+    # mask = (pass_fraction_background[1:] / pass_fraction_background[:-1]) > 1.001
+    if signal_side == "right":
+        print("signal side is right, masking non-monotonic points by looking at ratios of neighboring pass fractions < 1/1.001")
+        if plot_mode == "background":
+            mask = (pass_fraction_background[1:] / pass_fraction_background[:-1]) < (1 / 1.001)
+        elif plot_mode == "signal":
+            mask = (pass_fraction_signal[1:] / pass_fraction_signal[:-1]) < (1 / 1.001)
+        elif plot_mode == "roc":
+            mask = (pass_fraction_background[1:] / pass_fraction_background[:-1]) < (1 / 1.001)
+    else:
+        if plot_mode == "background":
+            mask = (pass_fraction_background[1:] / pass_fraction_background[:-1]) > 1.001
+        elif plot_mode == "signal":
+            mask = (pass_fraction_signal[1:] / pass_fraction_signal[:-1]) > 1.001
+        elif plot_mode == "roc":
+            mask = (pass_fraction_background[1:] / pass_fraction_background[:-1]) > 1.001
     mask = np.array([True] + list(mask))
     pass_fraction_background = pass_fraction_background[mask]
     pass_fraction_signal = pass_fraction_signal[mask]
     discriminator_values = np.array(data["discriminator_values"])[mask]
+    if plot_mode == "background":
+        idx = np.argsort(pass_fraction_background)
+    elif plot_mode == "signal":
+        idx = np.argsort(pass_fraction_signal)
+    elif plot_mode == "roc":
+        idx = np.argsort(pass_fraction_signal)
+
+    pass_fraction_background = pass_fraction_background[idx]
+    pass_fraction_signal = pass_fraction_signal[idx]
+    discriminator_values = discriminator_values[idx]
 
     # efficiency values for which to derive cut on discriminating variable
     pass_fraction_background_wp = np.array(
@@ -172,6 +202,9 @@ def draw_efficiency(
             color="r",
             fontsize=16,
         )
+    logger.info(f"WP discriminator values: {np.array(discriminator_values_wp)}")
+    logger.info(f"WP signal efficiencies: {np.array(pass_fraction_signal_wp)}")
+    logger.info(f"WP background efficiencies: {np.array(pass_fraction_background_wp)}")
 
     return artists
 

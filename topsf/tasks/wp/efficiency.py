@@ -136,6 +136,10 @@ class PlotEfficiencyBase(
     the *processes* parameter.
     """
 
+    signal_tag = luigi.Parameter(
+        description="datasets marked with this tag are considered signal, otherwise background",
+    )
+
     # upstream requirements
     reqs = Requirements(
         PlotVariablesBaseSingleShift.reqs,
@@ -147,7 +151,7 @@ class PlotEfficiencyBase(
         reqs = {}
 
         for config_inst, datasets in zip(self.config_insts, self.datasets):
-            logger.info(f"datasets to plot for config '{config_inst.name}': {datasets}")
+            logger.debug(f"datasets to plot for config '{config_inst.name}': {datasets}")
             reqs[config_inst.name] = {}
             for d in datasets:
                 if d not in config_inst.datasets:
@@ -218,8 +222,9 @@ class PlotEfficiencyBase(
         # histogram data, summed up for background and
         # signal processes
         hists = {}
+        side = self.config_inst.get_variable(self.efficiency_variable).x("signal_side", "unknown")
 
-        with self.publish_step(f"plotting ROC curve for variable {self.branch_data.variable} in category {category_inst.name}"):  # noqa
+        with self.publish_step(f"plotting ROC curve for variable {self.branch_data.variable} in category {category_inst.name}, signal side {side}"):  # noqa
             for i, config_inst in enumerate(self.config_insts):
                 logger.debug(f"processing config '{config_inst.name}'")
                 # histogram data per process
@@ -280,8 +285,8 @@ class PlotEfficiencyBase(
                                 )
                                 continue
                     else:
-                        logger.warning(
-                            f"config '{config_inst.name}' not found in input, skipping it",
+                        logger.debug(
+                            f"config '{config_inst.name}' not currently requested for plotting, skipping it",
                         )
             # there should be hists to plot
             if not hists:
@@ -363,6 +368,7 @@ class PlotEfficiencyBase(
                     totals=totals,
                     config_inst=config_inst,
                     category_inst=category_inst.copy_shallow(),
+                    signal_side=side,
                     **self.get_plot_parameters(),
                 )
 
@@ -408,7 +414,13 @@ class PlotEfficiency(
         return self.efficiency_type
 
     def get_hists_key(self, dataset_inst):
-        return self.efficiency_type
+        # return self.efficiency_type
+        return (
+            "signal"
+            if dataset_inst.has_tag(self.signal_tag)
+            else "background"
+        )
+    
 
 
 class PlotROCCurve(
@@ -424,16 +436,21 @@ class PlotROCCurve(
     setting the *processes* parameter.
     """
 
-    signal_tag = luigi.Parameter(
-        description="datasets marked with this tag are considered signal, otherwise background",
-    )
-
     def get_hists_key(self, dataset_inst):
         return (
             "signal"
             if dataset_inst.has_tag(self.signal_tag)
             else "background"
         )
+    
+    @property
+    def plot_mode(self):
+        return "roc"
+    
+    plot_function = PlotBase.plot_function.copy(
+        default="topsf.plotting.plot_roc_curve.plot_roc_curve",
+        add_default_to_description=True,
+    )
 
 
 class PlotROCCurveByVariable(

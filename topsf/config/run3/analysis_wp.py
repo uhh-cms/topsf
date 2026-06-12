@@ -72,82 +72,82 @@ campaign_run3_2023_preBPix_nano_v12.x.BPix = "pre"
 campaign_run3_2023_postBPix_nano_v12 = cmsdb.campaigns.run3_2023_postBPix_nano_v12.campaign_run3_2023_postBPix_nano_v12  # noqa
 campaign_run3_2023_postBPix_nano_v12.x.BPix = "post"
 
-# # default config
-# config_2022_preEE = add_new_config(
-#     analysis_wp,
-#     campaign_run3_2022_preEE_nano_v12.copy(),
-#     config_name="run3_wp_2022_preEE_nano_v12",
-#     config_id=2_03_22_11,
-# )
-
-# config_2022_postEE = add_new_config(
-#     analysis_wp,
-#     campaign_run3_2022_postEE_nano_v12.copy(),
-#     config_name="run3_wp_2022_postEE_nano_v12",
-#     config_id=2_03_22_12,
-# )
-
-# config_2023_preBPix = add_new_config(
-#     analysis_wp,
-#     campaign_run3_2023_preBPix_nano_v12.copy(),
-#     config_name="run3_wp_2023_preBPix_nano_v12",
-#     config_id=2_03_23_11,
-# )
-
-# config_2023_postBPix = add_new_config(
-#     analysis_wp,
-#     campaign_run3_2023_postBPix_nano_v12.copy(),
-#     config_name="run3_wp_2023_postBPix_nano_v12",
-#     config_id=2_03_23_12,
-# )
-
-# config_2024 = add_new_config(
-#     analysis_wp,
-#     campaign_run3_2024_nano_v15.copy(),
-#     config_name="run3_wp_2024_nano_v15",
-#     config_id=2_03_24_11,
-# )
-
-# config with limited number of files
-config_2022_preEE_limited = add_new_config(
+# full stats config
+config_2022_preEE = add_new_config(
     analysis_wp,
     campaign_run3_2022_preEE_nano_v12.copy(),
-    config_name="run3_wp_2022_preEE_nano_v12_limited",
-    config_id=2_03_22_21,
-    limit_dataset_files=2,
+    config_name="run3_wp_2022_preEE_nano_v12",
+    config_id=2_03_22_11,
 )
 
-config_2022_postEE_limited = add_new_config(
+config_2022_postEE = add_new_config(
     analysis_wp,
     campaign_run3_2022_postEE_nano_v12.copy(),
-    config_name="run3_wp_2022_postEE_nano_v12_limited",
-    config_id=2_03_22_22,
-    limit_dataset_files=2,
+    config_name="run3_wp_2022_postEE_nano_v12",
+    config_id=2_03_22_12,
 )
 
-config_2023_preBPix_limited = add_new_config(
+config_2023_preBPix = add_new_config(
     analysis_wp,
     campaign_run3_2023_preBPix_nano_v12.copy(),
-    config_name="run3_wp_2023_preBPix_nano_v12_limited",
-    config_id=2_03_23_21,
-    limit_dataset_files=2,
+    config_name="run3_wp_2023_preBPix_nano_v12",
+    config_id=2_03_23_11,
 )
 
-config_2023_postBPix_limited = add_new_config(
+config_2023_postBPix = add_new_config(
     analysis_wp,
     campaign_run3_2023_postBPix_nano_v12.copy(),
-    config_name="run3_wp_2023_postBPix_nano_v12_limited",
-    config_id=2_03_23_22,
-    limit_dataset_files=2,
+    config_name="run3_wp_2023_postBPix_nano_v12",
+    config_id=2_03_23_12,
 )
 
-config_2024_limited = add_new_config(
+config_2024 = add_new_config(
     analysis_wp,
     campaign_run3_2024_nano_v15.copy(),
-    config_name="run3_wp_2024_nano_v15_limited",
-    config_id=2_03_24_21,
-    limit_dataset_files=2,
+    config_name="run3_wp_2024_nano_v15",
+    config_id=2_03_24_11,
 )
+
+# # config with limited number of files
+# config_2022_preEE_limited = add_new_config(
+#     analysis_wp,
+#     campaign_run3_2022_preEE_nano_v12.copy(),
+#     config_name="run3_wp_2022_preEE_nano_v12_limited",
+#     config_id=2_03_22_21,
+#     limit_dataset_files=2,
+# )
+
+# config_2022_postEE_limited = add_new_config(
+#     analysis_wp,
+#     campaign_run3_2022_postEE_nano_v12.copy(),
+#     config_name="run3_wp_2022_postEE_nano_v12_limited",
+#     config_id=2_03_22_22,
+#     limit_dataset_files=2,
+# )
+
+# config_2023_preBPix_limited = add_new_config(
+#     analysis_wp,
+#     campaign_run3_2023_preBPix_nano_v12.copy(),
+#     config_name="run3_wp_2023_preBPix_nano_v12_limited",
+#     config_id=2_03_23_21,
+#     limit_dataset_files=2,
+# )
+
+# config_2023_postBPix_limited = add_new_config(
+#     analysis_wp,
+#     campaign_run3_2023_postBPix_nano_v12.copy(),
+#     config_name="run3_wp_2023_postBPix_nano_v12_limited",
+#     config_id=2_03_23_22,
+#     limit_dataset_files=2,
+# )
+
+# config_2024_limited = add_new_config(
+#     analysis_wp,
+#     campaign_run3_2024_nano_v15.copy(),
+#     config_name="run3_wp_2024_nano_v15_limited",
+#     config_id=2_03_24_21,
+#     limit_dataset_files=2,
+# )
 
 # # config with medium limited number of files
 # config_2022_preEE_medium_limited = add_new_config(

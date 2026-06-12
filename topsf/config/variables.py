@@ -46,6 +46,24 @@ def add_variables(config: od.Config) -> None:
         binning=(200, -10, 10),
         x_title="MC weight",
     )
+    config.add_variable(
+        name="weight_unweighted",  # used in histProducer specificially accessing this name to set weight=1
+        expression="weight",
+        binning=(100, -10, 10),
+        x_title="Event weight per MC event",
+    )
+    config.add_variable(
+        name="weight_unweighted1",  # used in histProducer specificially accessing this name to set weight=1
+        expression="weight",
+        binning=(100, -1, 1),
+        x_title="Event weight per MC event",
+    )
+    config.add_variable(
+        name="weight_unweighted2",  # used in histProducer specificially accessing this name to set weight=1
+        expression="weight",
+        binning=(100, -0.1, 0.1),
+        x_title="Event weight per MC event",
+    )
 
     # Event properties
     config.add_variable(
@@ -103,11 +121,12 @@ def add_variables(config: od.Config) -> None:
         aux={
             "inputs": {"FatJet.tau3", "FatJet.tau2"},
             "short_label": "$\tau_{3}/\tau_{2}$",
+            "signal_side": "left",
         },
     )
     config.add_variable(
         name="fatjet_tau32_fine",
-        expression=lambda events: events.FatJet.tau3 / events.FatJet.tau2,
+        expression=lambda events: events["FatJet"]["tau3"] / events["FatJet"]["tau2"],
         null_value=EMPTY_FLOAT,
         binning=(500, 0, 1),
         x_title=r"$\tau_{3}/\tau_{2}$ upper limit",
@@ -128,11 +147,32 @@ def add_variables(config: od.Config) -> None:
         },
     )
     config.add_variable(
+        name="fatjet_msoftdrop",
+        expression="FatJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=(100, 0, 500),
+        x_title=r"AK8 jet $m_{SD}$",
+        unit="GeV",
+        aux={
+            "short_label": "$m_{SD}$",
+        },
+    )
+    config.add_variable(
         name="fatjet_is_unique_top_matched",
         expression="FatJet.is_unique_top_matched",
         null_value=EMPTY_FLOAT,
         binning=[-0.5, 0.5, 1.5],
         x_title=r"AK8 jet has unique top quark match",
+    )
+    config.add_variable(
+        name="fatjet_globalParT3_withMassTopvsQCD",
+        expression="FatJet.globalParT3_withMassTopvsQCD",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0, 1),
+        x_title=r"AK8 jet $GlobalParT3$ with Mass Top vs QCD",
+        aux={
+            "signal_side": "right",
+        }
     )
 
     # pt-leading jets
@@ -215,6 +255,21 @@ def add_variables(config: od.Config) -> None:
         null_value=EMPTY_FLOAT,
         binning=(40, -3.2, 3.2),
         x_title=r"MET $\phi$",
+    )
+    config.add_variable(
+        name="puppimet_pt",
+        expression="PuppiMET.pt[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(40, 0., 400.),
+        unit="GeV",
+        x_title=r"PuppiMET $p_{T}$",
+    )
+    config.add_variable(
+        name="puppimet_phi",
+        expression="PuppiMET.phi[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(40, -3.2, 3.2),
+        x_title=r"PuppiMET $\phi$",
     )
 
     # probe jet properties
@@ -325,6 +380,35 @@ def add_variables(config: od.Config) -> None:
         unit="GeV",
     )
     config.add_variable(
+        name="probejet_msoftdrop_inf_rebin_fix",
+        expression="ProbeJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=[
+            50, 70, 85,
+            105, 120, 140,
+            155, 170, 185,
+            200, 210, 220,
+            230, 250, 500,
+        ],
+        x_title=r"Probe jet $m_{SD}$",
+        unit="GeV",
+    )
+    config.add_variable(
+        name="probejet_msoftdrop_inf_rebin_highmass",
+        expression="ProbeJet.msoftdrop",
+        null_value=EMPTY_FLOAT,
+        binning=[
+            # 50, 70, 85,
+            # 105, 120, 140,
+            100, 120, 140,
+            155, 170, 185,
+            200, 210, 220,
+            230, 250, 500,
+        ],
+        x_title=r"Probe jet $m_{SD}$",
+        unit="GeV",
+    )
+    config.add_variable(
         name="probejet_tau3",
         expression="ProbeJet.tau3",
         null_value=EMPTY_FLOAT,
@@ -340,7 +424,7 @@ def add_variables(config: od.Config) -> None:
     )
     config.add_variable(
         name="probejet_tau32",
-        expression=lambda events: events.ProbeJet.tau3 / events.ProbeJet.tau2,
+        expression=lambda events: events.ProbeJet["tau3"] / events.ProbeJet["tau2"],
         null_value=EMPTY_FLOAT,
         binning=(50, 0, 1),
         x_title=r"Probe jet $\tau_{3}/\tau_{2}$",
@@ -400,3 +484,20 @@ def add_variables(config: od.Config) -> None:
             "inputs": {"Jet.pt"},
         },
     )
+
+    # Jet MET features
+    for i in range(3):
+        config.add_variable(
+            name=f"jet{i+1}_met_delta_phi",
+            expression=f"Jet_{i}_MET_delta_phi",
+            null_value=EMPTY_FLOAT,
+            binning=(40, 0, 3.2),
+            x_title=rf"$\Delta \phi$(jet {i+1}, MET)",
+        )
+        config.add_variable(
+            name=f"fatjet{i+1}_met_delta_phi",
+            expression=f"FatJet_{i}_MET_delta_phi",
+            null_value=EMPTY_FLOAT,
+            binning=(40, 0, 3.2),
+            x_title=rf"$\Delta \phi$(AK8 jet {i+1}, MET)",
+        )
