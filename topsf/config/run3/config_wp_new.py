@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import functools
 import os
+import law
 
 import order as od
 import yaml
@@ -24,17 +25,20 @@ from columnflow.config_util import (
     verify_config_processes,
 )
 from columnflow.production.cms.electron import ElectronSFConfig
+from columnflow.production.cms.muon import MuonSFConfig
 from columnflow.production.cms.jet import JetIdConfig
-from columnflow.calibration.cms.met import METPhiConfig
 
 from topsf.config.variables import add_variables
 from topsf.config.categories_wp import add_categories
 from topsf.util import has_tag
+from topsf.config.datasets import add_datasets_from_yaml
+from topsf.config.taggers import btag_wps, toptag_wps
 
 thisdir = os.path.dirname(os.path.abspath(__file__))
+logger = law.logger.get_logger(__name__)
 
 
-def add_config(
+def add_new_config(
     analysis: od.Analysis,
     campaign: od.Campaign,
     config_name: str | None = None,
@@ -45,9 +49,8 @@ def add_config(
     Configurable function for creating a config for a run2 analysis given
     a base *analysis* object and a *campaign* (i.e. set of datasets).
     """
-    raise NotImplementedError("This function is old and kept as a reference for now and not to be used.")
     # validation
-    assert campaign.x.year in [2022, 2023]
+    assert campaign.x.year in [2022, 2023, 2024]
     if campaign.x.year == 2022:
         assert campaign.x.EE in ["pre", "post"]
     elif campaign.x.year == 2023:
@@ -62,20 +65,28 @@ def add_config(
     elif year == 2023:
         corr_postfix = f"{campaign.x.BPix}BPix"
 
-    implemented_years = [2022, 2023]
+    implemented_years = [2022, 2023, 2024]
 
     if year not in implemented_years:
-        raise NotImplementedError("For now, only 2022 campaign is fully implemented")
+        raise NotImplementedError("For now, only 2022, 2023, and 2024 campaigns are fully implemented")
 
     # create a config by passing the campaign
     # (if id and name are not set they will be taken from the campaign)
     cfg = analysis.add_config(campaign, name=config_name, id=config_id)
 
     # add some important tags to the config
+    cfg.x.run = 3
     cfg.x.cpn_tag = f"{year}{corr_postfix}"
-
-    if year in (2022, 2023):
-        cfg.x.run = 3
+    cfg.x.year = year
+    vnano = campaign.x.version
+    logger.info(f"Creating config '{cfg.name}' for campaign '{campaign.name}' with year {year} and version {vnano}")
+    cfg.add_tag("skip_btag_weights")
+    cfg.add_tag("skip_btag_wp_weights")
+    cfg.add_tag("skip_muon_weights")
+    cfg.add_tag("skip_electron_weights")
+    cfg.add_tag("skip_scale")
+    cfg.add_tag("skip_pdf")
+    cfg.add_tag("no_ps_weights")
 
     #
     # configure processes
@@ -94,25 +105,26 @@ def add_config(
     process_names = [
         "tt",
         "qcd",
-        "qcd_mu_pt15to20",
-        "qcd_mu_pt20to30",
-        "qcd_mu_pt30to50",
-        "qcd_mu_pt50to80",
-        "qcd_mu_pt80to120",
-        "qcd_mu_pt120to170",
-        "qcd_mu_pt170to300",
-        "qcd_mu_pt300to470",
-        "qcd_mu_pt470to600",
-        "qcd_mu_pt600to800",
-        "qcd_mu_pt800to1000",
-        "qcd_mu_pt1000toinf",
-        "qcd_em_pt10to30",
-        "qcd_em_pt30to50",
-        "qcd_em_pt50to80",
-        "qcd_em_pt80to120",
-        "qcd_em_pt120to170",
-        "qcd_em_pt170to300",
-        "qcd_em_pt300toinf",
+        # # split qcd into bins for studies
+        # "qcd_mu_pt15to20",
+        # "qcd_mu_pt20to30",
+        # "qcd_mu_pt30to50",
+        # "qcd_mu_pt50to80",
+        # "qcd_mu_pt80to120",
+        # "qcd_mu_pt120to170",
+        # "qcd_mu_pt170to300",
+        # "qcd_mu_pt300to470",
+        # "qcd_mu_pt470to600",
+        # "qcd_mu_pt600to800",
+        # "qcd_mu_pt800to1000",
+        # "qcd_mu_pt1000toinf",
+        # "qcd_em_pt10to30",
+        # "qcd_em_pt30to50",
+        # "qcd_em_pt50to80",
+        # "qcd_em_pt80to120",
+        # "qcd_em_pt120to170",
+        # "qcd_em_pt170to300",
+        # "qcd_em_pt300toinf",
     ]
 
     blue_shades_mu = [
@@ -154,76 +166,12 @@ def add_config(
     #
 
     # add datasets we need to study
-    dataset_names = [
-        # ttbar (fully hadronic decays only)
-        "tt_fh_powheg",
-        # # QCD 2022 v12 datasets
-        # "qcd_ht70to100_madgraph",
-        # # "qcd_ht100to200_madgraph",  # FIXME no xs for 13.6 in https://xsdb-temp.app.cern.ch/xsdb/?columns=67108863&currentPage=0&pageSize=10&searchQuery=DAS%3DQCD-4Jets_HT-100to200_TuneCP5_13p6TeV_madgraphMLM-pythia8  # noqa
-        # "qcd_ht200to400_madgraph",
-        # "qcd_ht400to600_madgraph",
-        # "qcd_ht600to800_madgraph",
-        # "qcd_ht800to1000_madgraph",
-        # "qcd_ht1000to1200_madgraph",
-        # "qcd_ht1200to1500_madgraph",
-        # "qcd_ht1500to2000_madgraph",
-        # "qcd_ht2000toinf_madgraph",
-        # QCD mu enriched
-        # "qcd_mu_pt15to20_pythia",  # FIXME AssertionError for lim. stats. (preEE)
-        # # "qcd_mu_pt20to30_pythia",  # FIXME AssertionError for lim. stats. (preEE)  # FIXME broken Root file?
-        # "qcd_mu_pt30to50_pythia",  # FIXME AssertionError for lim. stats. (preEE)
-        # "qcd_mu_pt50to80_pythia",
-        # "qcd_mu_pt80to120_pythia",
-        "qcd_mu_pt120to170_pythia",
-        "qcd_mu_pt170to300_pythia",
-        "qcd_mu_pt300to470_pythia",
-        "qcd_mu_pt470to600_pythia",
-        "qcd_mu_pt600to800_pythia",
-        "qcd_mu_pt800to1000_pythia",
-        "qcd_mu_pt1000toinf_pythia",
-        # QCD em enriched
-        # "qcd_em_pt10to30_pythia",
-        # "qcd_em_pt30to50_pythia",
-        # "qcd_em_pt50to80_pythia",
-        # "qcd_em_pt80to120_pythia",
-        "qcd_em_pt120to170_pythia",
-        "qcd_em_pt170to300_pythia",
-        "qcd_em_pt300toinf_pythia",
-    ]
-    if year == 2022:
-        if campaign.x.EE == "pre":
-            dataset_names += [
-            ]
-        elif campaign.x.EE == "post":
-            dataset_names += [
-            ]
-    elif year == 2023:
-        if campaign.has_tag("preBPix"):
-            dataset_names += [
-            ]
-        elif campaign.has_tag("postBPix"):
-            dataset_names += [
-            ]
-    for dataset_name in dataset_names:
-        # add the dataset
-        dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
-
-        # mark ttbar
-        if dataset_name.startswith("tt"):
-            dataset.add_tag({"has_top", "is_ttbar"})
-
-        # mark QCD
-        if dataset_name.startswith("qcd"):
-            dataset.add_tag({"is_qcd"})
-
-        # for testing purposes, limit the number of files per dataset
-        if limit_dataset_files:
-            for info in dataset.info.values():
-                info.n_files = min(info.n_files, limit_dataset_files)
+    dataset_names = add_datasets_from_yaml(cfg, limit_dataset_files=limit_dataset_files, dataset_types=["tt_fh", "qcd_pt"])
 
     # verify that the root processes of each dataset (or one of their
     # ancestor processes) are registered in the config
     verify_config_processes(cfg, warn=True)
+    logger.info(f"Added {len(cfg.processes)} processes and {len(cfg.datasets)} datasets to config '{cfg.name}'")
 
     #
     # defaults
@@ -235,7 +183,7 @@ def add_config(
     cfg.x.default_selector = "wp"
     cfg.x.default_reducer = "cf_default"
     cfg.x.default_producer = "default"
-    cfg.x.default_hist_producer = "all_weights"
+    cfg.x.default_hist_producer = "all_weights"  # NOTE: no need to further differentiate for now, use more fine grained hist producers if needed in the future
     cfg.x.default_ml_model = None
     cfg.x.default_inference_model = None
     cfg.x.default_categories = ("incl",)
@@ -280,7 +228,8 @@ def add_config(
     # (used in cutflow tasks)
     cfg.x.selector_step_groups = {
         "default": [
-            "FatJet", "METFilters",
+            # "FatJet", "METFilters",
+            "cleanup", "FatJet"
         ],
     }
 
@@ -311,6 +260,48 @@ def add_config(
     cfg.x.validate_dataset_lfns = limit_dataset_files is None
 
     #
+    # tagger working points
+    #
+
+    # full b-tag working points dict
+    cfg.x.btag_working_points = btag_wps(cfg, full=True)
+    # store only upart wps for fixed wp sf producer
+    cfg.x.btag_working_points.btagUParTAK4B.fixed_wp = btag_wps(cfg, full=False)
+
+    # jet selection parameters
+    subjet_wp_key = "btagUParTAK4B" if year == 2024 else "deepcsv"
+    subjet_btag_wp = getattr(cfg.x.btag_working_points, subjet_wp_key).loose
+    if subjet_btag_wp < 0:
+        raise ValueError(f"Invalid subjet b-tag working point for year {year}. Please check the configuration.")
+
+    cfg.x.jet_selection = DotDict.wrap({
+        "ak8": {
+            "column": "FatJet",
+            "min_pt": 300,
+            "max_abseta": 2.4,  # note: SF analysis has 2.5
+            "msoftdrop_range": (105, 210),
+            # https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV
+            "jetId": 2,  # bit2 (2): pass tight ID, fail tightLepVeto, bit3 (6): pass tight and tightLepVeto ID
+            # probe jet pt bins (used by category builder)
+            "pt_bins": [300, 400, 480, 600, None],
+            # parameters for b-tagged subjets
+            "subjet_column": "SubJet",
+            "subjet_btag": "btagDeepB" if not year == 2024 else "btagUParTAK4B",
+            "subjet_btag_wp": subjet_btag_wp,
+        },
+    })
+
+    # MET selection parameters
+    # FIXME: use PuppiMET for Run 3? What's the difference? It's better?
+    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections?rev=79#xy_Shift_Correction_MET_phi_modu
+    cfg.x.met_selection = DotDict.wrap({
+        "default": {
+            "column": "PuppiMET" if cfg.x.run == 3 else "MET",
+            "min_pt": 50,
+        },
+    })
+
+    #
     # luminosity
     #
 
@@ -338,17 +329,13 @@ def add_config(
                 "lumi_13TeV_2023": 0.01j,
                 "lumi_13TeV_correlated": 0.006j,
             })
+    elif year == 2024:
+        # Total - EraB
+        cfg.x.luminosity = Number(109_950.0 - 130.0, {
+            "lumi_13p6TeV_2024": 0.016j,  # CERN-CMS-DP-2026-003
+        })
     else:
         raise NotImplementedError(f"Luminosity for year {year} is not defined.")
-
-    #
-    # pileup
-    #
-
-    # # minimum bias cross section in mb (milli) for creating PU weights, values from
-    # # https://twiki.cern.ch/twiki/bin/view/CMS/PileupJSONFileforData?rev=45#Recommended_cross_section
-    # not used after moving to correctionlib based PU weights
-    # cfg.x.minbias_xs = Number(69.2, 0.046j)
 
     #
     # MET filters
@@ -364,6 +351,8 @@ def add_config(
         "Flag.eeBadScFilter",
         "Flag.ecalBadCalibFilter",
     }
+    if year == 2024:
+        cfg.x.met_filters.add("Flag.hfNoisyHitsFilter")
 
     #
     # JEC & JER  # FIXME: Taken from HBW
@@ -385,12 +374,18 @@ def add_config(
         era = "Cv1234" if campaign.has_tag("preBPix") else "D"
         jer_campaign = f"Summer{year2}{jerc_postfix}Prompt{year2}_Run{era}"
         jec_campaign = f"Summer{year2}{jerc_postfix}Prompt{year2}"
+    elif year == 2024:
+        jec_campaign = "Summer24Prompt24"
+        jer_campaign = "Summer23BPixPrompt23_RunD"  # no 2024 JER yet, use 2023 BPix: https://cms-jerc.web.cern.ch/Recommendations/#2024_1 # noqa
+    else:
+        raise NotImplementedError(f"JEC/JER configuration for year {year} is not defined.")
 
     jet_type = "AK4PFPuppi"
     fatjet_type = "AK8PFPuppi"
     jec_ak4_version = jec_ak8_version = {
-        2022: "V2",
-        2023: "V2" if jerc_postfix == "" else "V3",
+        2022: "V3",
+        2023: "V2" if not year == 2023 else "V3",
+        2024: "V2",
     }[year]
 
     cfg.x.jec = DotDict.wrap({
@@ -458,7 +453,7 @@ def add_config(
                 "CorrelationGroupFlavor",
                 "CorrelationGroupUncorrelated",
             ],
-            "data_per_era": False if year == 2023 else True,
+            "data_per_era": True if year == 2022 else False,
         },
         "FatJet": {
             "campaign": jec_campaign,
@@ -524,7 +519,7 @@ def add_config(
                 "CorrelationGroupFlavor",
                 "CorrelationGroupUncorrelated",
             ],
-            "data_per_era": False if year == 2023 else True,
+            "data_per_era": True if year == 2022 else False,
         },
         "SubJet": {
             "campaign": jec_campaign,
@@ -590,27 +585,26 @@ def add_config(
                 # "CorrelationGroupFlavor",
                 # "CorrelationGroupUncorrelated",
             ],
-            "data_per_era": False if year == 2023 else True,
+            "data_per_era": True if year == 2022 else False,
         },
     })
 
     # JER
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
-    # TODO: get jerc working for Run3
     cfg.x.jer = DotDict.wrap({
         "Jet": {
             "campaign": jer_campaign,
-            "version": {2022: "JRV1", 2023: "JRV1"}[year],
+            "version": {2022: "JRV1", 2023: "JRV1", 2024: "JRV1"}[year],
             "jet_type": jet_type,
         },
         "FatJet": {
             "campaign": jer_campaign,
-            "version": {2022: "JRV1", 2023: "JRV1"}[year],
+            "version": {2022: "JRV1", 2023: "JRV1", 2024: "JRV1"}[year],
             "jet_type": fatjet_type,
         },
         "SubJet": {
             "campaign": jer_campaign,
-            "version": {2022: "JRV1", 2023: "JRV1"}[year],
+            "version": {2022: "JRV1", 2023: "JRV1", 2024: "JRV1"}[year],
             "jet_type": jet_type,
         },
     })
@@ -663,201 +657,40 @@ def add_config(
         "TimePtEta",
     ]
 
-    if cfg.x.run == 2:
-        cfg.x.met_phi_correction_set = "{variable}_metphicorr_pfmet_{data_source}"
-    else:
-        cfg.x.met_phi_correction = METPhiConfig(
-            met_name="PuppiMET",
-            met_type="PuppiMET",
-            correction_set="met_xy_corrections",
-            keep_uncorrected=True,  # TODO do we need this?
-            pt_phi_variations={
-                "stat_xdn": "metphi_statx_down",
-                "stat_xup": "metphi_statx_up",
-                "stat_ydn": "metphi_staty_down",
-                "stat_yup": "metphi_staty_up",
-            },
-            variations={
-                "pu_dn": "minbias_xs_down",
-                "pu_up": "minbias_xs_up",
-            },
-        )
-
-    #
-    # tagger working points
-    #
-
-    # b-tag working points
-    # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22/
-    # https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/
-    # TODO: add correct 2022 + 2022preEE WP for deepcsv if needed
-    # TODO: use PNet?
-    btag_key = cfg.x.cpn_tag
-    cfg.x.btag_working_points = DotDict.wrap({
-        "deepjet": {
-            "loose": {
-                "2022preEE": 0.0583, "2022postEE": 0.0614, "2023preBPix": 0.0479, "2023postBPix": 0.048,
-            }[btag_key],
-            "medium": {
-                "2022preEE": 0.3086, "2022postEE": 0.3196, "2023preBPix": 0.2431, "2023postBPix": 0.2435,
-            }[btag_key],
-            "tight": {
-                "2022preEE": 0.7183, "2022postEE": 0.7300, "2023preBPix": 0.6553, "2023postBPix": 0.6563,
-            }[btag_key],
+    from columnflow.calibration.cms.met import METPhiConfig
+    met_column = cfg.x.met_selection.default.column
+    cfg.x.met_phi_correction = METPhiConfig(
+        met_name=met_column,
+        met_type=met_column,
+        correction_set="met_xy_corrections",
+        keep_uncorrected=True,  # TODO do we need this?
+        pt_phi_variations={
+            "stat_xdn": "metphi_statx_down",
+            "stat_xup": "metphi_statx_up",
+            "stat_ydn": "metphi_staty_down",
+            "stat_yup": "metphi_staty_up",
         },
-        "deepcsv": {
-            "loose": {
-                "2022preEE": 0.1208, "2022postEE": 0.1208, "2023preBPix": 0.1208, "2023postBPix": 0.1208,
-            }[btag_key],
-            "medium": {
-                "2022preEE": 0.4168, "2022postEE": 0.4168, "2023preBPix": 0.4168, "2023postBPix": 0.4168,
-            }[btag_key],
-            "tight": {
-                "2022preEE": 0.7665, "2022postEE": 0.7665, "2023preBPix": 0.7665, "2023postBPix": 0.7665,
-            }[btag_key],
+        variations={
+            "pu_dn": "minbias_xs_down",
+            "pu_up": "minbias_xs_up",
         },
-    })
-
-    # top-tag working points
-    # https://twiki.cern.ch/twiki/bin/view/CMS/JetTopTagging?rev=41
-    cfg.x.toptag_working_points = DotDict.wrap({
-        "tau32": {
-            "very_loose": 0.69,
-            "loose": 0.61,
-            "medium": 0.52,
-            "tight": 0.47,
-            "very_tight": 0.38,
-        },
-    })
-
-    #
-    # selector configurations
-    # FIXME: adapt for Run3?
-    #
-
-    # lepton selection parameters
-    cfg.x.lepton_selection = DotDict.wrap({
-        "mu": {
-            "column": "Muon",
-            "min_pt": 55,
-            "max_abseta": 2.4,
-            "triggers": {
-                # # FIXME: adapt for UL17
-                # "IsoMu24",
-                # "IsoTkMu24",
-                # as mttbar:
-                "IsoMu27",
-            },
-            "id": {
-                "column": "tightId",
-                "value": True,
-            },
-            "rel_iso": "pfRelIso03_all",
-            "max_rel_iso": 1.5,
-            # veto events with additional leptons passing looser cuts
-            "min_pt_addveto": 30,
-            "id_addveto": {
-                "column": "looseId",
-                "value": True,
-            },
-        },
-        "e": {
-            "column": "Electron",
-            "min_pt": 55,
-            "max_abseta": 2.4,
-            "triggers": {
-                # FIXME: adapt for UL17
-                # "Ele27_WPTight_Gsf",
-                # "Ele115_CaloIdVT_GsfTrkIdT",
-                # as mttbar:
-                "Ele35_WPTight_Gsf",
-            },
-            #"id": "mvaFall17V2Iso_WP90",  # noqa
-            "id": {
-                "column": "cutBased",
-                "value": 4,
-            },
-            # veto events with additional leptons passing looser cuts
-            "min_pt_addveto": 30,
-            #"id_addveto": "mvaFall17V2Iso_WPL",  # noqa
-            "id_addveto": {
-                "column": "cutBased",
-                "value": 1,
-            },
-        },
-    })
-
-    # jet selection parameters
-    cfg.x.jet_selection = DotDict.wrap({
-        "ak8": {
-            "column": "FatJet",
-            "min_pt": 300,
-            "max_abseta": 2.4,  # note: SF analysis has 2.5
-            "msoftdrop_range": (105, 210),
-            # https://twiki.cern.ch/twiki/bin/view/CMS/JetID13p6TeV
-            "jetId": 2,  # bit2 (2): pass tight ID, fail tightLepVeto, bit3 (6): pass tight and tightLepVeto ID
-            # probe jet pt bins (used by category builder)
-            "pt_bins": [300, 400, 480, 600, None],
-            # parameters for b-tagged subjets
-            "subjet_column": "SubJet",
-            "subjet_btag": "btagDeepB",
-            "subjet_btag_wp": cfg.x.btag_working_points.deepcsv.loose,  # FIXME: use DeepJet or PNet?
-        },
-    })
-
-    # MET selection parameters
-    # FIXME: use PuppiMET for Run 3? What's the difference? It's better?
-    # https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETRun2Corrections?rev=79#xy_Shift_Correction_MET_phi_modu
-    cfg.x.met_selection = DotDict.wrap({
-        "default": {
-            "column": "PuppiMET" if cfg.x.run == 3 else "MET",
-            "min_pt": 50,
-        },
-    })
+    )
 
     #
     # producer configurations
     #
+    # lepton scale factor producers not needed
 
-    # btag weight configuration
-    cfg.x.btag_sf = ("deepJet_shape", cfg.x.btag_sf_jec_sources)
-
-    # lepton sf taken from
-    # https://github.com/uhh-cms/hh2bbww/blob/master/hbw/config/config_run2.py#L338C1-L352C85
-    # names of electron correction sets and working points
-    # (used in the electron_sf producer)
-    if cfg.x.cpn_tag == "2022postEE":
-        # TODO: we need to use different SFs for control regions
-        cfg.x.electron_sf_names = ElectronSFConfig(
-            correction="Electron-ID-SF",
-            campaign="2022Re-recoE+PromptFG",
-            working_point="Tight",
+    if year == 2024:
+        cfg.x.jet_id = JetIdConfig(
+            corrections={"AK4PUPPI_Tight": 2, "AK4PUPPI_TightLeptonVeto": 3},
         )
-    elif cfg.x.cpn_tag == "2022preEE":
-        cfg.x.electron_sf_names = ElectronSFConfig(
-            correction="Electron-ID-SF",
-            campaign="2022Re-recoBCD",
-            working_point="Tight",
+        cfg.x.fatjet_id = JetIdConfig(
+            corrections={"AK8PUPPI_Tight": 2, "AK8PUPPI_TightLeptonVeto": 3},
         )
-    elif cfg.x.cpn_tag == "2023preBPix":
-        cfg.x.electron_sf_names = ElectronSFConfig(
-            correction="Electron-ID-SF",
-            campaign="2023PromptC",
-            working_point="Tight",
-        )
-    elif cfg.x.cpn_tag == "2023postBPix":
-        cfg.x.electron_sf_names = ElectronSFConfig(
-            correction="Electron-ID-SF",
-            campaign="2023PromptD",
-            working_point="Tight",
-        )
-
-    # names of muon correction sets and working points
-    # (used in the muon producer)
-    # TODO: we need to use different SFs for control regions
-    cfg.x.muon_sf_names = ("NUM_TightPFIso_DEN_TightID", f"{cfg.x.cpn_tag}")
-    cfg.x.muon_id_sf_names = ("NUM_TightID_DEN_TrackerMuons", f"{cfg.x.cpn_tag}")
-    cfg.x.muon_iso_sf_names = ("NUM_TightPFIso_DEN_TightID", f"{cfg.x.cpn_tag}")
+    else:
+        logger.warning(f"(Fat)Jet ID recalculation not configured for {cfg.x.cpn_tag} campaign. Will be skipped.")
+        cfg.add_tag("skip_jet_ids")
 
     # top pt reweighting parameters
     # https://twiki.cern.ch/twiki/bin/viewauth/CMS/TopPtReweighting#TOP_PAG_corrections_based_on_dat?rev=31
@@ -893,6 +726,7 @@ def add_config(
 
     # declare the shifts
     def add_shifts(cfg):
+        logger.warn_once("The shift definitions in the config are currently not kept up as they are not needed for now. Make sure to adapt if needed.")  # noqa
         # nominal shift
         cfg.add_shift(name="nominal", id=0)
 
@@ -1026,98 +860,8 @@ def add_config(
         add_shift_aliases(cfg, "FSR", {"FSR": "FSR_{direction}"})
 
     # add the shifts
-    add_shifts(cfg)
-
-    # #
-    # # external files
-    # # taken from
-    # # https://github.com/uhh-cms/hh2bbww/blob/master/hbw/config/config_run2.py#L535C7-L579C84
-    # #
-
-    # # external files
-    # json_mirror = "/afs/cern.ch/user/j/jmatthie/public/mirrors/jsonpog-integration-406118ec"  # updated 31.07.25
-    # local_repo = "/data/dust/user/matthiej/topsf"  # TODO: avoid hardcoding path
-
-    # if cfg.x.cpn_tag == "2022preEE" or cfg.x.cpn_tag == "2022postEE":
-    #     corr_tag = f"{year}_Summer22{jerc_postfix}"
-    # elif cfg.x.cpn_tag == "2023preBPix" or cfg.x.cpn_tag == "2023postBPix":
-    #     corr_tag = f"{year}_Summer23{jerc_postfix}"
-
-    # cfg.x.external_files = DotDict.wrap({
-    #     # pileup weight corrections
-    #     "pu_sf": (f"{json_mirror}/POG/LUM/{corr_tag}/puWeights.json.gz", "v1"),
-
-    #     # jet energy correction
-    #     "jet_jerc": (f"{json_mirror}/POG/JME/{corr_tag}/jet_jerc.json.gz", "v1"),
-
-    #     # jet energy correction ak8
-    #     "fat_jet_jerc": (f"{json_mirror}/POG/JME/{corr_tag}/fatJet_jerc.json.gz", "v1"),
-
-    #     # jet veto map
-    #     "jet_veto_map": (f"{json_mirror}/POG/JME/{corr_tag}/jetvetomaps.json.gz", "v1"),
-
-    #     # electron scale factors
-    #     "electron_sf": (f"{json_mirror}/POG/EGM/{corr_tag}/electron.json.gz", "v1"),
-
-    #     # muon scale factors
-    #     "muon_sf": (f"{json_mirror}/POG/MUO/{corr_tag}/muon_Z.json.gz", "v1"),
-
-    #     # btag scale factor
-    #     "btag_sf_corr": (f"{json_mirror}/POG/BTV/{corr_tag}/btagging.json.gz", "v1"),
-
-    #     # V+jets reweighting
-    #     "vjets_reweighting": f"{local_repo}/data/json/vjets_reweighting.json.gz",
-
-    #     # jet id
-    #     "jet_id": f"{json_mirror}/POG/JME/{corr_tag}/jetid.json.gz",
-    # })
-
-    # if cfg.x.run == 2:
-    #     cfg.x.external_files.update(DotDict.wrap({
-    #         "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met.json.gz", "v1"),
-    #     }))
-    # elif cfg.x.run == 3:
-    #     met_corr_tag = f"{year}_{year}{jerc_postfix}"
-    #     cfg.x.external_files.update(DotDict.wrap({
-    #         # met phi corrector
-    #         "met_phi_corr": (f"{json_mirror}/POG/JME/{corr_tag}/met_xyCorrections_{met_corr_tag}.json.gz", "v1"),
-    #     }))
-
-    # if cfg.x.cpn_tag == "2022preEE":
-    #     cfg.x.external_files.update(DotDict.wrap({
-    #         # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
-    #         "lumi": {
-    #             "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
-    #             "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
-    #         },
-    #     }))
-    # elif cfg.x.cpn_tag == "2022postEE":
-    #     cfg.x.external_files.update(DotDict.wrap({
-    #         # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
-    #         "lumi": {
-    #             "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json", "v1"),  # noqa
-    #             "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
-    #         },
-    #     }))
-    # elif cfg.x.cpn_tag == "2023preBPix":
-    #     cfg.x.external_files.update(DotDict.wrap({
-    #         # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
-    #         "lumi": {
-    #             "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
-    #             "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
-    #         },
-    #     }))
-    # elif cfg.x.cpn_tag == "2023postBPix":
-    #     cfg.x.external_files.update(DotDict.wrap({
-    #         # files from https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGoodLumiSectionsJSONFile
-    #         "lumi": {
-    #             "golden": ("https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json", "v1"),  # noqa
-    #             "normtag": ("/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json", "v1"),
-    #         },
-    #     }))
-    # else:
-    #     raise NotImplementedError(f"No lumi and pu files provided for year {year}")
-
+    # add_shifts(cfg)  # NOTE: currently not needed for WP analysis, as no shifts are currently considered. Make sure to adapt if needed.
+    cfg.add_shift(name="nominal", id=0)
 
     #
     # external files
@@ -1141,36 +885,35 @@ def add_config(
             vnano=12,
             era="22CDSep23-Summer22",
             pog_directories={"dc": "Collisions22"},
-            snapshot=CATSnapshot(btv="2025-08-20", dc="2025-07-25", egm="2025-04-15", jme="2025-09-23", lum="2024-01-31", muo="2025-08-14", tau="2025-10-01"),  # noqa: E501
+            snapshot=CATSnapshot(btv="2025-08-20", dc="2025-07-25", egm="2025-12-15", jme="2026-04-13", lum="2024-01-31", muo="2026-04-28", tau="2025-12-25"),  # noqa: E501
         ),
         (2022, "EE", 12): CATInfo(
             run=3,
             vnano=12,
             era="22EFGSep23-Summer22EE",
             pog_directories={"dc": "Collisions22"},
-            snapshot=CATSnapshot(btv="2025-08-20", dc="2025-07-25", egm="2025-04-15", jme="2025-10-07", lum="2024-01-31", muo="2025-08-14", tau="2025-10-01"),  # noqa: E501
+            snapshot=CATSnapshot(btv="2025-08-20", dc="2025-07-25", egm="2025-12-15", jme="2026-04-13", lum="2024-01-31", muo="2026-04-28", tau="2025-12-25"),  # noqa: E501
         ),
         (2023, "", 12): CATInfo(
             run=3,
             vnano=12,
             era="23CSep23-Summer23",
-            # pog_eras={"tau": "23CSep23-Summer22"},  # TODO: remove once typo in CAT repo is fixed
             pog_directories={"dc": "Collisions23"},
-            snapshot=CATSnapshot(btv="2025-08-20", dc="2025-07-25", egm="2025-04-15", jme="2025-10-07", lum="2024-01-31", muo="2025-08-14", tau="2025-10-01"),  # noqa: E501
+            snapshot=CATSnapshot(btv="2025-08-20", dc="2025-07-25", egm="2025-12-15", jme="2026-04-13", lum="2024-01-31", muo="2026-04-28", tau="2025-12-25"),  # noqa: E501
         ),
         (2023, "BPix", 12): CATInfo(
             run=3,
             vnano=12,
             era="23DSep23-Summer23BPix",
             pog_directories={"dc": "Collisions23"},
-            snapshot=CATSnapshot(btv="2025-08-20", dc="2025-07-25", egm="2025-04-15", jme="2025-10-07", lum="2024-01-31", muo="2025-08-14", tau="2025-10-01"),  # noqa: E501
+            snapshot=CATSnapshot(btv="2025-08-20", dc="2025-07-25", egm="2025-12-15", jme="2026-04-13", lum="2024-01-31", muo="2026-04-28", tau="2025-12-25"),  # noqa: E501
         ),
         (2024, "", 15): CATInfo(
             run=3,
             vnano=15,
             era="24CDEReprocessingFGHIPrompt-Summer24",
             pog_directories={"dc": "Collisions24"},
-            snapshot=CATSnapshot(btv="2026-01-30", dc="2025-07-25", egm="2025-12-15", jme="2025-12-02", muo="2025-11-27", lum="2025-12-02"),  # noqa: E501
+            snapshot=CATSnapshot(btv="2026-03-10", dc="2025-07-25", egm="2025-12-15", jme="2025-12-02", muo="2026-04-28", lum="2026-04-15"),  # noqa: E501
         ),
     }[(year, campaign.x.postfix, vnano)]
     cfg.x.cat_info = cat_info
@@ -1208,7 +951,7 @@ def add_config(
     add_external("jet_jerc", (cat_info.get_file("jme", "jet_jerc.json.gz"), "v1"))
 
     # fat jet energy correction
-    add_external("fat_jet_jerc", (cat_info.get_file("jme", "fat_jet_jerc.json.gz" if year != 2024 else "fatJet_jerc.json.gz"), "v1"))  # noqa: E501
+    add_external("fat_jet_jerc", (cat_info.get_file("jme", "fatJet_jerc.json.gz"), "v1"))  # noqa: E501
 
     # jet veto map
     add_external("jet_veto_map", (cat_info.get_file("jme", "jetvetomaps.json.gz"), "v1"))
@@ -1226,7 +969,7 @@ def add_config(
     add_external("jet_id", (cat_info.get_file("jme", "jetid.json.gz"), "v1"))
 
     # muon scale factors
-    add_external("muon_sf", (cat_info.get_file("muo", "muon_Z.json.gz"), "v1"))
+    add_external("muon_sf", (cat_info.get_file("muo", "muon_HighPt.json.gz"), "v1"))
 
     # met phi correction
     if year != 2024:  # TODO: not yet available for 2024
@@ -1261,11 +1004,11 @@ def add_config(
             "PSWeight",
 
             # muons
-            "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass",
+            "Muon.pt", "Muon.eta", "Muon.phi", "Muon.mass", "Muon.tunepRelPt",
             "Muon.pdgId",
             "Muon.jetIdx",
             "Muon.nStations",
-            "Muon.pfRelIso03_all", "Muon.pfRelIso04_all",
+            "Muon.pfRelIso03_all", "Muon.pfRelIso04_all", "Muon.tkRelIso",
 
             # electrons
             "Electron.pt", "Electron.eta", "Electron.phi", "Electron.mass",
@@ -1312,6 +1055,7 @@ def add_config(
             "FatJet.rawFactor",
             "FatJet.tau1", "FatJet.tau2", "FatJet.tau3", "FatJet.tau4",
             "FatJet.subJetIdx1", "FatJet.subJetIdx2",
+            "FatJet.globalParT3_withMassTopvsQCD", "FatJet.globalParT3_withMassWvsQCD",
             # # optional, enable if needed
             # "FatJet.area", "FatJet.jetId", "FatJet.hadronFlavour",
             # "FatJet.genJetAK8Idx",
@@ -1321,7 +1065,7 @@ def add_config(
             # "FatJet.btag*", "FatJet.deepTag*", "FatJet.particleNet*",
 
             # subjets
-            "SubJet.btagDeepB",
+            "SubJet.btagDeepB", "SubJet.btagUParTAK4B"
 
             # generator quantities
             "Generator.*",
@@ -1352,6 +1096,8 @@ def add_config(
             "deterministic_seed",
             "mc_weight",
             "pu_weight*",
+            "FSR*", "ISR*", "pdf_weight*",
+            "muf_weight*", "mur_weight*", "murmuf_weight*", "murmuf_envelope*",
         },
         "cf.MergeSelectionMasks": {
             "channel_id", "process_id", "category_ids",
@@ -1372,13 +1118,10 @@ def add_config(
     get_shifts = functools.partial(get_shifts_from_sources, cfg)
     cfg.x.event_weights = DotDict({
         "normalization_weight": [],
-        "pu_weight": get_shifts("minbias_xs"),
-        "muon_weight": get_shifts("muon"),
+        "normalized_pu_weight": get_shifts("minbias_xs"),
     })
 
     # event weights only present in certain datasets or configs
-    if not cfg.has_tag("skip_electron_weights"):
-        cfg.x.event_weights["electron_weight"] = get_shifts("electron")
     for dataset in cfg.datasets:
         dataset.x.event_weights = DotDict()
         if dataset.has_tag("is_ttbar"):
@@ -1388,9 +1131,9 @@ def add_config(
             # V+jets QCD NLO reweighting
             dataset.x.event_weights["vjets_weight"] = get_shifts("vjets")
         # add PSWeight variations for all datasets but qcd
-        if not dataset.has_tag("is_qcd"):
-            dataset.x.event_weights["ISR"] = get_shifts("ISR")
-            dataset.x.event_weights["FSR"] = get_shifts("FSR")
+        # if not dataset.has_tag("is_qcd"):
+        #     dataset.x.event_weights["ISR"] = get_shifts("ISR")
+        #     dataset.x.event_weights["FSR"] = get_shifts("FSR")
 
     # #
     # # versions

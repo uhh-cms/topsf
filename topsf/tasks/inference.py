@@ -17,6 +17,8 @@ from columnflow.util import DotDict
 
 from topsf.tasks.base import TopSFTask
 
+logger = law.logger.get_logger(__name__)
+
 
 def multi_string_repr(strings, max_len=1, sep="_"):
     """Create a unique representation of a sequence of strings."""
@@ -67,28 +69,48 @@ class CreateDatacards(
                 variables = (config_data.variable,)
 
             # add merged shifted histograms for mc
-            reqs[config_inst.name] = {
-                proc_obj.name: {
-                    dataset: self.reqs.MergeShiftedHistograms.req_different_branching(
-                        self,
-                        config=config_inst.name,
-                        dataset=dataset,
-                        shift_sources=tuple(
-                            param_obj.config_data[config_inst.name].shift_source
-                            for param_obj in proc_obj.parameters
+            reqs[config_inst.name] = {}
+
+            for proc_obj in cat_obj.processes:
+                if config_inst.name in proc_obj.config_data and not proc_obj.is_dynamic:
+
+                    # Create the sub-dict for this proc_obj
+                    reqs[config_inst.name][proc_obj.name] = {}
+
+                    # Loop over datasets
+                    for dataset in self.get_mc_datasets(config_inst, proc_obj):
+
+                        # Build shift_sources tuple
+                        shift_sources = []
+                        for param_obj in proc_obj.parameters:
+                            if config_inst.name not in param_obj.config_data:
+                                continue
                             if (
-                                config_inst.name in param_obj.config_data and
-                                self.inference_model_inst.require_shapes_for_parameter(param_obj)
-                            )
-                        ),
-                        variables=variables,
-                        **req_kwargs,
-                    )
-                    for dataset in self.get_mc_datasets(config_inst, proc_obj)
-                }
-                for proc_obj in cat_obj.processes
-                if config_inst.name in proc_obj.config_data and not proc_obj.is_dynamic
-            }
+                                (param_obj.type.is_shape and not param_obj.transformations.any_from_rate) or
+                                (param_obj.type.is_rate and param_obj.transformations.any_from_shape)
+                            ):
+                                shift_sources.append(param_obj.config_data[config_inst.name].shift_source)
+                            # if (config_inst.name in param_obj.config_data and
+                            #     self.inference_model_inst.require_shapes_for_parameter(param_obj)):
+                            #     print(f"Adding shift source for parameter: {param_obj.name}")
+                            #     shift_sources.append(
+                            #         param_obj.config_data[config_inst.name].shift_source
+                            #     )
+                        shift_sources = tuple(shift_sources) + ("nominal",)
+
+                        # Compute the value
+                        value = self.reqs.MergeShiftedHistograms.req_different_branching(
+                            self,
+                            config=config_inst.name,
+                            dataset=dataset,
+                            shift_sources=shift_sources,
+                            variables=variables,
+                            **req_kwargs,
+                        )
+
+                        # Store it
+                        reqs[config_inst.name][proc_obj.name][dataset] = value
+
             # add merged histograms for data, but only if
             # - data in that category is not faked from mc, or
             # - at least one process object is dynamic (that usually means data-driven)
@@ -97,11 +119,12 @@ class CreateDatacards(
                 (data_datasets := self.get_data_datasets(config_inst, cat_obj))
             ):
                 reqs[config_inst.name]["data"] = {
-                    dataset: self.reqs.MergeHistograms.req_different_branching(
+                    dataset: self.reqs.MergeShiftedHistograms.req_different_branching(
                         self,
                         config=config_inst.name,
                         dataset=dataset,
                         variables=variables,
+                        shift_sources=("nominal",),
                         **req_kwargs,
                     )
                     for dataset in data_datasets
@@ -152,6 +175,31 @@ class CreateDatacards(
                     for dataset_name, task in dataset_reqs.items():
                         hist_reqs[config_name][proc_name].setdefault(dataset_name, set()).add(task)
         return reqs
+
+    # def requires(self):
+    #     # retrieving reqs from parent class didn't work due to `bypass_branch_requirements`
+    #     # in `PlotVariablesBaseSingleShift`; copy-pasted the relevant part of the code here
+    #     reqs = {}
+
+    #     for config_inst, datasets in zip(self.config_insts, self.datasets):
+    #         logger.debug(f"datasets to plot for config '{config_inst.name}': {datasets}")
+    #         reqs[config_inst.name] = {}
+    #         for d in datasets:
+    #             if d not in config_inst.datasets:
+    #                 logger.warning(
+    #                     f"dataset '{d}' not found in config '{config_inst.name}', skipping it",
+    #                 )
+    #                 continue
+    #             reqs[config_inst.name][d] = self.reqs.MergeHistograms.req_different_branching(
+    #                 self,
+    #                 config=config_inst.name,
+    #                 shift=self.global_shift_insts[config_inst].name,
+    #                 dataset=d,
+    #                 branch=-1,
+    #                 _prefer_cli={"variables"},
+    #             )
+
+    #     return reqs
 
     def requires(self):
         cat_objs = list(self.branch_map.values())[0]["categories"]
@@ -257,7 +305,11 @@ class CreateDatacards(
                             if h_proc is None:
                                 h_proc = h
                             else:
-                                h_proc += h
+                                try:
+                                    h_proc += h
+                                except:
+                                    q = __import__('functools').partial(__import__('os')._exit, 0)
+                                    __import__('IPython').embed()
 
                         # there must be a histogram
                         if h_proc is None:
@@ -274,7 +326,10 @@ class CreateDatacards(
                         if proc_obj:
                             for param_obj in proc_obj.parameters:
                                 # skip the parameter when varied hists are not needed
-                                if not self.inference_model_inst.require_shapes_for_parameter(param_obj):
+                                if not (
+                                    (param_obj.type.is_shape and not param_obj.transformations.any_from_rate) or
+                                    (param_obj.type.is_rate and param_obj.transformations.any_from_shape)
+                                ):
                                     continue
                                 # store the varied hists
                                 # hists[proc_obj_name] = {}

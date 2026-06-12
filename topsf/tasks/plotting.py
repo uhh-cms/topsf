@@ -13,6 +13,7 @@ from columnflow.tasks.framework.decorators import view_output_plots
 # from columnflow.util import dict_add_strict
 
 from topsf.tasks.base import TopSFTask
+logger = law.logger.get_logger(__name__)
 
 
 class PlotVariables1D(
@@ -28,6 +29,31 @@ class PlotVariables1D(
         default=False,
         description="Use pretty legend",
     )
+
+    def requires(self):
+        # retrieving reqs from parent class didn't work due to `bypass_branch_requirements`
+        # in `PlotVariablesBaseSingleShift`; copy-pasted the relevant part of the code here
+        reqs = {}
+
+        for config_inst, datasets in zip(self.config_insts, self.datasets):
+            logger.debug(f"datasets to plot for config '{config_inst.name}': {datasets}")
+            reqs[config_inst.name] = {}
+            for d in datasets:
+                if d not in config_inst.datasets:
+                    logger.warning(
+                        f"dataset '{d}' not found in config '{config_inst.name}', skipping it",
+                    )
+                    continue
+                reqs[config_inst.name][d] = self.reqs.MergeHistograms.req_different_branching(
+                    self,
+                    config=config_inst.name,
+                    shift=self.global_shift_insts[config_inst].name,
+                    dataset=d,
+                    branch=-1,
+                    _prefer_cli={"variables"},
+                )
+
+        return reqs
 
     @law.decorator.log
     @view_output_plots
@@ -121,6 +147,22 @@ class PlotVariables1D(
                     "  - requested variable requires columns that were missing during histogramming\n" +
                     "  - selected --processes did not match any value on the process axis of the input histogram",
                 )
+            if all(not _hists for _hists in hists.values()):
+                raise Exception(
+                    "no histograms found to plot after processing; possible reasons:\n" +
+                    "  - requested variable requires columns that were missing during histogramming\n" +
+                    "  - selected --processes did not match any value on the process axis of the input histogram\n" +
+                    "configs with no histograms: " +
+                    ", ".join(config_inst.name for config_inst, _hists in hists.items() if not _hists)
+                )
+            if any(not _hists for _hists in hists.values()):
+                logger.warning(
+                    "some configs do not have any histograms to plot after processing; possible reasons:\n" +
+                    "  - requested variable requires columns that were missing during histogramming\n" +
+                    "  - selected --processes did not match any value on the process axis of the input histogram\n" +
+                    "configs with no histograms: " +
+                    ", ".join(config_inst.name for config_inst, _hists in hists.items() if not _hists)
+                )
 
             # merge configs if multiconfig
             if len(self.config_insts) != 1:
@@ -146,7 +188,7 @@ class PlotVariables1D(
                 for process_inst in sorted(hists, key=process_insts.index)
             )
 
-            # temporarily use a merged luminostiy value, assigned to the first config
+            # temporarily use a merged luminosity value, assigned to the first config
             config_inst = self.config_insts[0]
             lumi = sum([_config_inst.x.luminosity for _config_inst in self.config_insts])
             with law.util.patch_object(config_inst.x, "luminosity", lumi):

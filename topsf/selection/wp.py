@@ -3,31 +3,34 @@
 """
 Selection methods related to WP analysis.
 """
+from __future__ import annotations
+import law
 
 from operator import and_
 from functools import reduce
 from collections import defaultdict
 
 from columnflow.util import maybe_import
+from columnflow.columnar_util import EMPTY_FLOAT
 
 from columnflow.selection import Selector, SelectionResult, selector
-from columnflow.selection.cms.met_filters import met_filters
-from columnflow.selection.cms.jets import jet_veto_map
 
-from columnflow.production.cms.mc_weight import mc_weight
 # from columnflow.production.cms.jet import jet_id. # FIXME recalculate jetId in Nano version > v12
-from columnflow.production.util import attach_coffea_behavior
 from columnflow.production.processes import process_ids
 
 from topsf.selection.util import masked_sorted_indices
-from topsf.selection.default import increment_stats
+from topsf.selection.stats import topsf_increment_stats
 
 from topsf.production.wp import wp_category_ids
 from topsf.production.gen_top import gen_parton_top
 
+from topsf.selection.common import get_weights_and_no_sel_mask, pre_selection
+from topsf.util import has_tag, record_calls
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
+
+logger = law.logger.get_logger(__name__)
 
 
 @selector(
@@ -42,9 +45,8 @@ def wp_fatjet_selection(
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
     """
-    Select AK8 jets that are well separated from the lepton.
+    Select AK8 jets.
     """
-
     # get selection parameters from the config
     self.cfg = self.config_inst.x.jet_selection.get("ak8", "FatJet")
 
@@ -120,27 +122,25 @@ def wp_fatjet_selection_init(self: Selector) -> None:
     dataset_inst = getattr(self, "dataset_inst", None)
     if dataset_inst is not None and dataset_inst.has_tag("is_ttbar"):
         self.uses.add(gen_parton_top)
+        self.produces.add(gen_parton_top)
 
 
 @selector(
     uses={
-        attach_coffea_behavior,
-        mc_weight,
+        pre_selection,
         wp_category_ids,
         process_ids,
-        met_filters,
         wp_fatjet_selection,
-        jet_veto_map,
-        increment_stats,
+        topsf_increment_stats,
+        get_weights_and_no_sel_mask,
     },
     produces={
+        pre_selection,
         wp_category_ids,
-        mc_weight,
         process_ids,
-        met_filters,
         wp_fatjet_selection,
-        jet_veto_map,
-        increment_stats,
+        topsf_increment_stats,
+        get_weights_and_no_sel_mask,
     },
     exposed=True,
 )
@@ -151,147 +151,79 @@ def wp(
     msoftdrop_range=None,
     **kwargs,
 ) -> tuple[ak.Array, SelectionResult]:
-    # ensure coffea behavior
-    events = self[attach_coffea_behavior](events, **kwargs)
+    run_list = []
+    with record_calls(self, run_list):
+        events, results = self[pre_selection](events, stats, **kwargs)
 
-    # prepare the selection results that are updated at every step
-    results = SelectionResult()
+        # fatjet selection
+        events, wp_fatjet_results = self[wp_fatjet_selection](
+            events,
+            msoftdrop_range=msoftdrop_range,
+            **kwargs,
+        )
+        results += wp_fatjet_results
 
-    # MET filters
-    events, met_filters_results = self[met_filters](events, **kwargs)
-    results += met_filters_results
+        # derive event weights and add base mask of all events that are not considered bad to "cleanup" step
+        events, results = self[get_weights_and_no_sel_mask](events, results, **kwargs)
+        results.steps["cleanup"] = results.steps.cleanup & results.steps["no_sel_mask"]
 
-    # fatjet selection
-    events, wp_fatjet_results = self[wp_fatjet_selection](
-        events,
-        msoftdrop_range=msoftdrop_range,
-        **kwargs,
+        results.steps["all"] = (
+            results.steps.cleanup &
+            results.steps.FatJet
+        )
+
+        # combined event selection after all steps
+        event_sel = reduce(and_, results.steps.values())
+        results.event = event_sel
+
+        for step, sel in results.steps.items():
+            n_sel = ak.sum(sel, axis=-1)
+            logger.debug(f"{step}: {n_sel}")
+
+        n_sel = ak.sum(event_sel, axis=-1)
+        logger.debug(f"__all__: {n_sel}")
+
+        # produce features relevant for selection and event weights
+        if self.dataset_inst.has_tag("is_ttbar"):
+            events = self[gen_parton_top](events, **kwargs)
+
+        # build categories
+        events = self[wp_category_ids](events, **kwargs)
+
+        # create process ids
+        events = self[process_ids](events, **kwargs)
+
+        # increment stats
+        events = self[topsf_increment_stats](events, results, stats, **kwargs)
+        # no custom hists needed, because we don't do b tagging in wp analysis
+
+        def log_fraction(stats_key: str, msg: str | None = None):
+            if not stats.get(stats_key):
+                return
+            if not msg:
+                msg = "Fraction of {stats_key}"
+            logger.info(f"{msg}: {(100 * stats[stats_key] / stats['num_events']):.2f}%")
+
+        log_fraction("num_negative_weights", "Fraction of negative weights")
+        log_fraction("num_pu_0", "Fraction of events with pu_weight == 0")
+        log_fraction("num_pu_100", "Fraction of events with pu_weight >= 100")
+
+        # temporary fix for optional types from Calibration (e.g. events.Jet.pt --> ?float32)
+        # TODO: remove as soon as possible as it might lead to weird bugs when there are none entries in inputs
+        events = ak.fill_none(events, EMPTY_FLOAT)
+
+        logger.info(f"Selected {ak.sum(results.event)} from {len(events)} events")
+
+    logger.info_once(
+        "Finished WP selection steps:\n" +
+        "\n".join(run_list)
     )
-    results += wp_fatjet_results
-
-    # apply jet veto map
-    events, jet_veto_results = self[jet_veto_map](events, **kwargs)
-    results += jet_veto_results
-
-    # combined event selection after all steps
-    event_sel = reduce(and_, results.steps.values())
-    results.event = event_sel
-
-    for step, sel in results.steps.items():
-        n_sel = ak.sum(sel, axis=-1)
-        print(f"{step}: {n_sel}")
-
-    n_sel = ak.sum(event_sel, axis=-1)
-    print(f"__all__: {n_sel}")
-
-    # produce features relevant for selection and event weights
-    if self.dataset_inst.has_tag("is_ttbar"):
-        events = self[gen_parton_top](events, **kwargs)
-
-    # build categories
-    events = self[wp_category_ids](events, **kwargs)
-
-    # create process ids
-    events = self[process_ids](events, **kwargs)
-
-    # increment stats
-    self[increment_stats](events, results, stats, **kwargs)
 
     return events, results
 
 
 @wp.init
 def wp_init(self: Selector):
-    dataset_inst = getattr(self, "dataset_inst", None)
-    if dataset_inst is not None and dataset_inst.is_data:
-        raise RuntimeError("selector 'wp' should not be run on data")
-
-    # if ttbar, produce parton-level top quarks
-    # (relevant for jet selection)
-    dataset_inst = getattr(self, "dataset_inst", None)
-    if dataset_inst and dataset_inst.has_tag("is_ttbar"):
-        self.uses.add(gen_parton_top)
-        self.produces.add(gen_parton_top)
-
-
-@selector(
-    uses={
-        attach_coffea_behavior,
-        mc_weight,
-        wp_category_ids,
-        process_ids,
-        met_filters,
-        wp_fatjet_selection,
-        increment_stats,
-    },
-    produces={
-        wp_category_ids,
-        mc_weight,
-        process_ids,
-        met_filters,
-        wp_fatjet_selection,
-        increment_stats,
-    },
-    exposed=True,
-)
-def wp_wo_jvm(
-    self: Selector,
-    events: ak.Array,
-    stats: defaultdict,
-    msoftdrop_range=None,
-    **kwargs,
-) -> tuple[ak.Array, SelectionResult]:
-    # ensure coffea behavior
-    events = self[attach_coffea_behavior](events, **kwargs)
-
-    # prepare the selection results that are updated at every step
-    results = SelectionResult()
-
-    # MET filters
-    events, met_filters_results = self[met_filters](events, **kwargs)
-    results += met_filters_results
-
-    # fatjet selection
-    events, wp_fatjet_results = self[wp_fatjet_selection](
-        events,
-        msoftdrop_range=msoftdrop_range,
-        **kwargs,
-    )
-    results += wp_fatjet_results
-
-    # # apply jet veto map
-    # events, jet_veto_results = self[jet_veto_map](events, **kwargs)
-    # results += jet_veto_results
-
-    # combined event selection after all steps
-    event_sel = reduce(and_, results.steps.values())
-    results.event = event_sel
-
-    for step, sel in results.steps.items():
-        n_sel = ak.sum(sel, axis=-1)
-        print(f"{step}: {n_sel}")
-
-    n_sel = ak.sum(event_sel, axis=-1)
-    print(f"__all__: {n_sel}")
-
-    # produce features relevant for selection and event weights
-    if self.dataset_inst.has_tag("is_ttbar"):
-        events = self[gen_parton_top](events, **kwargs)
-
-    # build categories
-    events = self[wp_category_ids](events, **kwargs)
-
-    # create process ids
-    events = self[process_ids](events, **kwargs)
-
-    # increment stats
-    self[increment_stats](events, results, stats, **kwargs)
-
-    return events, results
-
-
-@wp_wo_jvm.init
-def wp_wo_jvm_init(self: Selector):
     dataset_inst = getattr(self, "dataset_inst", None)
     if dataset_inst is not None and dataset_inst.is_data:
         raise RuntimeError("selector 'wp' should not be run on data")

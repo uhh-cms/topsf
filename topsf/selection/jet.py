@@ -64,6 +64,12 @@ def jet_selection(
                 "LightJet": lightjet_indices,
             },
         },
+        aux={
+            "jet_mask": jet_mask,
+            "bjet_mask": bjet_mask,
+            "ht": ak.sum(events.Jet.pt[jet_mask], axis=1),
+            "n_central_jets": ak.num(jet_indices),
+        }
     )
 
 

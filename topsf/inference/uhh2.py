@@ -117,7 +117,7 @@ def uhh2(self):
                 for config_inst in self.config_insts
             },
             mc_stats="0 1 1",  # FIXME: make configurable
-            flow_strategy="move",
+            flow_strategy="ignore",
             empty_bin_value=0.0,  # NOTE: remove this when removing custom rebin task
         )
 
@@ -239,7 +239,7 @@ def uhh2(self):
 
     for proc in processes:
         for unc in uncertainty_shifts:
-            if proc == "mj" and unc in ["FSR", "ISR"]:
+            if proc == "mj" and unc in ["fsr", "isr"]:
                 continue
             if unc in ["mur", "muf"] and not (proc.startswith("st") or proc.startswith("tt")):
                 continue

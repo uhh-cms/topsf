@@ -184,20 +184,34 @@ def add_categories(config: od.Config) -> None:
         "loose",
         "very_loose",
     ]
+    tau32_bin_names = [
+        "below_very_tight",
+        "very_tight_to_tight",
+        "tight_to_medium",
+        "medium_to_loose",
+        "loose_to_very_loose",
+        "above_very_loose",
+    ]
+    # tau32_bins = [0] + [
+    #     config.x.toptag_working_points["tau32"][wp]
+    #     for wp in tau32_wps
+    # ] + [1]
     tau32_bins = [0] + [
-        config.x.toptag_working_points["tau32"][wp]
+        config.x.toptag_working_points[wp]
         for wp in tau32_wps
     ] + [1]
 
     tau32_categories = []
-    for cat_idx, (tau32_min, tau32_max) in enumerate(
-        zip(tau32_bins[:-1], tau32_bins[1:]),
+    for cat_idx, ((tau32_min, tau32_max), bin_name) in enumerate(
+        # zip(tau32_bins[:-1], tau32_bins[1:]),
+        zip(zip(tau32_bins[:-1], tau32_bins[1:]), tau32_bin_names)
     ):
         tau32_min_repr = f"{int(tau32_min*100):03d}"
         tau32_max_repr = f"{int(tau32_max*100):03d}"
         cat_label = rf"{tau32_min} $\leq$ $\tau_{{3}}/\tau_{{2}}$ < {tau32_max}"
 
-        cat_name = f"tau32_{tau32_min_repr}_{tau32_max_repr}"
+        # cat_name = f"tau32_{tau32_min_repr}_{tau32_max_repr}"
+        cat_name = f"tau32_{bin_name}"
         sel_name = f"sel_{cat_name}"
 
         @categorizer(

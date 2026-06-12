@@ -17,7 +17,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 
 
 @selector(
-    uses={choose_lepton, "MET.pt", "MET.phi"},
+    uses={choose_lepton},
 )
 def w_lep_selection(
     self: Selector,
@@ -32,7 +32,10 @@ def w_lep_selection(
     events = self[choose_lepton](events, **kwargs)
 
     # get leptonic W pt from lepton and missing energy
-    met = events.MET
+    if self.config_inst.x.year == 2024:
+        met = events.PuppiMET
+    else:
+        met = events.MET
     lep = events.Lepton
     w_lep_pt = np.sqrt(
         (met.pt * np.cos(met.phi) + lep.pt * np.cos(lep.phi))**2 +
@@ -49,3 +52,11 @@ def w_lep_selection(
         },
         objects={},
     )
+
+
+@w_lep_selection.init
+def w_lep_selection_init(self: Selector) -> None:
+    if self.config_inst.x.year == 2024:
+        self.uses |= {"PuppiMET.pt", "PuppiMET.phi"}
+    else:
+        self.uses |= {"MET.pt", "MET.phi"}

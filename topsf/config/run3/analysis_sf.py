@@ -41,7 +41,7 @@ ana.x.bash_sandboxes = [
 # (used in cf.HTCondorWorkflow)
 ana.x.cmssw_sandboxes = [
     # "$CF_BASE/sandboxes/cmssw_default.sh",
-    "$TOPSF_BASE/sandboxes/combine_cmssw.sh",
+    # "$TOPSF_BASE/sandboxes/combine_cmssw.sh",
 ]
 
 # clear the list when cmssw bundling is disabled
@@ -57,11 +57,13 @@ ana.x.config_groups = {}
 # set up configs
 #
 
-from topsf.config.run3.config_sf import add_config
+from topsf.config.run3.config_sf_new import add_new_config
+
 import cmsdb.campaigns.run3_2022_preEE_nano_v12
 import cmsdb.campaigns.run3_2022_postEE_nano_v12
 import cmsdb.campaigns.run3_2023_preBPix_nano_v12
 import cmsdb.campaigns.run3_2023_postBPix_nano_v12
+from cmsdb.campaigns.run3_2024_nano_v15 import campaign_run3_2024_nano_v15 as campaign_run3_2024_nano_v15  # noqa
 
 campaign_run3_2022_preEE_nano_v12 = cmsdb.campaigns.run3_2022_preEE_nano_v12.campaign_run3_2022_preEE_nano_v12
 campaign_run3_2022_preEE_nano_v12.x.EE = "pre"
@@ -76,96 +78,119 @@ campaign_run3_2023_postBPix_nano_v12 = cmsdb.campaigns.run3_2023_postBPix_nano_v
 campaign_run3_2023_postBPix_nano_v12.x.BPix = "post"
 
 # default config
-config_2022_preEE = add_config(
+config_2022_preEE = add_new_config(
     analysis_sf,
     campaign_run3_2022_preEE_nano_v12.copy(),
     config_name="run3_sf_2022_preEE_nano_v12",
     config_id=1_03_22_11,  # 1: SF 03: Run3 22: year 1: full stat 1: pre EE
 )
 
-config_2022_postEE = add_config(
+config_2022_postEE = add_new_config(
     analysis_sf,
     campaign_run3_2022_postEE_nano_v12.copy(),
     config_name="run3_sf_2022_postEE_nano_v12",
     config_id=1_03_22_12,  # 1: SF 03: Run3 22: year 1: full stat 2: post EE
 )
 
-config_2023_preBPix = add_config(
+config_2023_preBPix = add_new_config(
     analysis_sf,
     campaign_run3_2023_preBPix_nano_v12.copy(),
     config_name="run3_sf_2023_preBPix_nano_v12",
     config_id=1_03_23_11,  # 1: SF 03: Run3 23: year 1: full stat 1: pre BPix
 )
 
-config_2023_postBPix = add_config(
+config_2023_postBPix = add_new_config(
     analysis_sf,
     campaign_run3_2023_postBPix_nano_v12.copy(),
     config_name="run3_sf_2023_postBPix_nano_v12",
     config_id=1_03_23_12,  # 1: SF 03: Run3 23: year 1: full stat 2: post BPix
 )
 
-# config with limited number of files
-config_2022_preEE_limited = add_config(
+config_2024 = add_new_config(
     analysis_sf,
-    campaign_run3_2022_preEE_nano_v12.copy(),
-    config_name="run3_sf_2022_preEE_nano_v12_limited",
-    config_id=1_03_22_21,  # 1: SF 03: Run3 22: year 2: limited stat 1: pre EE
-    limit_dataset_files=2,
+    campaign_run3_2024_nano_v15.copy(),
+    config_name="run3_sf_2024_nano_v15",
+    config_id=1_03_24_11,  # 1: SF 03: Run3 24: year 1: full stat 1: full campaign
 )
 
-config_2022_postEE_limited = add_config(
-    analysis_sf,
-    campaign_run3_2022_postEE_nano_v12.copy(),
-    config_name="run3_sf_2022_postEE_nano_v12_limited",
-    config_id=1_03_22_22,  # 1: SF 03: Run3 22: year 2: limited stat 2: post EE
-    limit_dataset_files=2,
-)
+# # config with limited number of files
+# config_2022_preEE_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2022_preEE_nano_v12.copy(),
+#     config_name="run3_sf_2022_preEE_nano_v12_limited",
+#     config_id=1_03_22_21,  # 1: SF 03: Run3 22: year 2: limited stat 1: pre EE
+#     limit_dataset_files=2,
+# )
 
-config_2023_preBPix_limited = add_config(
-    analysis_sf,
-    campaign_run3_2023_preBPix_nano_v12.copy(),
-    config_name="run3_sf_2023_preBPix_nano_v12_limited",
-    config_id=1_03_23_21,  # 1: SF 03: Run3 23: year 2: limited stat 1: pre BPix
-    limit_dataset_files=2,
-)
+# config_2022_postEE_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2022_postEE_nano_v12.copy(),
+#     config_name="run3_sf_2022_postEE_nano_v12_limited",
+#     config_id=1_03_22_22,  # 1: SF 03: Run3 22: year 2: limited stat 2: post EE
+#     limit_dataset_files=2,
+# )
 
-config_2023_postBPix_limited = add_config(
-    analysis_sf,
-    campaign_run3_2023_postBPix_nano_v12.copy(),
-    config_name="run3_sf_2023_postBPix_nano_v12_limited",
-    config_id=1_03_23_22,  # 1: SF 03: Run3 23: year 2: limited stat 2: post BPix
-    limit_dataset_files=2,
-)
+# config_2023_preBPix_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2023_preBPix_nano_v12.copy(),
+#     config_name="run3_sf_2023_preBPix_nano_v12_limited",
+#     config_id=1_03_23_21,  # 1: SF 03: Run3 23: year 2: limited stat 1: pre BPix
+#     limit_dataset_files=2,
+# )
 
-# config with medium limited number of files
-config_2022_preEE_medium_limited = add_config(
-    analysis_sf,
-    campaign_run3_2022_preEE_nano_v12.copy(),
-    config_name="run3_sf_2022_preEE_nano_v12_medium_limited",
-    config_id=1_03_22_31,
-    limit_dataset_files=10,
-)
+# config_2023_postBPix_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2023_postBPix_nano_v12.copy(),
+#     config_name="run3_sf_2023_postBPix_nano_v12_limited",
+#     config_id=1_03_23_22,  # 1: SF 03: Run3 23: year 2: limited stat 2: post BPix
+#     limit_dataset_files=2,
+# )
 
-config_2022_postEE_medium_limited = add_config(
-    analysis_sf,
-    campaign_run3_2022_postEE_nano_v12.copy(),
-    config_name="run3_sf_2022_postEE_nano_v12_medium_limited",
-    config_id=1_03_22_32,
-    limit_dataset_files=10,
-)
+# config_2024_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2024_nano_v15.copy(),
+#     config_name="run3_sf_2024_nano_v15_limited",
+#     config_id=1_03_24_21,  # 1: SF 03: Run3 24: year 2: limited stat 1: full campaign
+#     limit_dataset_files=2,
+# )
 
-config_2023_preBPix_medium_limited = add_config(
-    analysis_sf,
-    campaign_run3_2023_preBPix_nano_v12.copy(),
-    config_name="run3_sf_2023_preBPix_nano_v12_medium_limited",
-    config_id=1_03_23_31,
-    limit_dataset_files=10,
-)
+# # config with medium limited number of files
+# config_2022_preEE_medium_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2022_preEE_nano_v12.copy(),
+#     config_name="run3_sf_2022_preEE_nano_v12_medium_limited",
+#     config_id=1_03_22_31,
+#     limit_dataset_files=10,
+# )
 
-config_2023_postBPix_medium_limited = add_config(
-    analysis_sf,
-    campaign_run3_2023_postBPix_nano_v12.copy(),
-    config_name="run3_sf_2023_postBPix_nano_v12_medium_limited",
-    config_id=1_03_23_32,
-    limit_dataset_files=10,
-)
+# config_2022_postEE_medium_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2022_postEE_nano_v12.copy(),
+#     config_name="run3_sf_2022_postEE_nano_v12_medium_limited",
+#     config_id=1_03_22_32,
+#     limit_dataset_files=10,
+# )
+
+# config_2023_preBPix_medium_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2023_preBPix_nano_v12.copy(),
+#     config_name="run3_sf_2023_preBPix_nano_v12_medium_limited",
+#     config_id=1_03_23_31,
+#     limit_dataset_files=10,
+# )
+
+# config_2023_postBPix_medium_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2023_postBPix_nano_v12.copy(),
+#     config_name="run3_sf_2023_postBPix_nano_v12_medium_limited",
+#     config_id=1_03_23_32,
+#     limit_dataset_files=10,
+# )
+
+# config_2024_medium_limited = add_new_config(
+#     analysis_sf,
+#     campaign_run3_2024_nano_v15.copy(),
+#     config_name="run3_sf_2024_nano_v15_medium_limited",
+#     config_id=1_03_24_31,
+#     limit_dataset_files=10,
+# )
